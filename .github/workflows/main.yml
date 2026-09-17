@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-apk:
-    name: Build Android APK
+    name: Build APK
     runs-on: ubuntu-latest
 
     steps:
@@ -25,14 +25,16 @@ jobs:
           java-version: "17"
           cache: gradle
 
-      - name: Install Gradle
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.7"
 
       - name: Create Gradle Wrapper
         working-directory: android
-        run: gradle wrapper --gradle-version 8.7
+        run: |
+          gradle wrapper --gradle-version 8.7
+          chmod +x gradlew
 
       - name: Build Debug APK
         working-directory: android
