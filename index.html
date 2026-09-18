@@ -10,6 +10,843 @@
   <title>DBX 2231 Graphic Equalizer</title>
 
   <style>
+/* =========================================================
+   DBX 2231 FULL HARDWARE / RACK SKIN
+   ========================================================= */
+
+:root {
+  --rack-bg: #050a0f;
+  --rack-panel: #101a22;
+  --rack-panel-2: #16232d;
+  --rack-border: #344b5b;
+  --rack-blue: #08aaff;
+  --rack-blue-bright: #00c8ff;
+  --rack-green: #20ff65;
+  --rack-red: #ff3030;
+  --rack-yellow: #ffd21c;
+  --rack-text: #e8f2fa;
+  --rack-muted: #8d9ba7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 50% 0%, #132633 0%, #05090d 55%, #020407 100%);
+  color: var(--rack-text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ---------- HARDWARE CHASSIS ---------- */
+
+.equalizer-app,
+.app,
+.mixer,
+.main-container {
+  width: 100%;
+  max-width: 1900px;
+  margin: 0 auto;
+}
+
+.hardware-rack {
+  position: relative;
+  padding: 8px;
+  background:
+    linear-gradient(135deg, #26323a, #080d11 35%, #1c2830 70%, #05080a);
+  border: 1px solid #536673;
+  box-shadow:
+    inset 0 0 0 2px #071017,
+    inset 0 0 25px rgba(0,0,0,.8),
+    0 12px 40px rgba(0,0,0,.7);
+}
+
+/* ---------- HEADER ---------- */
+
+.rack-header {
+  min-height: 78px;
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) minmax(260px, 1.2fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+
+  background:
+    linear-gradient(180deg, #17242d, #091118);
+  border: 1px solid #3d5362;
+  border-radius: 7px;
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.08),
+    inset 0 -8px 20px rgba(0,0,0,.35);
+}
+
+.rack-logo {
+  font-size: clamp(26px, 3vw, 48px);
+  font-weight: 900;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.rack-logo span {
+  color: var(--rack-blue);
+  text-shadow: 0 0 10px rgba(0,190,255,.65);
+}
+
+.rack-subtitle {
+  margin-top: 5px;
+  color: #1fbaff;
+  font-size: 11px;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.spectrum-header {
+  height: 58px;
+  min-width: 220px;
+  padding: 5px 8px;
+  border: 1px solid #294858;
+  border-radius: 5px;
+  background: #03080c;
+  overflow: hidden;
+}
+
+.spectrum-bars {
+  height: 100%;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 3px;
+}
+
+.spectrum-bars span {
+  width: 5px;
+  min-height: 5px;
+  height: 25%;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(to top, #007bb5, #00caff);
+  box-shadow: 0 0 7px rgba(0,190,255,.5);
+}
+
+/* ---------- TWO CHANNELS ---------- */
+
+.channels-rack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.channel-rack {
+  min-width: 0;
+  padding: 8px;
+
+  background:
+    linear-gradient(145deg, #1a2a34, #0b131a 42%, #15242e);
+  border: 1px solid #476171;
+  border-radius: 8px;
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.08),
+    inset 0 -15px 30px rgba(0,0,0,.4),
+    0 5px 15px rgba(0,0,0,.45);
+}
+
+/* ---------- CHANNEL HEADER ---------- */
+
+.channel-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+
+  background: linear-gradient(180deg, #182832, #091219);
+  border: 1px solid #334d5c;
+  border-radius: 5px;
+}
+
+.channel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(17px, 1.5vw, 25px);
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+
+.channel-led {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--rack-green);
+  box-shadow:
+    0 0 5px var(--rack-green),
+    0 0 16px var(--rack-green);
+}
+
+.channel-status {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.status-btn {
+  min-height: 32px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: 1px solid #354e5c;
+  background: #081117;
+  color: #dbe5eb;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.status-btn.active::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--rack-green);
+  box-shadow: 0 0 8px var(--rack-green);
+}
+
+.status-btn.bypass::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--rack-red);
+  box-shadow: 0 0 8px var(--rack-red);
+}
+
+.status-btn.test::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--rack-yellow);
+  box-shadow: 0 0 8px var(--rack-yellow);
+}
+
+/* ---------- CONTROL STRIP ---------- */
+
+.channel-controls {
+  display: grid;
+  grid-template-columns: 1fr .9fr .8fr 1.6fr 58px;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+.rack-control {
+  min-height: 104px;
+  padding: 8px;
+
+  background:
+    linear-gradient(145deg, #152530, #071016);
+  border: 1px solid #3b5665;
+  border-radius: 5px;
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.07),
+    inset 0 -8px 15px rgba(0,0,0,.35);
+}
+
+.rack-control-title {
+  margin-bottom: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #cbd7df;
+  letter-spacing: .5px;
+}
+
+/* ---------- HARDWARE GAIN KNOB ---------- */
+
+.gain-knob-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.hardware-knob {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+
+  background:
+    radial-gradient(circle at 35% 30%, #7d8990 0 4%, #273039 22%, #070a0d 63%, #151c21 72%, #59656d 100%);
+
+  border: 2px solid #65747c;
+
+  box-shadow:
+    inset 0 0 8px #000,
+    0 2px 5px #000;
+}
+
+.hardware-knob::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 7px;
+  width: 3px;
+  height: 19px;
+  transform: translateX(-50%);
+  border-radius: 3px;
+  background: #dbe9f0;
+  box-shadow: 0 0 5px rgba(255,255,255,.5);
+}
+
+.gain-value {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* ---------- BIG LED METERS ---------- */
+
+.level-meter {
+  min-height: 66px;
+  padding: 8px;
+  border: 1px solid #263f4d;
+  border-radius: 4px;
+  background: #03080b;
+}
+
+.meter-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  color: #aebbc3;
+  font-size: 9px;
+}
+
+.led-meter {
+  height: 25px;
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 3px;
+}
+
+.led-meter span {
+  border-radius: 2px;
+  background: #0d181b;
+  border: 1px solid #1c2b2e;
+  box-shadow: inset 0 0 3px #000;
+}
+
+.led-meter span.active {
+  background: var(--rack-green);
+  border-color: #6aff92;
+  box-shadow:
+    0 0 6px var(--rack-green),
+    inset 0 0 4px #fff;
+}
+
+.led-meter span:nth-child(n+10).active {
+  background: var(--rack-yellow);
+  border-color: #fff17b;
+  box-shadow: 0 0 7px var(--rack-yellow);
+}
+
+.led-meter span:nth-child(n+13).active {
+  background: var(--rack-red);
+  border-color: #ff8b8b;
+  box-shadow: 0 0 8px var(--rack-red);
+}
+
+.clip-indicator {
+  height: 100%;
+  min-height: 66px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #692626;
+  border-radius: 4px;
+  background: linear-gradient(#321014, #15080a);
+  color: #ffb8b8;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.clip-indicator::before {
+  content: "";
+  width: 13px;
+  height: 13px;
+  margin-bottom: 5px;
+  border-radius: 50%;
+  background: #8d1c20;
+  box-shadow: inset 0 0 5px #000;
+}
+
+.clip-indicator.clip::before {
+  background: var(--rack-red);
+  box-shadow:
+    0 0 7px var(--rack-red),
+    0 0 18px var(--rack-red);
+}
+
+/* ---------- 31 BAND EQ ---------- */
+
+.eq-rack {
+  position: relative;
+  padding: 10px 8px 7px;
+
+  background:
+    linear-gradient(90deg, #0a1218, #14232d 50%, #091218);
+  border: 1px solid #304b5a;
+  border-radius: 5px;
+
+  overflow: hidden;
+}
+
+.eq-scale {
+  position: absolute;
+  left: 5px;
+  top: 10px;
+  bottom: 48px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  color: #dbe7ee;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.eq-bands {
+  display: grid;
+  grid-template-columns: repeat(31, minmax(20px, 1fr));
+  gap: 4px;
+
+  margin-left: 28px;
+  min-width: 0;
+}
+
+.eq-band {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.eq-track {
+  position: relative;
+  width: 100%;
+  height: clamp(250px, 27vw, 390px);
+
+  display: flex;
+  justify-content: center;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(20% - 1px),
+      rgba(125,155,170,.24) calc(20% - 1px),
+      rgba(125,155,170,.24) 20%
+    );
+}
+
+.eq-track::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  transform: translateX(-50%);
+
+  border-radius: 7px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      #071015,
+      #13232c 45%,
+      #061016
+    );
+
+  border: 1px solid #425966;
+
+  box-shadow:
+    inset 0 0 5px #000,
+    0 0 3px rgba(0,0,0,.8);
+}
+
+/* glowing blue signal line */
+.eq-track::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 4px;
+  height: var(--fader-level, 50%);
+  transform: translateX(-50%);
+
+  background: linear-gradient(to top, #0077ff, #00d9ff);
+  border-radius: 5px;
+
+  box-shadow:
+    0 0 5px #00bfff,
+    0 0 12px rgba(0,180,255,.65);
+  pointer-events: none;
+}
+
+/* native fader */
+.eq-band input[type="range"] {
+  position: absolute;
+  z-index: 3;
+
+  width: clamp(250px, 27vw, 390px);
+  height: 28px;
+
+  margin: 0;
+  transform:
+    rotate(-90deg)
+    translateX(-50%);
+
+  transform-origin: center;
+
+  opacity: 0;
+  cursor: pointer;
+}
+
+.eq-knob {
+  position: absolute;
+  z-index: 4;
+
+  left: 50%;
+  top: var(--knob-top, 50%);
+  width: 20px;
+  height: 29px;
+
+  transform: translate(-50%, -50%);
+
+  border-radius: 5px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      #e9f1f4,
+      #78858c 35%,
+      #cbd4d8 52%,
+      #4c585f 100%
+    );
+
+  border: 1px solid #dce9ef;
+
+  box-shadow:
+    inset 0 1px 2px rgba(255,255,255,.8),
+    0 2px 4px #000,
+    0 0 5px rgba(0,180,255,.4);
+}
+
+.eq-knob::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  top: 12px;
+  height: 2px;
+  background: #079dff;
+  box-shadow: 0 0 4px #00c8ff;
+}
+
+.eq-frequency {
+  margin-top: 5px;
+  color: #dbe6ed;
+  font-size: clamp(7px, .65vw, 10px);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.eq-value {
+  margin-top: 3px;
+  color: #ffc400;
+  font-size: clamp(7px, .65vw, 10px);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* ---------- CHANNEL BUTTONS ---------- */
+
+.channel-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-top: 7px;
+}
+
+.hardware-button {
+  min-height: 42px;
+  border: 1px solid #426174;
+  border-radius: 5px;
+
+  background:
+    linear-gradient(180deg, #203744, #0c1921);
+
+  color: #e9f2f7;
+  font-weight: 800;
+  letter-spacing: .4px;
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.08),
+    0 2px 3px rgba(0,0,0,.6);
+
+  cursor: pointer;
+}
+
+.hardware-button:hover {
+  border-color: #00aef5;
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.1),
+    0 0 9px rgba(0,174,245,.35);
+}
+
+.hardware-button:active {
+  transform: translateY(1px);
+}
+
+/* ---------- BOTTOM ENGINE ---------- */
+
+.audio-engine-rack {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.engine-panel {
+  min-height: 125px;
+  padding: 10px;
+
+  background:
+    linear-gradient(145deg, #172832, #081219);
+  border: 1px solid #3b5665;
+  border-radius: 6px;
+
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.08),
+    inset 0 -12px 20px rgba(0,0,0,.35);
+}
+
+.engine-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.engine-led {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--rack-yellow);
+  box-shadow: 0 0 9px var(--rack-yellow);
+}
+
+.engine-controls {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.engine-controls button {
+  flex: 1;
+  min-height: 43px;
+}
+
+/* ---------- NAVIGATION ---------- */
+
+.hardware-nav {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+
+  margin-top: 8px;
+  padding: 4px;
+
+  background: #050a0e;
+  border: 1px solid #334b59;
+  border-radius: 5px;
+}
+
+.hardware-nav button {
+  min-height: 52px;
+  border: 1px solid #253944;
+  background: linear-gradient(#162630, #091219);
+  color: #c7d5dc;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.hardware-nav button.active {
+  color: #fff;
+  border-color: #00aaff;
+  background: linear-gradient(#0d5270, #072638);
+  box-shadow: inset 0 0 12px rgba(0,180,255,.25);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+  .channel-controls {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .level-meter {
+    grid-column: span 2;
+  }
+
+  .clip-indicator {
+    grid-column: span 1;
+  }
+
+  .audio-engine-rack {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .rack-header {
+    grid-template-columns: 1fr;
+  }
+
+  .channels-rack {
+    grid-template-columns: 1fr;
+  }
+
+  .eq-bands {
+    overflow-x: auto;
+    grid-template-columns: repeat(31, 34px);
+    padding-bottom: 8px;
+  }
+
+  .eq-track {
+    height: 330px;
+  }
+
+  .eq-band input[type="range"] {
+    width: 330px;
+  }
+
+  .hardware-nav {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* PHONE PORTRAIT */
+
+@media (max-width: 600px) {
+  .hardware-rack {
+    padding: 4px;
+  }
+
+  .channel-rack {
+    padding: 5px;
+  }
+
+  .channel-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .level-meter {
+    grid-column: span 2;
+  }
+
+  .clip-indicator {
+    grid-column: span 2;
+  }
+
+  .eq-rack {
+    overflow-x: auto;
+  }
+
+  .eq-bands {
+    grid-template-columns: repeat(31, 36px);
+    margin-left: 22px;
+  }
+
+  .eq-track {
+    height: 350px;
+  }
+
+  .eq-band input[type="range"] {
+    width: 350px;
+  }
+
+  .channel-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .hardware-nav {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* PHONE LANDSCAPE */
+
+@media (max-width: 900px) and (orientation: landscape) {
+  .channels-rack {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .eq-bands {
+    grid-template-columns: repeat(31, 32px);
+  }
+
+  .eq-track {
+    height: 300px;
+  }
+
+  .eq-band input[type="range"] {
+    width: 300px;
+  }
+
+  .audio-engine-rack {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .hardware-nav {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* Large screens */
+@media (min-width: 1600px) {
+  .eq-track {
+    height: 410px;
+  }
+
+  .eq-band input[type="range"] {
+    width: 410px;
+  }
+
+  .eq-bands {
+    gap: 5px;
+  }
+}
+    
     :root {
       --bg: #080b0e;
       --panel: #171c21;
@@ -327,46 +1164,40 @@
       font-size: 9px;
       margin-bottom: 5px;
     }
+.led-meter {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(7px, 1fr));
+  gap: 4px;
+  min-height: 34px;
+  padding: 6px;
+  border: 1px solid #35434e;
+  border-radius: 5px;
+  background: linear-gradient(#05090d, #0b1218);
+  box-shadow: inset 0 0 8px #000;
+}
 
-    .led-meter {
-      display: grid;
-      grid-template-columns: repeat(18, minmax(0, 1fr));
-      gap: 3px;
-      min-height: 23px;
-      padding: 5px;
-      border: 1px solid #35434e;
-      border-radius: 4px;
-      background: #080d12;
-    }
+.led-meter span {
+  min-width: 7px;
+  height: 20px;
+  border-radius: 3px;
+  background: #111b1d;
+  border: 1px solid #26352e;
+}
 
-    .led-meter span {
-      min-width: 0;
-      height: 13px;
-      border-radius: 3px;
-      background: #17241b;
-      border: 1px solid #24372a;
-      box-shadow: inset 0 1px 2px #000;
-    }
+.led-meter span.on {
+  background: var(--green);
+  box-shadow: 0 0 7px var(--green);
+}
 
-    .led-meter span.on {
-      background: var(--green);
-      border-color: #4dff8b;
-      box-shadow:
-        0 0 6px #20ff55aa,
-        inset 0 1px 2px #ffffffaa;
-    }
+.led-meter span:nth-child(n + 11).on {
+  background: var(--yellow);
+  box-shadow: 0 0 8px var(--yellow);
+}
 
-    .led-meter span:nth-child(n + 11).on {
-      background: var(--yellow);
-      border-color: #ffe878;
-      box-shadow: 0 0 6px #ffe00099;
-    }
-
-    .led-meter span:nth-child(n + 16).on {
-      background: var(--red);
-      border-color: #ff8d8d;
-      box-shadow: 0 0 7px #ff2020aa;
-    }
+.led-meter span:nth-child(n + 16).on {
+  background: var(--red);
+  box-shadow: 0 0 9px var(--red);
+}
 
     .clip-box {
       display: flex;
@@ -512,51 +1343,40 @@
       pointer-events: none;
     }
 
-    .band input[type="range"] {
-      position: absolute;
-      z-index: 2;
-      top: 50%;
-      left: 50%;
-      width: 245px;
-      height: 22px;
-      margin: 0;
-      transform: translate(-50%, -50%) rotate(-90deg);
-      appearance: none;
-      background: transparent;
-      writing-mode: horizontal-tb;
-    }
+ .band input[type="range"] {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  left: 50%;
+  width: 270px;
+  height: 44px;
+  margin: 0;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+}
 
-    .band input[type="range"]::-webkit-slider-runnable-track {
-      height: 4px;
-      background: transparent;
-    }
-
-    .band input[type="range"]::-webkit-slider-thumb {
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      margin-top: -7px;
-      border-radius: 50%;
-      border: 2px solid #6d3b00;
-      background:
-        radial-gradient(circle at 35% 28%, #fff0a8 0 8%, #ffb000 20%, #d66d00 65%, #713400 100%);
-      box-shadow:
-        0 1px 2px #000,
-        0 0 3px #ff9d00aa;
-    }
-
-    .band input[type="range"]::-moz-range-track {
-      height: 4px;
-      background: transparent;
-    }
-
-    .band input[type="range"]::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      border: 2px solid #6d3b00;
-      background: #ff9d00;
-    }
+.band input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 24px;
+  height: 34px;
+  margin-top: -15px;
+  border-radius: 5px;
+  border: 2px solid #b9c5cc;
+  background: linear-gradient(
+    to bottom,
+    #f4f8fa,
+    #7d898f,
+    #dce4e8,
+    #59656b
+  );
+  box-shadow:
+    0 2px 5px #000,
+    0 0 7px rgba(0,180,255,.7);
+}
+ 
 
     .band-frequency {
       position: absolute;
@@ -1065,32 +1885,44 @@
               ±15 dB
             </button>
           </div>
+<div class="level-meter">
+  <div class="meter-scale">
+    <span>-60</span>
+    <span>-40</span>
+    <span>-20</span>
+    <span>-10</span>
+    <span>-6</span>
+    <span>-3</span>
+    <span>0</span>
+    <span>+3</span>
+  </div>
 
-          <div class="control-box meter-box">
-            <div class="control-title">LEVEL METER</div>
+<div class="control-box meter-box">
+  <div class="control-title">LEVEL METER</div>
 
-            <div class="meter-scale">
-              <span>-60</span>
-              <span>-40</span>
-              <span>-20</span>
-              <span>-10</span>
-              <span>-6</span>
-              <span>-3</span>
-              <span>0</span>
-              <span>+3</span>
-            </div>
+  <div class="meter-scale">
+    <span>-60</span><span>-40</span><span>-20</span><span>-10</span>
+    <span>-6</span><span>-3</span><span>0</span><span>+3</span>
+  </div>
 
-            <div class="led-meter" data-role="meter">
-              ${Array(18).fill("<span></span>").join("")}
-            </div>
-          </div>
+  <div
+    class="led-meter"
+    id="meter-ch${channelNumber}"
+    data-role="meter"
+  >
+    ${Array.from({ length: 18 }, () => "<span></span>").join("")}
+  </div>
+</div>
 
-          <div class="clip-box">
-            <div class="clip-led" data-role="clip"></div>
-            <div class="clip-text">CLIP</div>
-          </div>
-        </div>
-
+<div
+  class="clip-box"
+  id="clip-ch${channelNumber}"
+  data-role="clip"
+>
+  <div class="clip-led"></div>
+  <div class="clip-text">CLIP</div>
+</div>
+                    
         <div class="eq-wrapper">
           <div class="eq-scale">
             <span>+15</span>
@@ -1244,24 +2076,31 @@
           updateChannelAudio(channelIndex);
         });
 
-      channel
-        .querySelector('[data-role="test"]')
-        .addEventListener("click", event => {
-          event.currentTarget.classList.toggle("active");
+channel
+  .querySelector('[data-role="test"]')
+  .addEventListener("click", event => {
+    event.currentTarget.classList.toggle("active");
 
-          const meter = channel.querySelector('[data-role="meter"]');
-          const segments = meter.querySelectorAll("span");
+    const meter = channel.querySelector('[data-role="meter"]');
+    const clip = channel.querySelector('[data-role="clip"]');
 
-          segments.forEach((segment, index) => {
-            segment.classList.toggle("on", index < 13);
-          });
+    if (!meter || !clip) return;
 
-          channel.querySelector('[data-role="clip"]').classList.add("on");
+    const segments = meter.querySelectorAll("span");
 
-          setTimeout(() => {
-            channel.querySelector('[data-role="clip"]').classList.remove("on");
-          }, 500);
-        });
+    segments.forEach((segment, index) => {
+      segment.classList.toggle(
+        "on",
+        index >= segments.length - 13
+      );
+    });
+
+    clip.classList.add("on");
+
+    setTimeout(() => {
+      clip.classList.remove("on");
+    }, 500);
+  });
 
       channelsContainer.appendChild(channel);
     }
