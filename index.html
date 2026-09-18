@@ -3012,11 +3012,53 @@ function createChannel(channelIndex) {
     </div>
   `;
 
+   /* =======================================================
+     INITIAL BUTTON STATE
+  ======================================================= */
+
+  const initialState =
+    channelState[channelIndex];
+
+  const lowCutButton =
+    channel.querySelector(
+      '[data-role="lowcut"]'
+    );
+
+  const rangeButton =
+    channel.querySelector(
+      '[data-role="range"]'
+    );
+
+  const bypassButton =
+    channel.querySelector(
+      '[data-role="bypass"]'
+    );
+
+  if (lowCutButton) {
+    lowCutButton.classList.toggle(
+      "active",
+      initialState.lowCut
+    );
+  }
+
+  if (rangeButton) {
+    rangeButton.classList.toggle(
+      "active",
+      initialState.range === 6
+    );
+  }
+
+  if (bypassButton) {
+    bypassButton.classList.toggle(
+      "active",
+      initialState.bypass
+    );
+  }
+
   const bandsContainer =
     channel.querySelector(
       '[data-role="bands"]'
     );
-
   /* =======================================================
      CREATE 31 BANDS
   ======================================================= */
