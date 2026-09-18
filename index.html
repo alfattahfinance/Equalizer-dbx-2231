@@ -3756,180 +3756,78 @@ function buildChannels() {
 /* =========================================================
    AUDIO CONTEXT
    ========================================================= */
-
 function createAudioContext() {
+  if (audioContext) return;
 
-  if (audioContext) {
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-    return;
+  masterGainNode = audioContext.createGain();
+  masterGainNode.gain.value = 1;
 
-  }
+  // Memastikan sumber mono dapat di-upmix menjadi stereo.
+  stereoInputNode = audioContext.createGain();
+  stereoInputNode.gain.value = 1;
+  stereoInputNode.channelCount = 2;
+  stereoInputNode.channelCountMode = "explicit";
+  stereoInputNode.channelInterpretation = "speakers";
 
+  stereoSplitter = audioContext.createChannelSplitter(2);
+  stereoMerger = audioContext.createChannelMerger(2);
 
-  const AudioContextClass =
-    window.AudioContext ||
-    window.webkitAudioContext;
+  stereoInputNode.connect(stereoSplitter);
 
+  channelGraphs = channelState.map((state, channelIndex) => {
+    const inputGain = audioContext.createGain();
 
-  if (!AudioContextClass) {
+    const lowCut = audioContext.createBiquadFilter();
+    lowCut.type = "highpass";
+    lowCut.frequency.value = state.lowCut || 5;
 
-    throw new Error(
-      "Web Audio API tidak didukung browser."
-    );
+    const filters = frequencies.map((frequency, bandIndex) => {
+      const filter = audioContext.createBiquadFilter();
 
-  }
+      filter.type = "peaking";
+      filter.frequency.value = frequency;
+      filter.Q.value = 1.4;
+      filter.gain.value = state.bands[bandIndex] || 0;
 
+      return filter;
+    });
 
-  audioContext =
-    new AudioContextClass();
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.75;
 
+    let previousNode = inputGain;
 
-  masterGainNode =
-    audioContext.createGain();
+    previousNode.connect(lowCut);
+    previousNode = lowCut;
 
+    filters.forEach(filter => {
+      previousNode.connect(filter);
+      previousNode = filter;
+    });
 
-  masterGainNode.gain.value =
-    dbToGain(-12);
+    previousNode.connect(analyser);
 
+    // CH1 hanya masuk output LEFT.
+    // CH2 hanya masuk output RIGHT.
+    analyser.connect(stereoMerger, 0, channelIndex);
 
-  masterGainNode.connect(
-    audioContext.destination
-  );
+    return {
+      inputGain,
+      lowCut,
+      filters,
+      analyser
+    };
+  });
 
+  // Setelah L/R diproses masing-masing, gabungkan kembali
+  // menjadi satu output stereo.
+  stereoMerger.connect(masterGainNode);
 
-  channelGraphs =
-    channelState.map(
-      () => {
-
-        const inputGain =
-          audioContext.createGain();
-
-
-        const lowCut =
-          audioContext.createBiquadFilter();
-
-
-        lowCut.type =
-          "highpass";
-
-
-        lowCut.frequency.value =
-          5;
-
-
-        lowCut.Q.value =
-          0.707;
-
-
-        const filters =
-          frequencies.map(
-            frequency => {
-
-              const filter =
-                audioContext.createBiquadFilter();
-
-
-              filter.type =
-                "peaking";
-
-
-              filter.frequency.value =
-                frequency;
-
-
-              filter.Q.value =
-                4.318;
-
-
-              filter.gain.value =
-                0;
-
-
-              return filter;
-
-            }
-          );
-
-
-        const analyser =
-          audioContext.createAnalyser();
-
-
-        analyser.fftSize =
-          1024;
-
-
-        analyser.smoothingTimeConstant =
-          0.65;
-
-
-        let previousNode =
-          inputGain;
-
-
-        previousNode.connect(
-          lowCut
-        );
-
-
-        previousNode =
-          lowCut;
-
-
-        filters.forEach(
-          filter => {
-
-            previousNode.connect(
-              filter
-            );
-
-
-            previousNode =
-              filter;
-
-          }
-        );
-
-
-        previousNode.connect(
-          analyser
-        );
-
-
-        analyser.connect(
-          masterGainNode
-        );
-
-
-        return {
-
-          inputGain,
-
-          lowCut,
-
-          filters,
-
-          analyser
-
-        };
-
-      }
-    );
-
-
-  analyserNodes =
-    channelGraphs.map(
-      graph =>
-        graph.analyser
-    );
-
-
-  updateAllAudioGraphs();
-
-  startMeterAnimation();
-
+  masterGainNode.connect(audioContext.destination);
 }
-
 
 /* =========================================================
    UPDATE CHANNEL AUDIO
@@ -4031,51 +3929,41 @@ function updateAllAudioGraphs() {
 /* =========================================================
    DISCONNECT SOURCE
    ========================================================= */
-
 function disconnectCurrentSource() {
+  if (!sourceNode) return;
 
-  if (sourceNode) {
-
-    try {
-
-      sourceNode.disconnect();
-
-    } catch (_) {}
-
+  try {
+    sourceNode.disconnect();
+  } catch (e) {
+    // source mungkin sudah terputus
   }
 
-
-  sourceNode =
-    null;
-
+  sourceNode = null;
 }
-
 
 /* =========================================================
    CONNECT SOURCE TO CHANNELS
    ========================================================= */
-
-function connectSourceToChannels(
-  newSource
-) {
-
+function connectSourceToChannels(newSource) {
   disconnectCurrentSource();
 
+  sourceNode = newSource;
 
-  sourceNode =
-    newSource;
+  // Source masuk ke stereo router terlebih dahulu.
+  // Setelah itu otomatis dipisahkan:
+  // output 0 = LEFT
+  // output 1 = RIGHT
+  sourceNode.connect(stereoInputNode);
 
-
-  channelGraphs.forEach(
-    graph => {
-
-      sourceNode.connect(
-        graph.inputGain
-      );
-
-    }
+  stereoSplitter.connect(
+    channelGraphs[0].inputGain,
+    0
   );
 
+  stereoSplitter.connect(
+    channelGraphs[1].inputGain,
+    0
+  );
 }
 
 
