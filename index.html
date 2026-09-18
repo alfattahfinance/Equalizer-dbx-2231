@@ -1619,6 +1619,853 @@ input[type="range"] {
     gap: 5px;
   }
 }
+    /* =========================================================
+   DBX 2231 HARDWARE SKIN - VISUAL PATCH
+   TARGET: GAMBAR PERTAMA
+   Tidak menghapus fungsi existing
+========================================================= */
+
+/* ---------- BODY / RACK ---------- */
+
+body {
+  background:
+    radial-gradient(
+      circle at 50% -10%,
+      #263b49 0%,
+      #101a22 35%,
+      #05090d 75%,
+      #020406 100%
+    );
+}
+
+.app {
+  max-width: 1900px;
+  padding: 7px;
+}
+
+/* ---------- TOP HEADER ---------- */
+
+.top-rack {
+  min-height: 82px;
+  padding: 8px 14px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #263641 0%,
+      #111c24 48%,
+      #080e13 100%
+    );
+
+  border: 1px solid #566a77;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.15),
+    inset 0 -10px 20px rgba(0,0,0,.45),
+    0 5px 15px rgba(0,0,0,.7);
+}
+
+/* ---------- BRAND ---------- */
+
+.brand h1 {
+  font-size: clamp(22px, 3vw, 42px);
+  font-weight: 900;
+  letter-spacing: 2px;
+
+  text-shadow:
+    0 2px 2px #000,
+    0 0 8px rgba(255,255,255,.08);
+}
+
+.brand h1::first-letter {
+  color: #e8edf1;
+}
+
+.brand p {
+  color: #18b9ff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* ---------- TOP BUTTONS ---------- */
+
+.top-actions {
+  gap: 5px;
+}
+
+.top-actions .hardware-button {
+  min-width: 74px;
+  min-height: 42px;
+  padding: 7px 12px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #334550,
+      #111b22
+    );
+
+  border: 1px solid #607583;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.15),
+    inset 0 -3px 5px rgba(0,0,0,.5),
+    0 2px 3px #000;
+}
+
+.top-actions .hardware-button:hover {
+  border-color: #18bfff;
+  box-shadow:
+    0 0 10px rgba(0,180,255,.35),
+    inset 0 1px 0 rgba(255,255,255,.15);
+}
+
+/* ---------- DEVICE TITLE ---------- */
+
+.device-title {
+  min-height: 70px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #263640,
+      #111a21
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -5px 12px rgba(0,0,0,.35);
+}
+
+.device-name {
+  font-size: clamp(20px, 3vw, 31px);
+  letter-spacing: 2px;
+  text-shadow: 0 2px 2px #000;
+}
+
+.device-subtitle {
+  color: #ffb62a;
+  text-shadow: 0 0 5px rgba(255,170,0,.3);
+}
+
+/* ---------- CHANNEL RACK ---------- */
+
+.channels {
+  gap: 8px;
+}
+
+.channel {
+  position: relative;
+
+  padding: 8px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #263842 0%,
+      #111c24 35%,
+      #0a1117 70%,
+      #1b2932 100%
+    );
+
+  border: 1px solid #607481;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -15px 25px rgba(0,0,0,.45),
+    0 5px 15px rgba(0,0,0,.75);
+}
+
+/* ---------- CHANNEL HEADER ---------- */
+
+.channel-header {
+  min-height: 43px;
+  padding: 3px 7px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #1e2d37,
+      #0a1218
+    );
+
+  border: 1px solid #435966;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    inset 0 -5px 10px rgba(0,0,0,.35);
+}
+
+.channel-label {
+  font-size: clamp(16px, 1.5vw, 22px);
+  text-shadow: 0 2px 2px #000;
+}
+
+/* ---------- POWER LED ---------- */
+
+.power-led {
+  width: 20px;
+  height: 20px;
+
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #ffffff 0 8%,
+      #62ff9a 20%,
+      #13ef51 55%,
+      #07842d 100%
+    );
+
+  border: 1px solid #42ff83;
+
+  box-shadow:
+    0 0 6px #1dff61,
+    0 0 18px rgba(25,255,90,.8),
+    inset 0 1px 3px #fff;
+}
+
+/* ---------- STATUS BUTTON ---------- */
+
+.status-light {
+  min-height: 31px;
+  padding: 5px 9px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #202e37,
+      #0a1117
+    );
+
+  border: 1px solid #4b606d;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 2px 3px #000;
+}
+
+/* ---------- CONTROL AREA ---------- */
+
+.control-row {
+  gap: 6px;
+}
+
+.control-box {
+  min-height: 108px;
+  padding: 7px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #1b2a34,
+      #091117
+    );
+
+  border: 1px solid #506674;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.09),
+    inset 0 -8px 15px rgba(0,0,0,.4),
+    0 2px 4px rgba(0,0,0,.45);
+}
+
+.control-title {
+  color: #e7edf1;
+  font-size: 11px;
+  font-weight: 900;
+  text-shadow: 0 1px 2px #000;
+}
+
+/* =========================================================
+   GAIN - HARDWARE KNOB LOOK
+========================================================= */
+
+.control-box:first-child {
+  position: relative;
+}
+
+.gain-slider {
+  appearance: none;
+  height: 7px;
+
+  margin-top: 5px;
+
+  border-radius: 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #252d32,
+      #59636a,
+      #20272c
+    );
+
+  border: 1px solid #0b0f12;
+
+  box-shadow:
+    inset 0 2px 3px #000;
+}
+
+.gain-slider::-webkit-slider-thumb {
+  appearance: none;
+
+  width: 22px;
+  height: 22px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #dce5e9 0 7%,
+      #7e8a91 22%,
+      #263038 58%,
+      #080b0e 80%,
+      #6c777d 100%
+    );
+
+  border: 1px solid #aab6bc;
+
+  box-shadow:
+    0 2px 5px #000,
+    0 0 5px rgba(0,160,255,.4);
+}
+
+/* ---------- LOW CUT / RANGE ---------- */
+
+.small-button {
+  min-height: 35px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #334754,
+      #101b23
+    );
+
+  border: 1px solid #617582;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -3px 5px rgba(0,0,0,.45),
+    0 2px 3px #000;
+}
+
+.small-button:hover {
+  border-color: #14baff;
+}
+
+.small-button.active {
+  color: #fff;
+
+  background:
+    linear-gradient(
+      180deg,
+      #176a8d,
+      #073246
+    );
+
+  border-color: #1abaff;
+
+  box-shadow:
+    0 0 8px rgba(0,180,255,.4),
+    inset 0 0 8px rgba(0,180,255,.25);
+}
+
+/* =========================================================
+   LED LEVEL METER
+========================================================= */
+
+.led-meter {
+  min-height: 36px;
+  padding: 5px;
+
+  grid-template-columns:
+    repeat(18, minmax(7px, 1fr));
+
+  gap: 3px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #020609,
+      #071015
+    );
+
+  border: 1px solid #314752;
+
+  box-shadow:
+    inset 0 0 10px #000,
+    0 0 2px rgba(0,180,255,.25);
+}
+
+.led-meter span {
+  height: 22px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #10201c,
+      #07100e
+    );
+
+  border: 1px solid #20352d;
+
+  box-shadow:
+    inset 0 0 3px #000;
+}
+
+.led-meter span.on {
+  background:
+    linear-gradient(
+      180deg,
+      #75ff9a,
+      #0cff4d
+    );
+
+  border-color: #a0ffb8;
+
+  box-shadow:
+    0 0 5px #20ff65,
+    0 0 11px rgba(20,255,80,.65),
+    inset 0 0 4px #fff;
+}
+
+.led-meter span:nth-child(n + 11).on {
+  background:
+    linear-gradient(
+      180deg,
+      #fff176,
+      #ffc400
+    );
+
+  border-color: #fff8a0;
+
+  box-shadow:
+    0 0 7px #ffd21c,
+    inset 0 0 3px #fff;
+}
+
+.led-meter span:nth-child(n + 16).on {
+  background:
+    linear-gradient(
+      180deg,
+      #ff8b8b,
+      #ff2020
+    );
+
+  border-color: #ffb0b0;
+
+  box-shadow:
+    0 0 8px #ff3030,
+    0 0 14px rgba(255,40,40,.6);
+}
+
+/* =========================================================
+   CLIP
+========================================================= */
+
+.clip-box {
+  min-width: 55px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #401719,
+      #18090b
+    );
+
+  border: 1px solid #743238;
+
+  box-shadow:
+    inset 0 0 10px rgba(255,0,0,.12),
+    0 2px 4px #000;
+}
+
+.clip-led {
+  width: 17px;
+  height: 17px;
+
+  background:
+    radial-gradient(
+      circle,
+      #87252a,
+      #3b1115
+    );
+
+  border: 1px solid #9d3036;
+}
+
+.clip-led.on {
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #fff 0 5%,
+      #ff7777 18%,
+      #ff2020 60%,
+      #a40000 100%
+    );
+
+  box-shadow:
+    0 0 8px #ff3030,
+    0 0 20px rgba(255,0,0,.75);
+}
+
+/* =========================================================
+   31 BAND EQ
+========================================================= */
+
+.eq-wrapper {
+  padding: 8px 4px 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #080f14,
+      #17252e 50%,
+      #080f14
+    );
+
+  border: 1px solid #435b68;
+
+  box-shadow:
+    inset 0 0 15px rgba(0,0,0,.55);
+}
+
+/* ---------- BAND ---------- */
+
+.band {
+  height: 310px;
+  padding: 6px 2px 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      #091117,
+      #1d2a33 48%,
+      #091117
+    );
+
+  border: 1px solid #4c606c;
+
+  box-shadow:
+    inset 1px 0 rgba(255,255,255,.04),
+    inset -1px 0 rgba(0,0,0,.8),
+    inset 0 0 5px #000;
+}
+
+/* ---------- TRACK ---------- */
+
+.band-track {
+  top: 12px;
+  bottom: 36px;
+  width: 8px;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      #6d7c85 0,
+      #6d7c85 1px,
+      transparent 1px,
+      transparent 16px
+    ),
+    linear-gradient(
+      90deg,
+      #060a0e,
+      #53636d,
+      #060a0e
+    );
+
+  border-radius: 5px;
+
+  box-shadow:
+    inset 0 0 4px #000,
+    0 0 0 1px #05080a;
+}
+
+/* ---------- FADER THUMB ---------- */
+
+.band input[type="range"]::-webkit-slider-thumb {
+  width: 27px;
+  height: 38px;
+
+  border-radius: 5px;
+
+  border: 2px solid #c9d4d9;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #8c999f 30%,
+      #e2e8eb 50%,
+      #667279 100%
+    );
+
+  box-shadow:
+    inset 0 1px 2px #fff,
+    0 2px 5px #000,
+    0 0 8px rgba(0,175,255,.75);
+}
+
+.band input[type="range"]::-moz-range-thumb {
+  width: 27px;
+  height: 38px;
+
+  border-radius: 5px;
+
+  border: 2px solid #c9d4d9;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #8c999f 30%,
+      #e2e8eb 50%,
+      #667279 100%
+    );
+
+  box-shadow:
+    inset 0 1px 2px #fff,
+    0 2px 5px #000,
+    0 0 8px rgba(0,175,255,.75);
+}
+
+/* ---------- FREQUENCY ---------- */
+
+.band-frequency {
+  bottom: 17px;
+
+  color: #e8eef2;
+
+  font-size: 9px;
+  font-weight: 900;
+
+  text-shadow: 0 1px 2px #000;
+}
+
+.band-value {
+  bottom: 2px;
+
+  color: #ffc12a;
+
+  font-size: 9px;
+  font-weight: 900;
+
+  text-shadow:
+    0 0 4px rgba(255,170,0,.35);
+}
+
+/* ---------- DB SCALE ---------- */
+
+.db-scale {
+  color: #e2e9ed;
+  font-weight: 900;
+  text-shadow: 0 1px 2px #000;
+}
+
+/* =========================================================
+   CHANNEL ACTION BUTTONS
+========================================================= */
+
+.channel-buttons {
+  gap: 6px;
+}
+
+.channel-buttons .small-button {
+  min-height: 43px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #30434f,
+      #0e1a22
+    );
+
+  font-size: 11px;
+  letter-spacing: .4px;
+}
+
+.channel-buttons .small-button:hover {
+  border-color: #16baff;
+  box-shadow:
+    0 0 8px rgba(0,180,255,.3);
+}
+
+/* =========================================================
+   AUDIO ENGINE
+========================================================= */
+
+.audio-engine {
+  padding: 9px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #25353f,
+      #0d161d
+    );
+
+  border: 1px solid #637580;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -12px 20px rgba(0,0,0,.4),
+    0 5px 15px rgba(0,0,0,.65);
+}
+
+.engine-box {
+  background:
+    linear-gradient(
+      145deg,
+      #192a34,
+      #081117
+    );
+
+  border: 1px solid #506572;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -8px 15px rgba(0,0,0,.35);
+}
+
+.engine-controls .hardware-button {
+  min-height: 43px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #315064,
+      #0c1b24
+    );
+}
+
+/* ---------- MASTER ---------- */
+
+.master-row input[type="range"] {
+  height: 9px;
+
+  appearance: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      #078bff,
+      #23aaff 65%,
+      #3c4449 65%
+    );
+
+  border-radius: 5px;
+
+  box-shadow:
+    inset 0 2px 3px #000;
+}
+
+.master-row input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+
+  width: 25px;
+  height: 34px;
+
+  border-radius: 4px;
+
+  border: 1px solid #d4dce0;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f5f8fa,
+      #87949a,
+      #dce3e7,
+      #58646a
+    );
+
+  box-shadow:
+    0 2px 5px #000,
+    0 0 6px rgba(0,170,255,.5);
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer {
+  border-top: 1px solid #263944;
+}
+
+/* =========================================================
+   LARGE DESKTOP
+========================================================= */
+
+@media (min-width: 1200px) {
+
+  .channels {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr);
+  }
+
+  .band {
+    height: 330px;
+  }
+
+}
+
+/* =========================================================
+   TABLET / LANDSCAPE
+========================================================= */
+
+@media (max-width: 1000px) and (orientation: landscape) {
+
+  .app {
+    padding: 5px;
+  }
+
+  .channels {
+    grid-template-columns:
+      minmax(520px, 1fr)
+      minmax(520px, 1fr);
+
+    width: max-content;
+  }
+
+  .channel {
+    width: 520px;
+  }
+
+  .band {
+    height: 300px;
+  }
+
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 760px) {
+
+  .device-title {
+    min-height: 64px;
+  }
+
+  .channel {
+    width: 100%;
+  }
+
+  .band {
+    height: 300px;
+  }
+
+  .channel-buttons {
+    flex-direction: row;
+  }
+
+  .channel-buttons .small-button {
+    flex: 1;
+  }
+
+}
   </style>
 </head>
 
@@ -2370,7 +3217,10 @@ function createChannel(channelIndex) {
 
         event.currentTarget.textContent =
           `±${range} dB`;
-
+        event.currentTarget.classList.toggle(
+              "active",
+  range === 6
+);
         channel.querySelector(
           '[data-role="footer-range"]'
         ).textContent =
