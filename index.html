@@ -10,2503 +10,1856 @@
   <title>DBX 2231 Graphic Equalizer</title>
 
   <style>
-/* =========================================================
-   DBX 2231 FULL HARDWARE / RACK SKIN
-   ========================================================= */
-
-:root {
-  --rack-bg: #050a0f;
-  --rack-panel: #101a22;
-  --rack-panel-2: #16232d;
-  --rack-border: #344b5b;
-  --rack-blue: #08aaff;
-  --rack-blue-bright: #00c8ff;
-  --rack-green: #20ff65;
-  --rack-red: #ff3030;
-  --rack-yellow: #ffd21c;
-  --rack-text: #e8f2fa;
-  --rack-muted: #8d9ba7;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background:
-    radial-gradient(circle at 50% 0%, #132633 0%, #05090d 55%, #020407 100%);
-  color: var(--rack-text);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.equalizer-app,
-.app,
-.mixer,
-.main-container {
-  width: 100%;
-  max-width: 1900px;
-  margin: 0 auto;
-}
-
-.hardware-rack {
-  position: relative;
-  padding: 8px;
-  background:
-    linear-gradient(135deg, #26323a, #080d11 35%, #1c2830 70%, #05080a);
-  border: 1px solid #536673;
-  box-shadow:
-    inset 0 0 0 2px #071017,
-    inset 0 0 25px rgba(0,0,0,.8),
-    0 12px 40px rgba(0,0,0,.7);
-}
-
-.rack-header {
-  min-height: 78px;
-  display: grid;
-  grid-template-columns: minmax(250px, 1fr) minmax(260px, 1.2fr) auto;
-  gap: 10px;
-  align-items: center;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-
-  background:
-    linear-gradient(180deg, #17242d, #091118);
-  border: 1px solid #3d5362;
-  border-radius: 7px;
-  box-shadow:
-    inset 0 1px rgba(255,255,255,.08),
-    inset 0 -8px 20px rgba(0,0,0,.35);
-}
-
-.rack-logo {
-  font-size: clamp(26px, 3vw, 48px);
-  font-weight: 900;
-  letter-spacing: 2px;
-  line-height: 1;
-}
-
-.rack-logo span {
-  color: var(--rack-blue);
-  text-shadow: 0 0 10px rgba(0,190,255,.65);
-}
-
-.rack-subtitle {
-  margin-top: 5px;
-  color: #1fbaff;
-  font-size: 11px;
-  letter-spacing: 1px;
-  font-weight: 700;
-}
-
-.spectrum-header {
-  height: 58px;
-  min-width: 220px;
-  padding: 5px 8px;
-  border: 1px solid #294858;
-  border-radius: 5px;
-  background: #03080c;
-  overflow: hidden;
-}
-
-.spectrum-bars {
-  height: 100%;
-  display: flex;
-  align-items: end;
-  justify-content: center;
-  gap: 3px;
-}
-
-.spectrum-bars span {
-  width: 5px;
-  min-height: 5px;
-  height: 25%;
-  border-radius: 2px 2px 0 0;
-  background: linear-gradient(to top, #007bb5, #00caff);
-  box-shadow: 0 0 7px rgba(0,190,255,.5);
-}
-
-/* =========================================================
-   TWO CHANNELS
-   ========================================================= */
-
-.channels-rack {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 8px;
-}
-
-.channel-rack {
-  min-width: 0;
-  padding: 8px;
-
-  background:
-    linear-gradient(145deg, #1a2a34, #0b131a 42%, #15242e);
-  border: 1px solid #476171;
-  border-radius: 8px;
-
-  box-shadow:
-    inset 0 1px rgba(255,255,255,.08),
-    inset 0 -15px 30px rgba(0,0,0,.4),
-    0 5px 15px rgba(0,0,0,.45);
-}
-
-.channel-titlebar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 44px;
-  padding: 4px 8px;
-  margin-bottom: 8px;
-
-  background: linear-gradient(180deg, #182832, #091219);
-  border: 1px solid #334d5c;
-  border-radius: 5px;
-}
-
-.channel-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: clamp(17px, 1.5vw, 25px);
-  font-weight: 800;
-  letter-spacing: .5px;
-}
-
-.channel-led {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--rack-green);
-  box-shadow:
-    0 0 5px var(--rack-green),
-    0 0 16px var(--rack-green);
-}
-
-.channel-status {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.status-btn {
-  min-height: 32px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  border: 1px solid #354e5c;
-  background: #081117;
-  color: #dbe5eb;
-  font-weight: 700;
-  font-size: 11px;
-}
-
-.status-btn.active::before {
-  content: "";
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 5px;
-  border-radius: 50%;
-  background: var(--rack-green);
-  box-shadow: 0 0 8px var(--rack-green);
-}
-
-.status-btn.bypass::before {
-  content: "";
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 5px;
-  border-radius: 50%;
-  background: var(--rack-red);
-  box-shadow: 0 0 8px var(--rack-red);
-}
-
-.status-btn.test::before {
-  content: "";
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 5px;
-  border-radius: 50%;
-  background: var(--rack-yellow);
-  box-shadow: 0 0 8px var(--rack-yellow);
-}
-
-.channel-controls {
-  display: grid;
-  grid-template-columns: 1fr .9fr .8fr 1.6fr 58px;
-  gap: 7px;
-  margin-bottom: 8px;
-}
-
-.rack-control {
-  min-height: 104px;
-  padding: 8px;
-
-  background:
-    linear-gradient(145deg, #152530, #071016);
-  border: 1px solid #3b5665;
-  border-radius: 5px;
-
-  box-shadow:
-    inset 0 1px rgba(255,255,255,.07),
-    inset 0 -8px 15px rgba(0,0,0,.35);
-}
-
-.rack-control-title {
-  margin-bottom: 7px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #cbd7df;
-  letter-spacing: .5px;
-}
-
-.gain-knob-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-}
-
-.hardware-knob {
-  position: relative;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-
-  background:
-    radial-gradient(circle at 35% 30%, #7d8990 0 4%, #273039 22%, #070a0d 63%, #151c21 72%, #59656d 100%);
-
-  border: 2px solid #65747c;
-
-  box-shadow:
-    inset 0 0 8px #000,
-    0 2px 5px #000;
-}
-
-.hardware-knob::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 7px;
-  width: 3px;
-  height: 19px;
-  transform: translateX(-50%);
-  border-radius: 3px;
-  background: #dbe9f0;
-  box-shadow: 0 0 5px rgba(255,255,255,.5);
-}
-
-.gain-value {
-  font-size: 13px;
-  font-weight: 800;
-  color: #fff;
-}
-
-.level-meter {
-  min-height: 66px;
-  padding: 8px;
-  border: 1px solid #263f4d;
-  border-radius: 4px;
-  background: #03080b;
-}
-
-.meter-scale {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 5px;
-  color: #aebbc3;
-  font-size: 9px;
-}
-
-.led-meter {
-  height: 25px;
-  display: grid;
-  grid-template-columns: repeat(18, 1fr);
-  gap: 3px;
-}
-
-.led-meter span {
-  border-radius: 2px;
-  background: #0d181b;
-  border: 1px solid #1c2b2e;
-  box-shadow: inset 0 0 3px #000;
-}
-
-.led-meter span.active,
-.led-meter span.on {
-  background: var(--rack-green);
-  border-color: #6aff92;
-  box-shadow:
-    0 0 6px var(--rack-green),
-    inset 0 0 4px #fff;
-}
-
-.led-meter span:nth-child(n+10).active,
-.led-meter span:nth-child(n+10).on {
-  background: var(--rack-yellow);
-  border-color: #fff17b;
-  box-shadow: 0 0 7px var(--rack-yellow);
-}
-
-.led-meter span:nth-child(n+13).active,
-.led-meter span:nth-child(n+13).on {
-  background: var(--rack-red);
-  border-color: #ff8b8b;
-  box-shadow: 0 0 8px var(--rack-red);
-}
-
-.clip-indicator {
-  height: 100%;
-  min-height: 66px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  border: 1px solid #692626;
-  border-radius: 4px;
-  background: linear-gradient(#321014, #15080a);
-  color: #ffb8b8;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.clip-indicator::before {
-  content: "";
-  width: 13px;
-  height: 13px;
-  margin-bottom: 5px;
-  border-radius: 50%;
-  background: #8d1c20;
-  box-shadow: inset 0 0 5px #000;
-}
-
-.clip-indicator.clip::before {
-  background: var(--rack-red);
-  box-shadow:
-    0 0 7px var(--rack-red),
-    0 0 18px var(--rack-red);
-}
-
-.eq-rack {
-  position: relative;
-  padding: 10px 8px 7px;
-
-  background:
-    linear-gradient(90deg, #0a1218, #14232d 50%, #091218);
-  border: 1px solid #304b5a;
-  border-radius: 5px;
-
-  overflow: hidden;
-}
-
-.eq-scale {
-  position: absolute;
-  left: 5px;
-  top: 10px;
-  bottom: 48px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-
-  color: #dbe7ee;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.eq-bands {
-  display: grid;
-  grid-template-columns: repeat(31, minmax(20px, 1fr));
-  gap: 4px;
-
-  margin-left: 28px;
-  min-width: 0;
-}
-
-.eq-band {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.eq-track {
-  position: relative;
-  width: 100%;
-  height: clamp(250px, 27vw, 390px);
-
-  display: flex;
-  justify-content: center;
-
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent calc(20% - 1px),
-      rgba(125,155,170,.24) calc(20% - 1px),
-      rgba(125,155,170,.24) 20%
-    );
-}
-
-.eq-track::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 9px;
-  transform: translateX(-50%);
-
-  border-radius: 7px;
-
-  background:
-    linear-gradient(
-      to bottom,
-      #071015,
-      #13232c 45%,
-      #061016
-    );
-
-  border: 1px solid #425966;
-
-  box-shadow:
-    inset 0 0 5px #000,
-    0 0 3px rgba(0,0,0,.8);
-}
-
-.eq-track::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 4px;
-  width: 4px;
-  height: var(--fader-level, 50%);
-  transform: translateX(-50%);
-
-  background: linear-gradient(to top, #0077ff, #00d9ff);
-  border-radius: 5px;
-
-  box-shadow:
-    0 0 5px #00bfff,
-    0 0 12px rgba(0,180,255,.65);
-
-  pointer-events: none;
-}
-
-.eq-band input[type="range"] {
-  position: absolute;
-  z-index: 3;
-
-  width: clamp(250px, 27vw, 390px);
-  height: 28px;
-
-  margin: 0;
-
-  transform:
-    rotate(-90deg)
-    translateX(-50%);
-
-  transform-origin: center;
-
-  opacity: 0;
-  cursor: pointer;
-}
-
-.eq-knob {
-  position: absolute;
-  z-index: 4;
-
-  left: 50%;
-  top: var(--knob-top, 50%);
-  width: 20px;
-  height: 29px;
-
-  transform: translate(-50%, -50%);
-
-  border-radius: 5px;
-
-  background:
-    linear-gradient(
-      to bottom,
-      #e9f1f4,
-      #78858c 35%,
-      #cbd4d8 52%,
-      #4c585f 100%
-    );
-
-  border: 1px solid #dce9ef;
-
-  box-shadow:
-    inset 0 1px 2px rgba(255,255,255,.8),
-    0 2px 4px #000,
-    0 0 5px rgba(0,180,255,.4);
-}
-
-.eq-knob::after {
-  content: "";
-  position: absolute;
-  left: 3px;
-  right: 3px;
-  top: 12px;
-  height: 2px;
-  background: #079dff;
-  box-shadow: 0 0 4px #00c8ff;
-}
-
-.eq-frequency {
-  margin-top: 5px;
-  color: #dbe6ed;
-  font-size: clamp(7px, .65vw, 10px);
-  white-space: nowrap;
-  text-align: center;
-}
-
-.eq-value {
-  margin-top: 3px;
-  color: #ffc400;
-  font-size: clamp(7px, .65vw, 10px);
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.channel-actions {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
-  margin-top: 7px;
-}
-
-.hardware-button {
-  min-height: 42px;
-  border: 1px solid #426174;
-  border-radius: 5px;
-
-  background:
-    linear-gradient(180deg, #203744, #0c1921);
-
-  color: #e9f2f7;
-  font-weight: 800;
-  letter-spacing: .4px;
-
-  box-shadow:
-    inset 0 1px rgba(255,255,255,.08),
-    0 2px 3px rgba(0,0,0,.6);
-
-  cursor: pointer;
-}
-
-.hardware-button:hover {
-  border-color: #00aef5;
-  box-shadow:
-    inset 0 1px rgba(255,255,255,.1),
-    0 0 9px rgba(0,174,245,.35);
-}
-
-.hardware-button:active {
-  transform: translateY(1px);
-}
-
-.audio-engine-rack {
-  display: grid;
-  grid-template-columns: 1fr 1.25fr 1fr;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.engine-panel {
-  min-height: 125px;
-  padding: 10px;
-
-  background:
-    linear-gradient(145deg, #172832, #081219);
-  border: 1px solid #3b5665;
-  border-radius: 6px;
-
-  box-shadow:
-    inset 0 1px rgba(255,255,255,.08),
-    inset 0 -12px 20px rgba(0,0,0,.35);
-}
-
-.engine-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 9px;
-
-  font-size: 15px;
-  font-weight: 900;
-}
-
-.engine-led {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: var(--rack-yellow);
-  box-shadow: 0 0 9px var(--rack-yellow);
-}
-
-.engine-controls {
-  display: flex;
-  gap: 7px;
-  flex-wrap: wrap;
-}
-
-.engine-controls button {
-  flex: 1;
-  min-height: 43px;
-}
-
-.hardware-nav {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 2px;
-
-  margin-top: 8px;
-  padding: 4px;
-
-  background: #050a0e;
-  border: 1px solid #334b59;
-  border-radius: 5px;
-}
-
-.hardware-nav button {
-  min-height: 52px;
-  border: 1px solid #253944;
-  background: linear-gradient(#162630, #091219);
-  color: #c7d5dc;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.hardware-nav button.active {
-  color: #fff;
-  border-color: #00aaff;
-  background: linear-gradient(#0d5270, #072638);
-  box-shadow: inset 0 0 12px rgba(0,180,255,.25);
-}
-
-/* =========================================================
-   SECOND UI SYSTEM
-   ========================================================= */
-
-:root {
-  --bg: #080b0e;
-  --panel: #171c21;
-  --panel-2: #222a31;
-  --panel-3: #303941;
-  --border: #58636d;
-  --text: #e8edf1;
-  --muted: #9da8b1;
-  --orange: #ff9d00;
-  --orange-dark: #9d5100;
-  --green: #29f56b;
-  --yellow: #ffd52b;
-  --red: #ff3030;
-  --blue: #279cff;
-}
-
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-  background:
-    radial-gradient(circle at top, #26323e 0%, #0d1217 45%, #050608 100%);
-  color: var(--text);
-  font-family: Arial, Helvetica, sans-serif;
-  overflow-x: hidden;
-}
-
-button,
-select,
-input {
-  font: inherit;
-}
-
-button,
-select {
-  color: var(--text);
-}
-
-button {
-  cursor: pointer;
-}
-
-button:active {
-  transform: translateY(1px);
-}
-
-.app {
-  width: 100%;
-  max-width: 1800px;
-  margin: 0 auto;
-  padding: 12px;
-}
-
-.top-rack {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 12px 16px;
-  border: 1px solid #687580;
-  border-radius: 7px;
-  background:
-    linear-gradient(180deg, #303b46, #171e25 45%, #10151a);
-  box-shadow:
-    inset 0 1px 0 #71808c,
-    inset 0 -1px 0 #050607,
-    0 8px 25px #0009;
-}
-
-.brand {
-  min-width: 0;
-}
-
-.brand h1 {
-  margin: 0;
-  font-size: clamp(18px, 3vw, 31px);
-  letter-spacing: 1.5px;
-  font-weight: 800;
-}
-
-.brand p {
-  margin: 3px 0 0;
-  color: #b3bec8;
-  font-size: 12px;
-  letter-spacing: 0.5px;
-}
-
-.top-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 7px;
-}
-
-.hardware-button {
-  min-height: 38px;
-  padding: 8px 15px;
-  border: 1px solid #687987;
-  border-radius: 6px;
-  background: linear-gradient(#34434f, #17222c);
-  box-shadow:
-    inset 0 1px 0 #ffffff22,
-    inset 0 -2px 0 #0008;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-}
-
-.hardware-button.active {
-  color: #111;
-  background: linear-gradient(#ffc34e, #c76c00);
-  border-color: #ffbd42;
-}
-
-.device-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  margin-top: 9px;
-  padding: 11px 16px;
-  border: 1px solid #667581;
-  border-radius: 7px;
-  background: linear-gradient(#293640, #151c23);
-  box-shadow: inset 0 1px 0 #ffffff18;
-}
-
-.device-name {
-  font-size: clamp(16px, 3vw, 26px);
-  font-weight: 900;
-  letter-spacing: 2px;
-}
-
-.device-subtitle {
-  margin-top: 3px;
-  color: #ffbd32;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-}
-
-.preset-area {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-select {
-  min-height: 38px;
-  border: 1px solid #687987;
-  border-radius: 6px;
-  padding: 7px 10px;
-  background: #111a22;
-}
-
-.channels {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 9px;
-}
-
-.channel {
-  min-width: 0;
-  border: 1px solid #687782;
-  border-radius: 7px;
-  padding: 10px;
-  background:
-    linear-gradient(180deg, #293742 0%, #1c252e 35%, #111820 100%);
-  box-shadow:
-    inset 0 1px 0 #ffffff17,
-    inset 0 -2px 0 #0009,
-    0 5px 14px #0007;
-}
-
-.channel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 9px;
-}
-
-.channel-label {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 17px;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-}
-
-.power-led {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #19ff55;
-  border: 2px solid #087e31;
-  box-shadow:
-    0 0 5px #18ff59,
-    0 0 13px #18ff5966,
-    inset 0 2px 3px #ffffffaa;
-  flex: 0 0 auto;
-}
-
-.channel-status {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 5px;
-}
-
-.status-light {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  border: 1px solid #566672;
-  border-radius: 5px;
-  background: #10171e;
-  color: #dce4ea;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.status-light::before {
-  content: "";
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 7px var(--green);
-}
-
-.status-light.bypass::before {
-  background: var(--red);
-  box-shadow: 0 0 7px var(--red);
-}
-
-.status-light.test::before {
-  background: var(--yellow);
-  box-shadow: 0 0 7px var(--yellow);
-}
-
-.control-row {
-  display: grid;
-  grid-template-columns: 1.15fr 0.9fr 0.9fr 1.55fr auto;
-  gap: 7px;
-  align-items: stretch;
-}
-
-.control-box {
-  min-width: 0;
-  border: 1px solid #4f606d;
-  border-radius: 6px;
-  padding: 8px;
-  background: linear-gradient(180deg, #17232d, #0c141b);
-  box-shadow: inset 0 1px 0 #ffffff0c;
-}
-
-.control-title {
-  margin-bottom: 8px;
-  color: #dbe4ea;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  white-space: nowrap;
-}
-
-.gain-value {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  margin-top: 4px;
-  font-size: 12px;
-}
-
-.gain-value strong {
-  font-size: 15px;
-  color: #f0f3f5;
-}
-
-input[type="range"] {
-  width: 100%;
-  accent-color: var(--orange);
-  cursor: pointer;
-}
-
-.gain-slider {
-  height: 18px;
-}
-
-.hardware-select {
-  width: 100%;
-  min-height: 34px;
-  padding: 5px 8px;
-  font-size: 12px;
-}
-
-.meter-box {
-  min-width: 0;
-}
-
-.meter-scale {
-  display: flex;
-  justify-content: space-between;
-  gap: 2px;
-  color: #d7e0e7;
-  font-size: 9px;
-  margin-bottom: 5px;
-}
-
-.led-meter {
-  display: grid;
-  grid-template-columns: repeat(18, minmax(7px, 1fr));
-  gap: 4px;
-  min-height: 34px;
-  padding: 6px;
-  border: 1px solid #35434e;
-  border-radius: 5px;
-  background: linear-gradient(#05090d, #0b1218);
-  box-shadow: inset 0 0 8px #000;
-}
-
-.led-meter span {
-  min-width: 7px;
-  height: 20px;
-  border-radius: 3px;
-  background: #111b1d;
-  border: 1px solid #26352e;
-}
-
-.led-meter span.on {
-  background: var(--green);
-  box-shadow: 0 0 7px var(--green);
-}
-
-.led-meter span:nth-child(n + 11).on {
-  background: var(--yellow);
-  box-shadow: 0 0 8px var(--yellow);
-}
-
-.led-meter span:nth-child(n + 16).on {
-  background: var(--red);
-  box-shadow: 0 0 9px var(--red);
-}
-
-.clip-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  min-width: 44px;
-  border: 1px solid #5b3438;
-  border-radius: 6px;
-  background: linear-gradient(#351719, #180c0e);
-}
-
-.clip-led {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #641b20;
-  border: 1px solid #a63138;
-}
-
-.clip-led.on {
-  background: var(--red);
-  box-shadow: 0 0 12px var(--red);
-}
-
-.clip-text {
-  color: #ff7777;
-  font-size: 10px;
-  font-weight: 900;
-}
-
-.channel-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.small-button {
-  min-height: 34px;
-  padding: 5px 10px;
-  border: 1px solid #647481;
-  border-radius: 5px;
-  background: linear-gradient(#34424e, #18232c);
-  font-size: 11px;
-  font-weight: 900;
-}
-
-.small-button.active {
-  color: #111;
-  background: linear-gradient(#ffca59, #bd6900);
-  border-color: #ffb52e;
-}
-
-.eq-wrapper {
-  margin-top: 10px;
-  padding: 8px 5px 6px;
-  border: 1px solid #4f606d;
-  border-radius: 6px;
-  background:
-    linear-gradient(90deg, #0d141b, #1b252e 50%, #0d141b);
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-color: #788792 #151c22;
-}
-
-.eq-scale {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  width: 100%;
-  min-width: 750px;
-  margin-bottom: 4px;
-  color: #e0e7ec;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.eq-scale span {
-  text-align: center;
-}
-
-.eq-area {
-  display: flex;
-  align-items: stretch;
-  gap: 5px;
-  min-width: 750px;
-}
-
-.db-scale {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 31px;
-  padding: 9px 0 22px;
-  color: #dbe4e9;
-  font-size: 10px;
-  font-weight: 800;
-  text-align: right;
-}
-
-.bands {
-  display: grid;
-  grid-template-columns: repeat(31, minmax(20px, 1fr));
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
-}
-
-.band {
-  position: relative;
-  min-width: 20px;
-  height: 270px;
-  padding: 7px 3px 0;
-  border: 1px solid #53636f;
-  border-radius: 5px;
-  background:
-    linear-gradient(90deg, #101820, #28343e 50%, #101820);
-  box-shadow:
-    inset 0 0 0 1px #080c10,
-    inset 0 1px 0 #ffffff15;
-}
-
-.band-track {
-  position: absolute;
-  top: 13px;
-  bottom: 36px;
-  left: 50%;
-  width: 7px;
-  transform: translateX(-50%);
-  border-radius: 4px;
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      #65737e 0,
-      #65737e 1px,
-      transparent 1px,
-      transparent 17px
-    ),
-    linear-gradient(90deg, #080c10, #52616d, #080c10);
-  box-shadow:
-    inset 0 0 3px #000,
-    0 0 0 1px #070a0d;
-  pointer-events: none;
-}
-
-.band input[type="range"] {
-  position: absolute;
-  z-index: 5;
-  top: 50%;
-  left: 50%;
-  width: 270px;
-  height: 44px;
-  margin: 0;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  appearance: none;
-  background: transparent;
-  cursor: pointer;
-  touch-action: none;
-}
-
-.band input[type="range"]::-webkit-slider-thumb {
-  appearance: none;
-  width: 24px;
-  height: 34px;
-  margin-top: -15px;
-  border-radius: 5px;
-  border: 2px solid #b9c5cc;
-  background: linear-gradient(
-    to bottom,
-    #f4f8fa,
-    #7d898f,
-    #dce4e8,
-    #59656b
-  );
-  box-shadow:
-    0 2px 5px #000,
-    0 0 7px rgba(0,180,255,.7);
-}
-
-.band input[type="range"]::-moz-range-thumb {
-  width: 24px;
-  height: 34px;
-  border-radius: 5px;
-  border: 2px solid #b9c5cc;
-  background: linear-gradient(
-    to bottom,
-    #f4f8fa,
-    #7d898f,
-    #dce4e8,
-    #59656b
-  );
-  box-shadow:
-    0 2px 5px #000,
-    0 0 7px rgba(0,180,255,.7);
-}
-
-.band-frequency {
-  position: absolute;
-  bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #e5ebef;
-  font-size: 9px;
-  white-space: nowrap;
-  font-weight: 800;
-}
-
-.band-value {
-  position: absolute;
-  bottom: 3px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #ffad25;
-  font-size: 9px;
-  white-space: nowrap;
-  font-weight: 800;
-}
-
-.channel-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 7px;
-  color: #9eabb5;
-  font-size: 10px;
-}
-
-.audio-engine {
-  margin-top: 10px;
-  border: 1px solid #697984;
-  border-radius: 7px;
-  padding: 11px;
-  background: linear-gradient(#293640, #111a22);
-  box-shadow: inset 0 1px 0 #ffffff16;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-bottom: 9px;
-  font-size: 17px;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-}
-
-.section-title::before {
-  content: "";
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: var(--yellow);
-  box-shadow: 0 0 9px var(--yellow);
-}
-
-.engine-grid {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr;
-  gap: 9px;
-}
-
-.engine-box {
-  min-width: 0;
-  border: 1px solid #4f606d;
-  border-radius: 6px;
-  padding: 10px;
-  background: linear-gradient(#17232d, #0c141b);
-}
-
-.engine-label {
-  margin-bottom: 8px;
-  color: #d9e2e8;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.engine-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.engine-controls .hardware-button {
-  flex: 1 1 120px;
-}
-
-.file-input {
-  width: 100%;
-  color: #b8c4cc;
-  font-size: 11px;
-}
-
-.master-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.master-row input {
-  flex: 1;
-}
-
-.master-value {
-  min-width: 55px;
-  color: #ffb52b;
-  font-weight: 900;
-  text-align: right;
-}
-
-.status-list {
-  display: grid;
-  gap: 8px;
-  color: #b9c5ce;
-  font-size: 12px;
-}
-
-.status-list div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-list div::before {
-  content: "";
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 7px var(--green);
-}
-
-.footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 10px;
-  padding: 12px 6px 2px;
-  color: #8f9da8;
-  font-size: 11px;
-}
-
-.ready {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #c6d0d7;
-}
-
-.ready::before {
-  content: "";
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 8px var(--green);
-}
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
-@media (max-width: 1100px) {
-  .control-row {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-
-  .meter-box {
-    grid-column: span 2;
-  }
-
-  .clip-box {
-    min-height: 70px;
-  }
-
-  .channel-buttons {
-    flex-direction: row;
-  }
-
-  .channel-buttons button {
-    flex: 1;
-  }
-
-  .engine-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 800px) {
-  .rack-header {
-    grid-template-columns: 1fr;
-  }
-
-  .channels-rack {
-    grid-template-columns: 1fr;
-  }
-
-  .eq-bands {
-    overflow-x: auto;
-    grid-template-columns: repeat(31, 34px);
-    padding-bottom: 8px;
-  }
-
-  .eq-track {
-    height: 330px;
-  }
-
-  .eq-band input[type="range"] {
-    width: 330px;
-  }
-
-  .hardware-nav {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 760px) {
-  .app {
-    padding: 7px;
-  }
-
-  .top-rack,
-  .device-title {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .top-actions,
-  .preset-area {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .channels {
-    grid-template-columns: 1fr;
-  }
-
-  .channel {
-    padding: 8px;
-  }
-
-  .channel-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .channel-status {
-    justify-content: flex-start;
-  }
-
-  .control-row {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .meter-box {
-    grid-column: span 2;
-  }
-
-  .clip-box {
-    min-height: 58px;
-  }
-
-  .engine-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .footer {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 600px) {
-  .hardware-rack {
-    padding: 4px;
-  }
-
-  .channel-rack {
-    padding: 5px;
-  }
-
-  .channel-controls {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .level-meter {
-    grid-column: span 2;
-  }
-
-  .clip-indicator {
-    grid-column: span 2;
-  }
-
-  .eq-rack {
-    overflow-x: auto;
-  }
-
-  .eq-bands {
-    grid-template-columns: repeat(31, 36px);
-    margin-left: 22px;
-  }
-
-  .eq-track {
-    height: 350px;
-  }
-
-  .eq-band input[type="range"] {
-    width: 350px;
-  }
-
-  .channel-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .hardware-nav {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 900px) and (orientation: landscape) {
-  .channels-rack {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .eq-bands {
-    grid-template-columns: repeat(31, 32px);
-  }
-
-  .eq-track {
-    height: 300px;
-  }
-
-  .eq-band input[type="range"] {
-    width: 300px;
-  }
-
-  .audio-engine-rack {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-
-  .hardware-nav {
-    grid-template-columns: repeat(6, 1fr);
-  }
-
-  .channels {
-    grid-template-columns: repeat(2, minmax(520px, 1fr));
-    width: max-content;
-  }
-
-  .channels-scroll {
-    overflow-x: auto;
-    padding-bottom: 5px;
-  }
-
-  .channel {
-    width: 520px;
-  }
-
-  .app {
-    min-width: 0;
-  }
-}
-
-@media (min-width: 1600px) {
-  .eq-track {
-    height: 410px;
-  }
-
-  .eq-band input[type="range"] {
-    width: 410px;
-  }
-
-  .eq-bands {
-    gap: 5px;
-  }
-}
     /* =========================================================
-   DBX 2231 HARDWARE SKIN - VISUAL PATCH
-   TARGET: GAMBAR PERTAMA
-   Tidak menghapus fungsi existing
-========================================================= */
-
-/* ---------- BODY / RACK ---------- */
-
-body {
-  background:
-    radial-gradient(
-      circle at 50% -10%,
-      #263b49 0%,
-      #101a22 35%,
-      #05090d 75%,
-      #020406 100%
-    );
-}
-
-.app {
-  max-width: 1900px;
-  padding: 7px;
-}
-
-/* ---------- TOP HEADER ---------- */
-
-.top-rack {
-  min-height: 82px;
-  padding: 8px 14px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #263641 0%,
-      #111c24 48%,
-      #080e13 100%
-    );
-
-  border: 1px solid #566a77;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.15),
-    inset 0 -10px 20px rgba(0,0,0,.45),
-    0 5px 15px rgba(0,0,0,.7);
-}
-
-/* ---------- BRAND ---------- */
-
-.brand h1 {
-  font-size: clamp(22px, 3vw, 42px);
-  font-weight: 900;
-  letter-spacing: 2px;
-
-  text-shadow:
-    0 2px 2px #000,
-    0 0 8px rgba(255,255,255,.08);
-}
-
-.brand h1::first-letter {
-  color: #e8edf1;
-}
-
-.brand p {
-  color: #18b9ff;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-/* ---------- TOP BUTTONS ---------- */
-
-.top-actions {
-  gap: 5px;
-}
-
-.top-actions .hardware-button {
-  min-width: 74px;
-  min-height: 42px;
-  padding: 7px 12px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #334550,
-      #111b22
-    );
-
-  border: 1px solid #607583;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.15),
-    inset 0 -3px 5px rgba(0,0,0,.5),
-    0 2px 3px #000;
-}
-
-.top-actions .hardware-button:hover {
-  border-color: #18bfff;
-  box-shadow:
-    0 0 10px rgba(0,180,255,.35),
-    inset 0 1px 0 rgba(255,255,255,.15);
-}
-
-/* ---------- DEVICE TITLE ---------- */
-
-.device-title {
-  min-height: 70px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #263640,
-      #111a21
-    );
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.12),
-    inset 0 -5px 12px rgba(0,0,0,.35);
-}
-
-.device-name {
-  font-size: clamp(20px, 3vw, 31px);
-  letter-spacing: 2px;
-  text-shadow: 0 2px 2px #000;
-}
-
-.device-subtitle {
-  color: #ffb62a;
-  text-shadow: 0 0 5px rgba(255,170,0,.3);
-}
-
-/* ---------- CHANNEL RACK ---------- */
-
-.channels {
-  gap: 8px;
-}
-
-.channel {
-  position: relative;
-
-  padding: 8px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #263842 0%,
-      #111c24 35%,
-      #0a1117 70%,
-      #1b2932 100%
-    );
-
-  border: 1px solid #607481;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.12),
-    inset 0 -15px 25px rgba(0,0,0,.45),
-    0 5px 15px rgba(0,0,0,.75);
-}
-
-/* ---------- CHANNEL HEADER ---------- */
-
-.channel-header {
-  min-height: 43px;
-  padding: 3px 7px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #1e2d37,
-      #0a1218
-    );
-
-  border: 1px solid #435966;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.1),
-    inset 0 -5px 10px rgba(0,0,0,.35);
-}
-
-.channel-label {
-  font-size: clamp(16px, 1.5vw, 22px);
-  text-shadow: 0 2px 2px #000;
-}
-
-/* ---------- POWER LED ---------- */
-
-.power-led {
-  width: 20px;
-  height: 20px;
-
-  background:
-    radial-gradient(
-      circle at 35% 30%,
-      #ffffff 0 8%,
-      #62ff9a 20%,
-      #13ef51 55%,
-      #07842d 100%
-    );
-
-  border: 1px solid #42ff83;
-
-  box-shadow:
-    0 0 6px #1dff61,
-    0 0 18px rgba(25,255,90,.8),
-    inset 0 1px 3px #fff;
-}
-
-/* ---------- STATUS BUTTON ---------- */
-
-.status-light {
-  min-height: 31px;
-  padding: 5px 9px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #202e37,
-      #0a1117
-    );
-
-  border: 1px solid #4b606d;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 2px 3px #000;
-}
-
-/* ---------- CONTROL AREA ---------- */
-
-.control-row {
-  gap: 6px;
-}
-
-.control-box {
-  min-height: 108px;
-  padding: 7px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #1b2a34,
-      #091117
-    );
-
-  border: 1px solid #506674;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.09),
-    inset 0 -8px 15px rgba(0,0,0,.4),
-    0 2px 4px rgba(0,0,0,.45);
-}
-
-.control-title {
-  color: #e7edf1;
-  font-size: 11px;
-  font-weight: 900;
-  text-shadow: 0 1px 2px #000;
-}
-
-/* =========================================================
-   GAIN - HARDWARE KNOB LOOK
-========================================================= */
-
-.control-box:first-child {
-  position: relative;
-}
-
-.gain-slider {
-  appearance: none;
-  height: 7px;
-
-  margin-top: 5px;
-
-  border-radius: 5px;
-
-  background:
-    linear-gradient(
-      90deg,
-      #252d32,
-      #59636a,
-      #20272c
-    );
-
-  border: 1px solid #0b0f12;
-
-  box-shadow:
-    inset 0 2px 3px #000;
-}
-
-.gain-slider::-webkit-slider-thumb {
-  appearance: none;
-
-  width: 22px;
-  height: 22px;
-
-  border-radius: 50%;
-
-  background:
-    radial-gradient(
-      circle at 35% 30%,
-      #dce5e9 0 7%,
-      #7e8a91 22%,
-      #263038 58%,
-      #080b0e 80%,
-      #6c777d 100%
-    );
-
-  border: 1px solid #aab6bc;
-
-  box-shadow:
-    0 2px 5px #000,
-    0 0 5px rgba(0,160,255,.4);
-}
-
-/* ---------- LOW CUT / RANGE ---------- */
-
-.small-button {
-  min-height: 35px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #334754,
-      #101b23
-    );
-
-  border: 1px solid #617582;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.12),
-    inset 0 -3px 5px rgba(0,0,0,.45),
-    0 2px 3px #000;
-}
-
-.small-button:hover {
-  border-color: #14baff;
-}
-
-.small-button.active {
-  color: #fff;
-
-  background:
-    linear-gradient(
-      180deg,
-      #176a8d,
-      #073246
-    );
-
-  border-color: #1abaff;
-
-  box-shadow:
-    0 0 8px rgba(0,180,255,.4),
-    inset 0 0 8px rgba(0,180,255,.25);
-}
-
-/* =========================================================
-   LED LEVEL METER
-========================================================= */
-
-.led-meter {
-  min-height: 36px;
-  padding: 5px;
-
-  grid-template-columns:
-    repeat(18, minmax(7px, 1fr));
-
-  gap: 3px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #020609,
-      #071015
-    );
-
-  border: 1px solid #314752;
-
-  box-shadow:
-    inset 0 0 10px #000,
-    0 0 2px rgba(0,180,255,.25);
-}
-
-.led-meter span {
-  height: 22px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #10201c,
-      #07100e
-    );
-
-  border: 1px solid #20352d;
-
-  box-shadow:
-    inset 0 0 3px #000;
-}
-
-.led-meter span.on {
-  background:
-    linear-gradient(
-      180deg,
-      #75ff9a,
-      #0cff4d
-    );
-
-  border-color: #a0ffb8;
-
-  box-shadow:
-    0 0 5px #20ff65,
-    0 0 11px rgba(20,255,80,.65),
-    inset 0 0 4px #fff;
-}
-
-.led-meter span:nth-child(n + 11).on {
-  background:
-    linear-gradient(
-      180deg,
-      #fff176,
-      #ffc400
-    );
-
-  border-color: #fff8a0;
-
-  box-shadow:
-    0 0 7px #ffd21c,
-    inset 0 0 3px #fff;
-}
-
-.led-meter span:nth-child(n + 16).on {
-  background:
-    linear-gradient(
-      180deg,
-      #ff8b8b,
-      #ff2020
-    );
-
-  border-color: #ffb0b0;
-
-  box-shadow:
-    0 0 8px #ff3030,
-    0 0 14px rgba(255,40,40,.6);
-}
-
-/* =========================================================
-   CLIP
-========================================================= */
-
-.clip-box {
-  min-width: 55px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #401719,
-      #18090b
-    );
-
-  border: 1px solid #743238;
-
-  box-shadow:
-    inset 0 0 10px rgba(255,0,0,.12),
-    0 2px 4px #000;
-}
-
-.clip-led {
-  width: 17px;
-  height: 17px;
-
-  background:
-    radial-gradient(
-      circle,
-      #87252a,
-      #3b1115
-    );
-
-  border: 1px solid #9d3036;
-}
-
-.clip-led.on {
-  background:
-    radial-gradient(
-      circle at 35% 30%,
-      #fff 0 5%,
-      #ff7777 18%,
-      #ff2020 60%,
-      #a40000 100%
-    );
-
-  box-shadow:
-    0 0 8px #ff3030,
-    0 0 20px rgba(255,0,0,.75);
-}
-
-/* =========================================================
-   31 BAND EQ
-========================================================= */
-
-.eq-wrapper {
-  padding: 8px 4px 5px;
-
-  background:
-    linear-gradient(
-      90deg,
-      #080f14,
-      #17252e 50%,
-      #080f14
-    );
-
-  border: 1px solid #435b68;
-
-  box-shadow:
-    inset 0 0 15px rgba(0,0,0,.55);
-}
-
-/* ---------- BAND ---------- */
-
-.band {
-  height: 310px;
-  padding: 6px 2px 0;
-
-  background:
-    linear-gradient(
-      90deg,
-      #091117,
-      #1d2a33 48%,
-      #091117
-    );
-
-  border: 1px solid #4c606c;
-
-  box-shadow:
-    inset 1px 0 rgba(255,255,255,.04),
-    inset -1px 0 rgba(0,0,0,.8),
-    inset 0 0 5px #000;
-}
-
-/* ---------- TRACK ---------- */
-
-.band-track {
-  top: 12px;
-  bottom: 36px;
-  width: 8px;
-
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      #6d7c85 0,
-      #6d7c85 1px,
-      transparent 1px,
-      transparent 16px
-    ),
-    linear-gradient(
-      90deg,
-      #060a0e,
-      #53636d,
-      #060a0e
-    );
-
-  border-radius: 5px;
-
-  box-shadow:
-    inset 0 0 4px #000,
-    0 0 0 1px #05080a;
-}
-
-/* ---------- FADER THUMB ---------- */
-
-.band input[type="range"]::-webkit-slider-thumb {
-  width: 27px;
-  height: 38px;
-
-  border-radius: 5px;
-
-  border: 2px solid #c9d4d9;
-
-  background:
-    linear-gradient(
-      180deg,
-      #ffffff,
-      #8c999f 30%,
-      #e2e8eb 50%,
-      #667279 100%
-    );
-
-  box-shadow:
-    inset 0 1px 2px #fff,
-    0 2px 5px #000,
-    0 0 8px rgba(0,175,255,.75);
-}
-
-.band input[type="range"]::-moz-range-thumb {
-  width: 27px;
-  height: 38px;
-
-  border-radius: 5px;
-
-  border: 2px solid #c9d4d9;
-
-  background:
-    linear-gradient(
-      180deg,
-      #ffffff,
-      #8c999f 30%,
-      #e2e8eb 50%,
-      #667279 100%
-    );
-
-  box-shadow:
-    inset 0 1px 2px #fff,
-    0 2px 5px #000,
-    0 0 8px rgba(0,175,255,.75);
-}
-
-/* ---------- FREQUENCY ---------- */
-
-.band-frequency {
-  bottom: 17px;
-
-  color: #e8eef2;
-
-  font-size: 9px;
-  font-weight: 900;
-
-  text-shadow: 0 1px 2px #000;
-}
-
-.band-value {
-  bottom: 2px;
-
-  color: #ffc12a;
-
-  font-size: 9px;
-  font-weight: 900;
-
-  text-shadow:
-    0 0 4px rgba(255,170,0,.35);
-}
-
-/* ---------- DB SCALE ---------- */
-
-.db-scale {
-  color: #e2e9ed;
-  font-weight: 900;
-  text-shadow: 0 1px 2px #000;
-}
-
-/* =========================================================
-   CHANNEL ACTION BUTTONS
-========================================================= */
-
-.channel-buttons {
-  gap: 6px;
-}
-
-.channel-buttons .small-button {
-  min-height: 43px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #30434f,
-      #0e1a22
-    );
-
-  font-size: 11px;
-  letter-spacing: .4px;
-}
-
-.channel-buttons .small-button:hover {
-  border-color: #16baff;
-  box-shadow:
-    0 0 8px rgba(0,180,255,.3);
-}
-
-/* =========================================================
-   AUDIO ENGINE
-========================================================= */
-
-.audio-engine {
-  padding: 9px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #25353f,
-      #0d161d
-    );
-
-  border: 1px solid #637580;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.12),
-    inset 0 -12px 20px rgba(0,0,0,.4),
-    0 5px 15px rgba(0,0,0,.65);
-}
-
-.engine-box {
-  background:
-    linear-gradient(
-      145deg,
-      #192a34,
-      #081117
-    );
-
-  border: 1px solid #506572;
-
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    inset 0 -8px 15px rgba(0,0,0,.35);
-}
-
-.engine-controls .hardware-button {
-  min-height: 43px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #315064,
-      #0c1b24
-    );
-}
-
-/* ---------- MASTER ---------- */
-
-.master-row input[type="range"] {
-  height: 9px;
-
-  appearance: none;
-
-  background:
-    linear-gradient(
-      90deg,
-      #078bff,
-      #23aaff 65%,
-      #3c4449 65%
-    );
-
-  border-radius: 5px;
-
-  box-shadow:
-    inset 0 2px 3px #000;
-}
-
-.master-row input[type="range"]::-webkit-slider-thumb {
-  appearance: none;
-
-  width: 25px;
-  height: 34px;
-
-  border-radius: 4px;
-
-  border: 1px solid #d4dce0;
-
-  background:
-    linear-gradient(
-      180deg,
-      #f5f8fa,
-      #87949a,
-      #dce3e7,
-      #58646a
-    );
-
-  box-shadow:
-    0 2px 5px #000,
-    0 0 6px rgba(0,170,255,.5);
-}
-
-/* =========================================================
-   FOOTER
-========================================================= */
-
-.footer {
-  border-top: 1px solid #263944;
-}
-
-/* =========================================================
-   LARGE DESKTOP
-========================================================= */
-
-@media (min-width: 1200px) {
-
-  .channels {
-    grid-template-columns:
-      minmax(0, 1fr)
-      minmax(0, 1fr);
-  }
-
-  .band {
-    height: 330px;
-  }
-
-}
-
-/* =========================================================
-   TABLET / LANDSCAPE
-========================================================= */
-
-@media (max-width: 1000px) and (orientation: landscape) {
-
-  .app {
-    padding: 5px;
-  }
-
-  .channels {
-    grid-template-columns:
-      minmax(520px, 1fr)
-      minmax(520px, 1fr);
-
-    width: max-content;
-  }
-
-  .channel {
-    width: 520px;
-  }
-
-  .band {
-    height: 300px;
-  }
-
-}
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 760px) {
-
-  .device-title {
-    min-height: 64px;
-  }
-
-  .channel {
-    width: 100%;
-  }
-
-  .band {
-    height: 300px;
-  }
-
-  .channel-buttons {
-    flex-direction: row;
-  }
-
-  .channel-buttons .small-button {
-    flex: 1;
-  }
-
-}
+       DBX 2231 GRAPHIC EQUALIZER
+       COMPLETE RESPONSIVE HARDWARE UI
+       ========================================================= */
+
+    :root {
+      --bg: #080b0e;
+      --panel: #171c21;
+      --panel-2: #222a31;
+      --panel-3: #303941;
+      --border: #58636d;
+      --text: #e8edf1;
+      --muted: #9da8b1;
+
+      --orange: #ff9d00;
+      --orange-dark: #9d5100;
+
+      --green: #29f56b;
+      --yellow: #ffd52b;
+      --red: #ff3030;
+      --blue: #279cff;
+      --blue-bright: #00c8ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      overflow-x: hidden;
+    }
+
+    body {
+      overflow-x: hidden;
+      background:
+        radial-gradient(
+          circle at 50% -10%,
+          #263b49 0%,
+          #101a22 35%,
+          #05090d 75%,
+          #020406 100%
+        );
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button,
+    select {
+      color: var(--text);
+    }
+
+    button {
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    /* =========================================================
+       MAIN APP
+       ========================================================= */
+
+    .app {
+      width: 100%;
+      max-width: 1900px;
+      margin: 0 auto;
+      padding: 7px;
+    }
+
+    /* =========================================================
+       TOP RACK
+       ========================================================= */
+
+    .top-rack {
+      min-height: 82px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+
+      padding: 8px 14px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #263641 0%,
+          #111c24 48%,
+          #080e13 100%
+        );
+
+      border: 1px solid #566a77;
+      border-radius: 7px;
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.15),
+        inset 0 -10px 20px rgba(0,0,0,.45),
+        0 5px 15px rgba(0,0,0,.7);
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+
+      font-size: clamp(22px, 3vw, 42px);
+      font-weight: 900;
+      letter-spacing: 2px;
+
+      text-shadow:
+        0 2px 2px #000,
+        0 0 8px rgba(255,255,255,.08);
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+
+      color: #18b9ff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 5px;
+    }
+
+    .hardware-button {
+      min-height: 40px;
+      padding: 8px 15px;
+
+      border: 1px solid #687987;
+      border-radius: 6px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #34434f,
+          #17222c
+        );
+
+      box-shadow:
+        inset 0 1px 0 #ffffff22,
+        inset 0 -2px 0 #0008;
+
+      color: #e9f2f7;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .3px;
+    }
+
+    .hardware-button:hover {
+      border-color: #18bfff;
+
+      box-shadow:
+        0 0 10px rgba(0,180,255,.35),
+        inset 0 1px 0 rgba(255,255,255,.15);
+    }
+
+    .hardware-button.active {
+      color: #fff;
+
+      background:
+        linear-gradient(
+          180deg,
+          #176a8d,
+          #073246
+        );
+
+      border-color: #1abaff;
+
+      box-shadow:
+        0 0 8px rgba(0,180,255,.4),
+        inset 0 0 8px rgba(0,180,255,.25);
+    }
+
+    /* =========================================================
+       DEVICE TITLE
+       ========================================================= */
+
+    .device-title {
+      min-height: 70px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+
+      margin-top: 9px;
+      padding: 11px 16px;
+
+      border: 1px solid #667581;
+      border-radius: 7px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #263640,
+          #111a21
+        );
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -5px 12px rgba(0,0,0,.35);
+    }
+
+    .device-name {
+      font-size: clamp(20px, 3vw, 31px);
+      font-weight: 900;
+      letter-spacing: 2px;
+
+      text-shadow: 0 2px 2px #000;
+    }
+
+    .device-subtitle {
+      margin-top: 3px;
+
+      color: #ffb62a;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .8px;
+
+      text-shadow:
+        0 0 5px rgba(255,170,0,.3);
+    }
+
+    .preset-area {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    select {
+      min-height: 38px;
+
+      padding: 7px 10px;
+
+      border: 1px solid #687987;
+      border-radius: 6px;
+
+      background: #111a22;
+      color: var(--text);
+    }
+
+    /* =========================================================
+       CHANNEL SCROLL
+       ========================================================= */
+
+    .channels-scroll {
+      width: 100%;
+      min-width: 0;
+
+      margin: 0;
+      padding: 0;
+
+      overflow-x: auto;
+      overflow-y: hidden;
+
+      -webkit-overflow-scrolling: touch;
+
+      overscroll-behavior-x: contain;
+      overscroll-behavior-y: none;
+
+      scrollbar-width: auto;
+      scrollbar-color: #788792 #151c22;
+
+      touch-action: pan-x;
+    }
+
+    /* =========================================================
+       CHANNELS
+       ========================================================= */
+
+    .channels {
+      display: grid;
+
+      grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+      gap: 10px;
+
+      width: 100%;
+      min-width: 0;
+
+      margin-top: 9px;
+
+      align-items: stretch;
+    }
+
+    .channel {
+      position: relative;
+
+      min-width: 0;
+      width: 100%;
+
+      padding: 10px;
+
+      border: 1px solid #687782;
+      border-radius: 7px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #263842 0%,
+          #111c24 35%,
+          #0a1117 70%,
+          #1b2932 100%
+        );
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -15px 25px rgba(0,0,0,.45),
+        0 5px 15px rgba(0,0,0,.75);
+
+      overflow: hidden;
+    }
+
+    /* =========================================================
+       CHANNEL HEADER
+       ========================================================= */
+
+    .channel-header {
+      min-height: 43px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 8px;
+      margin-bottom: 9px;
+      padding: 3px 7px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #1e2d37,
+          #0a1218
+        );
+
+      border: 1px solid #435966;
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.1),
+        inset 0 -5px 10px rgba(0,0,0,.35);
+    }
+
+    .channel-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+
+      font-size: clamp(16px, 1.5vw, 22px);
+      font-weight: 900;
+      letter-spacing: .5px;
+
+      text-shadow: 0 2px 2px #000;
+    }
+
+    .power-led {
+      width: 20px;
+      height: 20px;
+
+      flex: 0 0 auto;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle at 35% 30%,
+          #ffffff 0 8%,
+          #62ff9a 20%,
+          #13ef51 55%,
+          #07842d 100%
+        );
+
+      border: 1px solid #42ff83;
+
+      box-shadow:
+        0 0 6px #1dff61,
+        0 0 18px rgba(25,255,90,.8),
+        inset 0 1px 3px #fff;
+    }
+
+    .channel-status {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 5px;
+    }
+
+    .status-light {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+
+      min-height: 31px;
+
+      padding: 5px 9px;
+
+      border: 1px solid #4b606d;
+      border-radius: 5px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #202e37,
+          #0a1117
+        );
+
+      color: #dce4ea;
+      font-size: 10px;
+      font-weight: 800;
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.08),
+        0 2px 3px #000;
+    }
+
+    .status-light::before {
+      content: "";
+
+      width: 9px;
+      height: 9px;
+
+      flex: 0 0 auto;
+
+      border-radius: 50%;
+
+      background: var(--green);
+      box-shadow: 0 0 7px var(--green);
+    }
+
+    .status-light.bypass::before {
+      background: var(--red);
+      box-shadow: 0 0 7px var(--red);
+    }
+
+    .status-light.test::before {
+      background: var(--yellow);
+      box-shadow: 0 0 7px var(--yellow);
+    }
+
+    /* =========================================================
+       CONTROL ROW
+       ========================================================= */
+
+    .control-row {
+      display: grid;
+
+      grid-template-columns:
+        1.15fr
+        .9fr
+        .9fr
+        1.55fr
+        auto;
+
+      gap: 7px;
+
+      align-items: stretch;
+    }
+
+    .control-box {
+      min-width: 0;
+      min-height: 108px;
+
+      padding: 8px;
+
+      border: 1px solid #506674;
+      border-radius: 6px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #1b2a34,
+          #091117
+        );
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.09),
+        inset 0 -8px 15px rgba(0,0,0,.4),
+        0 2px 4px rgba(0,0,0,.45);
+    }
+
+    .control-title {
+      margin-bottom: 8px;
+
+      color: #e7edf1;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .3px;
+
+      text-shadow: 0 1px 2px #000;
+      white-space: nowrap;
+    }
+
+    /* =========================================================
+       GAIN
+       ========================================================= */
+
+    .gain-slider {
+      width: 100%;
+      height: 18px;
+
+      cursor: pointer;
+      touch-action: pan-y;
+    }
+
+    .gain-slider::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+
+      width: 22px;
+      height: 22px;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle at 35% 30%,
+          #dce5e9 0 7%,
+          #7e8a91 22%,
+          #263038 58%,
+          #080b0e 80%,
+          #6c777d 100%
+        );
+
+      border: 1px solid #aab6bc;
+
+      box-shadow:
+        0 2px 5px #000,
+        0 0 5px rgba(0,160,255,.4);
+    }
+
+    .gain-value {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 6px;
+      margin-top: 4px;
+
+      font-size: 12px;
+    }
+
+    .gain-value strong {
+      font-size: 15px;
+      color: #f0f3f5;
+    }
+
+    /* =========================================================
+       GENERIC RANGE
+       ========================================================= */
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--orange);
+      cursor: pointer;
+    }
+
+    /* =========================================================
+       SMALL BUTTON
+       ========================================================= */
+
+    .small-button {
+      min-height: 35px;
+      min-width: 38px;
+
+      padding: 5px 10px;
+
+      border: 1px solid #617582;
+      border-radius: 5px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #334754,
+          #101b23
+        );
+
+      color: #e9f2f7;
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -3px 5px rgba(0,0,0,.45),
+        0 2px 3px #000;
+
+      font-size: 11px;
+      font-weight: 900;
+
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .small-button:hover {
+      border-color: #14baff;
+    }
+
+    .small-button.active {
+      color: #fff;
+
+      background:
+        linear-gradient(
+          180deg,
+          #176a8d,
+          #073246
+        );
+
+      border-color: #1abaff;
+
+      box-shadow:
+        0 0 8px rgba(0,180,255,.4),
+        inset 0 0 8px rgba(0,180,255,.25);
+    }
+
+    .channel-buttons .small-button {
+      min-height: 43px;
+      flex: 1;
+
+      background:
+        linear-gradient(
+          180deg,
+          #30434f,
+          #0e1a22
+        );
+
+      font-size: 11px;
+      letter-spacing: .4px;
+    }
+
+    /* =========================================================
+       METER
+       ========================================================= */
+
+    .meter-box {
+      min-width: 0;
+    }
+
+    .meter-scale {
+      display: flex;
+      justify-content: space-between;
+
+      gap: 2px;
+      margin-bottom: 5px;
+
+      color: #d7e0e7;
+      font-size: 9px;
+    }
+
+    .led-meter {
+      display: grid;
+
+      grid-template-columns:
+        repeat(18, minmax(7px, 1fr));
+
+      gap: 3px;
+
+      min-height: 36px;
+      padding: 5px;
+
+      border: 1px solid #314752;
+      border-radius: 5px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #020609,
+          #071015
+        );
+
+      box-shadow:
+        inset 0 0 10px #000,
+        0 0 2px rgba(0,180,255,.25);
+    }
+
+    .led-meter span {
+      min-width: 7px;
+      height: 22px;
+
+      border-radius: 3px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #10201c,
+          #07100e
+        );
+
+      border: 1px solid #20352d;
+
+      box-shadow:
+        inset 0 0 3px #000;
+    }
+
+    .led-meter span.on {
+      background:
+        linear-gradient(
+          180deg,
+          #75ff9a,
+          #0cff4d
+        );
+
+      border-color: #a0ffb8;
+
+      box-shadow:
+        0 0 5px #20ff65,
+        0 0 11px rgba(20,255,80,.65),
+        inset 0 0 4px #fff;
+    }
+
+    .led-meter span:nth-child(n + 11).on {
+      background:
+        linear-gradient(
+          180deg,
+          #fff176,
+          #ffc400
+        );
+
+      border-color: #fff8a0;
+
+      box-shadow:
+        0 0 7px #ffd21c,
+        inset 0 0 3px #fff;
+    }
+
+    .led-meter span:nth-child(n + 16).on {
+      background:
+        linear-gradient(
+          180deg,
+          #ff8b8b,
+          #ff2020
+        );
+
+      border-color: #ffb0b0;
+
+      box-shadow:
+        0 0 8px #ff3030,
+        0 0 14px rgba(255,40,40,.6);
+    }
+
+    /* =========================================================
+       CLIP
+       ========================================================= */
+
+    .clip-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      gap: 5px;
+
+      min-width: 55px;
+
+      border: 1px solid #743238;
+      border-radius: 6px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #401719,
+          #18090b
+        );
+
+      box-shadow:
+        inset 0 0 10px rgba(255,0,0,.12),
+        0 2px 4px #000;
+    }
+
+    .clip-led {
+      width: 17px;
+      height: 17px;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle,
+          #87252a,
+          #3b1115
+        );
+
+      border: 1px solid #9d3036;
+    }
+
+    .clip-led.on {
+      background:
+        radial-gradient(
+          circle at 35% 30%,
+          #fff 0 5%,
+          #ff7777 18%,
+          #ff2020 60%,
+          #a40000 100%
+        );
+
+      box-shadow:
+        0 0 8px #ff3030,
+        0 0 20px rgba(255,0,0,.75);
+    }
+
+    .clip-text {
+      color: #ff7777;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    /* =========================================================
+       EQ WRAPPER
+       ========================================================= */
+
+    .eq-wrapper {
+      position: relative;
+
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+
+      margin-top: 10px;
+      padding: 8px 4px 10px;
+
+      border: 1px solid #435b68;
+      border-radius: 6px;
+
+      background:
+        linear-gradient(
+          90deg,
+          #080f14,
+          #17252e 50%,
+          #080f14
+        );
+
+      box-shadow:
+        inset 0 0 15px rgba(0,0,0,.55);
+
+      overflow-x: auto;
+      overflow-y: hidden;
+
+      -webkit-overflow-scrolling: touch;
+
+      overscroll-behavior-x: contain;
+      overscroll-behavior-y: none;
+
+      scrollbar-width: auto;
+      scrollbar-color: #788792 #151c22;
+
+      /*
+       * Horizontal swipe = scroll.
+       * Vertical movement = ditangani JS.
+       */
+      touch-action: pan-x;
+
+      cursor: grab;
+    }
+
+    .eq-wrapper:active {
+      cursor: grabbing;
+    }
+
+    /* =========================================================
+       EQ SCALE
+       ========================================================= */
+
+    .eq-scale {
+      display: grid;
+
+      grid-template-columns:
+        repeat(7, 1fr);
+
+      width: 100%;
+      min-width: 1178px;
+
+      margin-bottom: 4px;
+
+      color: #e0e7ec;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .eq-scale span {
+      text-align: center;
+    }
+
+    /* =========================================================
+       EQ AREA
+       ========================================================= */
+
+    .eq-area {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+
+      width: max-content;
+      min-width: 1220px;
+
+      gap: 8px;
+    }
+
+    /* =========================================================
+       dB SCALE
+       ========================================================= */
+
+    .db-scale {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      flex: 0 0 31px;
+
+      width: 31px;
+      height: 330px;
+
+      padding: 9px 0 22px;
+
+      color: #e2e9ed;
+      font-size: 10px;
+      font-weight: 900;
+      text-align: right;
+
+      text-shadow: 0 1px 2px #000;
+
+      pointer-events: none;
+    }
+
+    /* =========================================================
+       31 BANDS
+       ========================================================= */
+
+    .bands {
+      display: grid;
+
+      grid-template-columns:
+        repeat(31, 30px);
+
+      grid-auto-columns: 30px;
+
+      gap: 8px;
+
+      width: max-content;
+      min-width: 1178px;
+
+      flex: 0 0 auto;
+
+      align-items: stretch;
+    }
+
+    /* =========================================================
+       INDIVIDUAL BAND
+       ========================================================= */
+
+    .band {
+      position: relative;
+
+      width: 30px;
+      min-width: 30px;
+      max-width: 30px;
+
+      height: 330px;
+
+      padding: 6px 2px 0;
+
+      border: 1px solid #4c606c;
+      border-radius: 5px;
+
+      background:
+        linear-gradient(
+          90deg,
+          #091117,
+          #1d2a33 48%,
+          #091117
+        );
+
+      box-shadow:
+        inset 1px 0 rgba(255,255,255,.04),
+        inset -1px 0 rgba(0,0,0,.8),
+        inset 0 0 5px #000;
+
+      flex: 0 0 30px;
+
+      user-select: none;
+      -webkit-user-select: none;
+
+      /*
+       * Sangat penting:
+       * horizontal gesture diberikan kepada browser
+       * untuk scroll EQ.
+       *
+       * vertical gesture diproses oleh JavaScript.
+       */
+      touch-action: pan-x;
+
+      -webkit-tap-highlight-color: transparent;
+
+      cursor: pointer;
+    }
+
+    .band.is-dragging {
+      cursor: ns-resize;
+    }
+
+    .band:focus-within {
+      outline: none;
+    }
+
+    /* =========================================================
+       BAND TRACK
+       ========================================================= */
+
+    .band-track {
+      position: absolute;
+
+      top: 12px;
+      bottom: 36px;
+
+      left: 50%;
+
+      width: 6px;
+
+      transform: translateX(-50%);
+
+      border-radius: 999px;
+
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          #6d7c85 0,
+          #6d7c85 1px,
+          transparent 1px,
+          transparent 16px
+        ),
+        linear-gradient(
+          90deg,
+          #060a0e,
+          #53636d,
+          #060a0e
+        );
+
+      box-shadow:
+        inset 0 0 4px #000,
+        0 0 0 1px #05080a;
+
+      pointer-events: none;
+    }
+
+    /* =========================================================
+       FADER LEVEL FILL
+       ========================================================= */
+
+    .band-track::after {
+      content: "";
+
+      position: absolute;
+
+      left: 50%;
+      bottom: 0;
+
+      width: 6px;
+      height: var(--fader-level, 50%);
+
+      transform: translateX(-50%);
+
+      border-radius: 999px;
+
+      background:
+        linear-gradient(
+          to top,
+          #18a0ff,
+          #49c7ff
+        );
+
+      box-shadow:
+        0 0 5px #00bfff,
+        0 0 10px rgba(0,180,255,.55);
+
+      pointer-events: none;
+    }
+
+    /* =========================================================
+       NATIVE RANGE
+       ========================================================= */
+
+    .band input[type="range"] {
+      position: absolute;
+
+      z-index: 5;
+
+      top: 50%;
+      left: 50%;
+
+      /*
+       * Input diputar -90 derajat.
+       * width = panjang gerakan vertikal.
+       */
+      width: 282px;
+      height: 44px;
+
+      margin: 0;
+
+      transform:
+        translate(-50%, -50%)
+        rotate(-90deg);
+
+      appearance: none;
+      -webkit-appearance: none;
+
+      background: transparent;
+
+      cursor: pointer;
+
+      /*
+       * Pointer ditangani oleh .band.
+       * Native range tetap digunakan untuk keyboard
+       * dan sebagai representasi nilai/knob.
+       */
+      pointer-events: none;
+
+      touch-action: none;
+    }
+
+    .band input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+
+      border: none;
+      border-radius: 999px;
+
+      background: transparent;
+    }
+
+    .band input[type="range"]::-moz-range-track {
+      height: 6px;
+
+      border: none;
+      border-radius: 999px;
+
+      background: transparent;
+    }
+
+    .band input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+
+      width: 28px;
+      height: 40px;
+
+      margin-top: -17px;
+
+      border: 2px solid rgba(255,255,255,.8);
+      border-radius: 6px;
+
+      background:
+        linear-gradient(
+          to bottom,
+          #f5f5f5,
+          #aeb6bf
+        );
+
+      box-shadow:
+        0 2px 5px rgba(0,0,0,.45),
+        inset 0 1px 1px rgba(255,255,255,.8);
+
+      pointer-events: none;
+    }
+
+    .band input[type="range"]::-moz-range-thumb {
+      width: 28px;
+      height: 40px;
+
+      border: 2px solid rgba(255,255,255,.8);
+      border-radius: 6px;
+
+      background:
+        linear-gradient(
+          to bottom,
+          #f5f5f5,
+          #aeb6bf
+        );
+
+      box-shadow:
+        0 2px 5px rgba(0,0,0,.45),
+        inset 0 1px 1px rgba(255,255,255,.8);
+
+      pointer-events: none;
+    }
+
+    /* =========================================================
+       FREQUENCY / VALUE
+       ========================================================= */
+
+    .band-frequency {
+      position: absolute;
+
+      left: 50%;
+      bottom: 18px;
+
+      transform: translateX(-50%);
+
+      width: max-content;
+
+      color: #e8eef2;
+
+      font-size: 9px;
+      line-height: 1;
+      font-weight: 900;
+
+      white-space: nowrap;
+      text-align: center;
+
+      text-shadow: 0 1px 2px #000;
+
+      pointer-events: none;
+    }
+
+    .band-value {
+      position: absolute;
+
+      left: 50%;
+      bottom: 2px;
+
+      transform: translateX(-50%);
+
+      width: max-content;
+      min-width: 28px;
+
+      color: #ffc12a;
+
+      font-size: 9px;
+      line-height: 1;
+      font-weight: 900;
+
+      white-space: nowrap;
+      text-align: center;
+
+      text-shadow:
+        0 0 4px rgba(255,170,0,.35);
+
+      pointer-events: none;
+    }
+
+    /* =========================================================
+       CHANNEL FOOTER
+       ========================================================= */
+
+    .channel-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 8px;
+      margin-top: 7px;
+
+      color: #9eabb5;
+      font-size: 10px;
+    }
+
+    /* =========================================================
+       CHANNEL BUTTONS
+       ========================================================= */
+
+    .channel-buttons {
+      display: flex;
+
+      gap: 6px;
+      margin-top: 7px;
+    }
+
+    .channel-buttons .small-button {
+      flex: 1;
+    }
+
+    /* =========================================================
+       AUDIO ENGINE
+       ========================================================= */
+
+    .audio-engine {
+      margin-top: 10px;
+
+      padding: 9px;
+
+      border: 1px solid #637580;
+      border-radius: 7px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #25353f,
+          #0d161d
+        );
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -12px 20px rgba(0,0,0,.4),
+        0 5px 15px rgba(0,0,0,.65);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+
+      margin-bottom: 9px;
+
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: .5px;
+    }
+
+    .section-title::before {
+      content: "";
+
+      width: 13px;
+      height: 13px;
+
+      flex: 0 0 auto;
+
+      border-radius: 50%;
+
+      background: var(--yellow);
+
+      box-shadow:
+        0 0 9px var(--yellow);
+    }
+
+    .engine-grid {
+      display: grid;
+
+      grid-template-columns:
+        1.3fr
+        1fr
+        1fr;
+
+      gap: 9px;
+    }
+
+    .engine-box {
+      min-width: 0;
+
+      padding: 10px;
+
+      border: 1px solid #506572;
+      border-radius: 6px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #192a34,
+          #081117
+        );
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.08),
+        inset 0 -8px 15px rgba(0,0,0,.35);
+    }
+
+    .engine-label {
+      margin-bottom: 8px;
+
+      color: #d9e2e8;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .engine-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .engine-controls .hardware-button {
+      flex: 1 1 120px;
+      min-height: 43px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #315064,
+          #0c1b24
+        );
+    }
+
+    .hardware-select {
+      width: 100%;
+      min-height: 34px;
+
+      padding: 5px 8px;
+
+      font-size: 12px;
+    }
+
+    .file-input {
+      width: 100%;
+
+      color: #b8c4cc;
+      font-size: 11px;
+    }
+
+    /* =========================================================
+       MASTER
+       ========================================================= */
+
+    .master-row {
+      display: flex;
+      align-items: center;
+
+      gap: 10px;
+    }
+
+    .master-row input {
+      flex: 1;
+    }
+
+    .master-row input[type="range"] {
+      height: 9px;
+
+      appearance: none;
+      -webkit-appearance: none;
+
+      border-radius: 5px;
+
+      background:
+        linear-gradient(
+          90deg,
+          #078bff,
+          #23aaff 65%,
+          #3c4449 65%
+        );
+
+      box-shadow:
+        inset 0 2px 3px #000;
+    }
+
+    .master-row input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+
+      width: 25px;
+      height: 34px;
+
+      border: 1px solid #d4dce0;
+      border-radius: 4px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #f5f8fa,
+          #87949a,
+          #dce3e7,
+          #58646a
+        );
+
+      box-shadow:
+        0 2px 5px #000,
+        0 0 6px rgba(0,170,255,.5);
+    }
+
+    .master-value {
+      min-width: 55px;
+
+      color: #ffb52b;
+      font-weight: 900;
+      text-align: right;
+    }
+
+    /* =========================================================
+       FOOTER
+       ========================================================= */
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 10px;
+
+      margin-top: 10px;
+      padding: 12px 6px 2px;
+
+      border-top: 1px solid #263944;
+
+      color: #8f9da8;
+      font-size: 11px;
+    }
+
+    .ready {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      color: #c6d0d7;
+    }
+
+    .ready::before {
+      content: "";
+
+      width: 10px;
+      height: 10px;
+
+      flex: 0 0 auto;
+
+      border-radius: 50%;
+
+      background: var(--green);
+
+      box-shadow:
+        0 0 8px var(--green);
+    }
+
+    /* =========================================================
+       TABLET
+       ========================================================= */
+
+    @media (max-width: 1100px) {
+
+      .control-row {
+        grid-template-columns:
+          1fr
+          1fr
+          1fr;
+      }
+
+      .meter-box {
+        grid-column: span 2;
+      }
+
+      .clip-box {
+        min-height: 70px;
+      }
+
+      .engine-grid {
+        grid-template-columns:
+          1fr
+          1fr;
+      }
+
+    }
+
+    /* =========================================================
+       LANDSCAPE TABLET / PHONE
+       ========================================================= */
+
+    @media (orientation: landscape) and (max-width: 1100px) {
+
+      .app {
+        padding: 5px;
+      }
+
+      /*
+       * Dua channel tetap berdampingan.
+       * Karena total lebarnya bisa lebih besar daripada layar,
+       * channels-scroll akan menjadi horizontal scroll.
+       */
+      .channels {
+        grid-template-columns:
+          520px
+          520px;
+
+        width: max-content;
+        min-width: max-content;
+
+        gap: 18px;
+      }
+
+      .channel {
+        width: 520px;
+        min-width: 520px;
+        max-width: 520px;
+      }
+
+      .channel-header {
+        flex-direction: row;
+      }
+
+      .channel-status {
+        justify-content: flex-end;
+      }
+
+      .band {
+        height: 300px;
+      }
+
+      .db-scale {
+        height: 300px;
+      }
+
+      .eq-area {
+        min-width: 1220px;
+      }
+
+    }
+
+    /* =========================================================
+       PORTRAIT
+       ========================================================= */
+
+    @media (max-width: 760px) {
+
+      .app {
+        padding: 7px;
+      }
+
+      .top-rack,
+      .device-title {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .top-actions,
+      .preset-area {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .channels {
+        grid-template-columns: 1fr;
+        width: 100%;
+        min-width: 0;
+      }
+
+      .channel {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        padding: 8px;
+      }
+
+      .channel-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .channel-status {
+        justify-content: flex-start;
+      }
+
+      .control-row {
+        grid-template-columns:
+          1fr
+          1fr;
+      }
+
+      .meter-box {
+        grid-column: span 2;
+      }
+
+      .clip-box {
+        min-height: 58px;
+      }
+
+      .engine-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .channel-buttons {
+        flex-direction: row;
+      }
+
+      .channel-buttons .small-button {
+        flex: 1;
+      }
+
+    }
+
+    /* =========================================================
+       SMALL PHONE
+       ========================================================= */
+
+    @media (max-width: 480px) {
+
+      .channel {
+        padding: 8px;
+      }
+
+      .eq-scale {
+        min-width: 1178px;
+      }
+
+      .eq-area {
+        min-width: 1220px;
+      }
+
+      .bands {
+        grid-template-columns:
+          repeat(31, 30px);
+
+        gap: 8px;
+      }
+
+      .band {
+        width: 30px;
+        min-width: 30px;
+        max-width: 30px;
+
+        height: 330px;
+
+        flex-basis: 30px;
+      }
+
+      .db-scale {
+        height: 330px;
+      }
+
+    }
+
+    /* =========================================================
+       LARGE SCREEN
+       ========================================================= */
+
+    @media (min-width: 1000px) {
+
+      .band {
+        width: 32px;
+        min-width: 32px;
+        max-width: 32px;
+      }
+
+      .bands {
+        grid-template-columns:
+          repeat(31, 32px);
+
+        grid-auto-columns: 32px;
+
+        gap: 9px;
+      }
+
+    }
+
+    @media (min-width: 1600px) {
+
+      .band,
+      .db-scale {
+        height: 360px;
+      }
+
+    }
   </style>
 </head>
 
 <body>
+
   <main class="app">
 
+    <!-- =======================================================
+         TOP HEADER
+         ======================================================= -->
+
     <header class="top-rack">
+
       <div class="brand">
-        <h1>GRAPHIC EQUALIZER</h1>
-        <p>DUAL CHANNEL • 31 BAND • DIGITAL HARDWARE EMULATION</p>
+
+        <h1>
+          GRAPHIC EQUALIZER
+        </h1>
+
+        <p>
+          DUAL CHANNEL • 31 BAND • DIGITAL HARDWARE EMULATION
+        </p>
+
       </div>
 
       <div class="top-actions">
-        <button class="hardware-button" id="saveButton">
+
+        <button
+          class="hardware-button"
+          id="saveButton"
+        >
           SAVE
         </button>
 
-        <button class="hardware-button" id="recallButton">
+        <button
+          class="hardware-button"
+          id="recallButton"
+        >
           RECALL
         </button>
 
-        <button class="hardware-button" id="resetButton">
+        <button
+          class="hardware-button"
+          id="resetButton"
+        >
           RESET
         </button>
+
       </div>
+
     </header>
 
+
+    <!-- =======================================================
+         DEVICE
+         ======================================================= -->
+
     <section class="device-title">
+
       <div>
-        <div class="device-name">DBX 2231</div>
+
+        <div class="device-name">
+          DBX 2231
+        </div>
+
         <div class="device-subtitle">
           DUAL CHANNEL GRAPHIC EQUALIZER
         </div>
+
       </div>
 
       <div class="preset-area">
+
         <select id="presetSelect">
-          <option value="flat">FLAT</option>
-          <option value="vocal">VOKAL CLEAR</option>
-          <option value="live">LIVE BAND</option>
-          <option value="feedback">ANTI-FEEDBACK</option>
+
+          <option value="flat">
+            FLAT
+          </option>
+
+          <option value="vocal">
+            VOKAL CLEAR
+          </option>
+
+          <option value="live">
+            LIVE BAND
+          </option>
+
+          <option value="feedback">
+            ANTI-FEEDBACK
+          </option>
+
         </select>
 
         <button
@@ -2515,15 +1868,29 @@ body {
         >
           APPLY PRESET
         </button>
+
       </div>
+
     </section>
 
+
+    <!-- =======================================================
+         CHANNELS
+         ======================================================= -->
+
     <div class="channels-scroll">
+
       <section
         class="channels"
         id="channels"
       ></section>
+
     </div>
+
+
+    <!-- =======================================================
+         AUDIO ENGINE
+         ======================================================= -->
 
     <section class="audio-engine">
 
@@ -2532,6 +1899,9 @@ body {
       </div>
 
       <div class="engine-grid">
+
+
+        <!-- INPUT -->
 
         <div class="engine-box">
 
@@ -2545,9 +1915,11 @@ body {
               class="hardware-select"
               id="inputDevice"
             >
+
               <option value="">
                 DEFAULT MICROPHONE
               </option>
+
             </select>
 
             <button
@@ -2569,6 +1941,9 @@ body {
           />
 
         </div>
+
+
+        <!-- AUDIO CONTROL -->
 
         <div class="engine-box">
 
@@ -2604,10 +1979,16 @@ body {
           <audio
             id="audioPlayer"
             controls
-            style="width:100%;margin-top:10px;"
+            style="
+              width:100%;
+              margin-top:10px;
+            "
           ></audio>
 
         </div>
+
+
+        <!-- MASTER -->
 
         <div class="engine-box">
 
@@ -2650,6 +2031,11 @@ body {
 
     </section>
 
+
+    <!-- =======================================================
+         FOOTER
+         ======================================================= -->
+
     <footer class="footer">
 
       <div>
@@ -2667,21 +2053,59 @@ body {
 
   </main>
 
+
 <script>
 /* =========================================================
-   31 BAND FREQUENCY
-========================================================= */
+   DBX 2231 GRAPHIC EQUALIZER
+   COMPLETE JAVASCRIPT
+   ========================================================= */
+
+
+/* =========================================================
+   31 BAND FREQUENCIES
+   ========================================================= */
 
 const frequencies = [
-  20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160,
-  200, 250, 315, 400, 500, 630, 800, 1000, 1250,
-  1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000,
-  10000, 12500, 16000, 20000
+  20,
+  25,
+  31.5,
+  40,
+  50,
+  63,
+  80,
+  100,
+  125,
+  160,
+
+  200,
+  250,
+  315,
+  400,
+  500,
+  630,
+  800,
+  1000,
+  1250,
+
+  1600,
+  2000,
+  2500,
+  3150,
+  4000,
+  5000,
+  6300,
+  8000,
+
+  10000,
+  12500,
+  16000,
+  20000
 ];
+
 
 /* =========================================================
    DOM
-========================================================= */
+   ========================================================= */
 
 const channelsContainer =
   document.getElementById("channels");
@@ -2698,9 +2122,10 @@ const inputDevice =
 const readyStatus =
   document.getElementById("readyStatus");
 
+
 /* =========================================================
    AUDIO STATE
-========================================================= */
+   ========================================================= */
 
 let audioContext = null;
 
@@ -2709,10 +2134,10 @@ let masterGainNode = null;
 let sourceNode = null;
 
 /*
- * FIX:
  * MediaElementSource hanya boleh dibuat satu kali
- * untuk satu elemen <audio>.
+ * untuk elemen audio yang sama.
  */
+
 let audioFileSourceNode = null;
 
 let analyserNodes = [];
@@ -2725,61 +2150,253 @@ let isMuted = false;
 
 let meterAnimationId = null;
 
+
 /* =========================================================
    CHANNEL STATE
-========================================================= */
+   ========================================================= */
 
 const channelState = [
+
   {
     gain: 0,
+
     lowCut: false,
+
     range: 15,
+
     bypass: false,
+
     bands: Array(31).fill(0)
   },
 
   {
     gain: 0,
+
     lowCut: false,
+
     range: 15,
+
     bypass: false,
+
     bands: Array(31).fill(0)
   }
+
 ];
+
 
 /* =========================================================
    HELPERS
-========================================================= */
+   ========================================================= */
 
 function formatFrequency(freq) {
 
   if (freq >= 1000) {
+
     return `${freq / 1000}K`;
+
   }
 
   return String(freq);
+
 }
+
 
 function formatDb(value) {
 
-  const number = Number(value);
+  const number =
+    Number(value);
 
   if (number > 0) {
+
     return `+${number.toFixed(1)}`;
+
   }
 
   return number.toFixed(1);
+
 }
 
+
 function dbToGain(db) {
-  return Math.pow(10, db / 20);
+
+  return Math.pow(
+    10,
+    db / 20
+  );
+
 }
+
+
+/* =========================================================
+   FADER HELPERS
+   ========================================================= */
+
+/*
+ * Step fader:
+ * 0.5 dB
+ */
+
+const FADER_STEP = 0.5;
+
+
+/*
+ * Membatasi nilai ke range channel.
+ */
+
+function clampBandValue(
+  channelIndex,
+  value
+) {
+
+  const range =
+    channelState[
+      channelIndex
+    ].range;
+
+  let result =
+    Number(value);
+
+  if (!Number.isFinite(result)) {
+    result = 0;
+  }
+
+  result =
+    Math.max(
+      -range,
+      Math.min(
+        range,
+        result
+      )
+    );
+
+  /*
+   * Pastikan selalu kelipatan 0.5 dB.
+   */
+
+  result =
+    Math.round(
+      result / FADER_STEP
+    ) * FADER_STEP;
+
+  return result;
+
+}
+
+
+/*
+ * Menghitung posisi fill.
+ *
+ * -range = 0%
+ * 0 dB    = 50%
+ * +range  = 100%
+ */
+
+function calculateFaderPercent(
+  channelIndex,
+  value
+) {
+
+  const range =
+    channelState[
+      channelIndex
+    ].range;
+
+  if (range <= 0) {
+    return 50;
+  }
+
+  const percent =
+    (
+      (Number(value) + range) /
+      (range * 2)
+    ) * 100;
+
+  return Math.max(
+    0,
+    Math.min(
+      100,
+      percent
+    )
+  );
+
+}
+
+
+/*
+ * Update visual fader.
+ */
+
+function updateBandVisual(
+  channelIndex,
+  band,
+  value
+) {
+
+  const percent =
+    calculateFaderPercent(
+      channelIndex,
+      value
+    );
+
+  band.style.setProperty(
+    "--fader-level",
+    `${percent}%`
+  );
+
+}
+
+
+/*
+ * Update nilai fader + UI + audio.
+ */
+
+function setBandValue(
+  channelIndex,
+  bandIndex,
+  value,
+  band,
+  slider,
+  valueLabel
+) {
+
+  const safeValue =
+    clampBandValue(
+      channelIndex,
+      value
+    );
+
+  channelState[
+    channelIndex
+  ].bands[
+    bandIndex
+  ] = safeValue;
+
+  slider.value =
+    String(safeValue);
+
+  valueLabel.textContent =
+    formatDb(safeValue);
+
+  updateBandVisual(
+    channelIndex,
+    band,
+    safeValue
+  );
+
+  updateChannelAudio(
+    channelIndex
+  );
+
+}
+
 
 /* =========================================================
    CREATE CHANNEL
-========================================================= */
+   ========================================================= */
 
-function createChannel(channelIndex) {
+function createChannel(
+  channelIndex
+) {
 
   const channelNumber =
     channelIndex + 1;
@@ -2787,10 +2404,16 @@ function createChannel(channelIndex) {
   const channel =
     document.createElement("article");
 
-  channel.className = "channel";
+  channel.className =
+    "channel";
 
   channel.dataset.channel =
     channelIndex;
+
+
+  /* =======================================================
+     CHANNEL HTML
+     ======================================================= */
 
   channel.innerHTML = `
 
@@ -2822,7 +2445,11 @@ function createChannel(channelIndex) {
 
     </div>
 
+
     <div class="control-row">
+
+
+      <!-- GAIN -->
 
       <div class="control-box">
 
@@ -2845,7 +2472,11 @@ function createChannel(channelIndex) {
           <span>-12</span>
 
           <strong data-role="gain-value">
-            ${formatDb(channelState[channelIndex].gain)} dB
+            ${formatDb(
+              channelState[
+                channelIndex
+              ].gain
+            )} dB
           </strong>
 
           <span>+12</span>
@@ -2853,6 +2484,9 @@ function createChannel(channelIndex) {
         </div>
 
       </div>
+
+
+      <!-- LOW CUT -->
 
       <div class="control-box">
 
@@ -2865,12 +2499,17 @@ function createChannel(channelIndex) {
           data-role="lowcut"
           style="width:100%;"
         >
-          ${channelState[channelIndex].lowCut
-            ? "ON / 40 Hz"
-            : "OFF / 40 Hz"}
+          ${
+            channelState[channelIndex].lowCut
+              ? "ON / 40 Hz"
+              : "OFF / 40 Hz"
+          }
         </button>
 
       </div>
+
+
+      <!-- RANGE -->
 
       <div class="control-box">
 
@@ -2888,11 +2527,8 @@ function createChannel(channelIndex) {
 
       </div>
 
-      <!-- =================================================
-           FIX:
-           Tidak ada lagi .level-meter yang tidak tertutup.
-           Meter berdiri sebagai control-box sendiri.
-           ================================================= -->
+
+      <!-- LEVEL METER -->
 
       <div class="control-box meter-box">
 
@@ -2928,6 +2564,9 @@ function createChannel(channelIndex) {
 
       </div>
 
+
+      <!-- CLIP -->
+
       <div
         class="clip-box"
         id="clip-ch${channelNumber}"
@@ -2944,6 +2583,11 @@ function createChannel(channelIndex) {
 
     </div>
 
+
+    <!-- =================================================
+         EQ
+         ================================================= -->
+
     <div class="eq-wrapper">
 
       <div class="eq-scale">
@@ -2957,6 +2601,7 @@ function createChannel(channelIndex) {
         <span>-15</span>
 
       </div>
+
 
       <div class="eq-area">
 
@@ -2972,6 +2617,7 @@ function createChannel(channelIndex) {
 
         </div>
 
+
         <div
           class="bands"
           data-role="bands"
@@ -2980,6 +2626,9 @@ function createChannel(channelIndex) {
       </div>
 
     </div>
+
+
+    <!-- FOOTER -->
 
     <div class="channel-footer">
 
@@ -2992,6 +2641,9 @@ function createChannel(channelIndex) {
       </span>
 
     </div>
+
+
+    <!-- BUTTONS -->
 
     <div class="channel-buttons">
 
@@ -3010,69 +2662,98 @@ function createChannel(channelIndex) {
       </button>
 
     </div>
+
   `;
 
-   /* =======================================================
+
+  /* =======================================================
      INITIAL BUTTON STATE
-  ======================================================= */
+     ======================================================= */
 
   const initialState =
-    channelState[channelIndex];
+    channelState[
+      channelIndex
+    ];
+
 
   const lowCutButton =
     channel.querySelector(
       '[data-role="lowcut"]'
     );
 
+
   const rangeButton =
     channel.querySelector(
       '[data-role="range"]'
     );
+
 
   const bypassButton =
     channel.querySelector(
       '[data-role="bypass"]'
     );
 
+
   if (lowCutButton) {
+
     lowCutButton.classList.toggle(
       "active",
       initialState.lowCut
     );
+
   }
 
+
   if (rangeButton) {
+
     rangeButton.classList.toggle(
       "active",
       initialState.range === 6
     );
+
   }
 
+
   if (bypassButton) {
+
     bypassButton.classList.toggle(
       "active",
       initialState.bypass
     );
+
   }
+
 
   const bandsContainer =
     channel.querySelector(
       '[data-role="bands"]'
     );
+
+
   /* =======================================================
      CREATE 31 BANDS
-  ======================================================= */
+     ======================================================= */
 
   frequencies.forEach(
-    (frequency, bandIndex) => {
+    (
+      frequency,
+      bandIndex
+    ) => {
 
       const band =
-        document.createElement("div");
+        document.createElement(
+          "div"
+        );
 
-      band.className = "band";
+      band.className =
+        "band";
+
 
       const state =
-        channelState[channelIndex];
+        channelState[
+          channelIndex
+        ];
+
 
       band.innerHTML = `
 
@@ -3096,57 +2777,579 @@ function createChannel(channelIndex) {
           class="band-value"
           data-value-index="${bandIndex}"
         >
-          ${formatDb(state.bands[bandIndex])}
+          ${formatDb(
+            state.bands[
+              bandIndex
+            ]
+          )}
         </div>
 
       `;
 
+
       const slider =
-        band.querySelector("input");
+        band.querySelector(
+          "input"
+        );
+
 
       const valueLabel =
         band.querySelector(
           `[data-value-index="${bandIndex}"]`
         );
 
+
+      /*
+       * =====================================================
+       * INITIAL VISUAL FADER
+       * =====================================================
+       */
+
+      updateBandVisual(
+        channelIndex,
+        band,
+        Number(slider.value)
+      );
+
+
+      /* =====================================================
+         FADER POINTER STATE
+         ===================================================== */
+
+      let pointerMode =
+        null;
+
+      let pointerStartX =
+        0;
+
+      let pointerStartY =
+        0;
+
+      let pointerStartValue =
+        0;
+
+      let pointerMoved =
+        false;
+
+      let pointerActive =
+        false;
+
+
+      /* =====================================================
+         TRACK
+         ===================================================== */
+
+      const track =
+        band.querySelector(
+          ".band-track"
+        );
+
+
+      /* =====================================================
+         POINTER DOWN
+         ===================================================== */
+
+      band.addEventListener(
+        "pointerdown",
+        event => {
+
+          /*
+           * Jangan mengambil pointer dari
+           * label frekuensi/value.
+           */
+
+          if (
+            event.target.closest(
+              ".band-frequency, .band-value"
+            )
+          ) {
+
+            return;
+
+          }
+
+
+          /*
+           * Hanya area track/fader yang
+           * menjadi area kontrol.
+           */
+
+          const trackRect =
+            track.getBoundingClientRect();
+
+
+          if (
+            event.clientY <
+              trackRect.top - 4 ||
+            event.clientY >
+              trackRect.bottom + 4
+          ) {
+
+            return;
+
+          }
+
+
+          pointerActive =
+            true;
+
+          pointerMode =
+            null;
+
+          pointerMoved =
+            false;
+
+          pointerStartX =
+            event.clientX;
+
+          pointerStartY =
+            event.clientY;
+
+          pointerStartValue =
+            Number(
+              slider.value
+            );
+
+        },
+        {
+          passive: true
+        }
+      );
+
+
+      /* =====================================================
+         POINTER MOVE
+         ===================================================== */
+
+      band.addEventListener(
+        "pointermove",
+        event => {
+
+          if (
+            !pointerActive
+          ) {
+
+            return;
+
+          }
+
+
+          const deltaX =
+            event.clientX -
+            pointerStartX;
+
+
+          const deltaY =
+            event.clientY -
+            pointerStartY;
+
+
+          const absX =
+            Math.abs(deltaX);
+
+
+          const absY =
+            Math.abs(deltaY);
+
+
+          /*
+           * Tunggu sedikit gerakan sebelum
+           * menentukan apakah gesture:
+           *
+           * horizontal = scroll
+           * vertical   = fader
+           */
+
+          if (
+            !pointerMode &&
+            (
+              absX > 6 ||
+              absY > 6
+            )
+          ) {
+
+            pointerMoved =
+              true;
+
+
+            if (
+              absX > absY
+            ) {
+
+              /*
+               * HORIZONTAL:
+               * Jangan mengambil pointer.
+               * Browser akan melakukan horizontal
+               * scroll pada .eq-wrapper.
+               */
+
+              pointerMode =
+                "scroll";
+
+              pointerActive =
+                false;
+
+              return;
+
+            }
+
+
+            /*
+             * VERTICAL:
+             * Sekarang pointer menjadi milik fader.
+             */
+
+            pointerMode =
+              "fader";
+
+            band.classList.add(
+              "is-dragging"
+            );
+
+
+            try {
+
+              band.setPointerCapture(
+                event.pointerId
+              );
+
+            } catch (_) {}
+
+          }
+
+
+          /*
+           * Hanya fader yang diproses
+           * pada gerakan vertikal.
+           */
+
+          if (
+            pointerMode !==
+            "fader"
+          ) {
+
+            return;
+
+          }
+
+
+          event.preventDefault();
+
+
+          const trackRect =
+            track.getBoundingClientRect();
+
+
+          const trackHeight =
+            trackRect.height;
+
+
+          if (
+            trackHeight <= 0
+          ) {
+
+            return;
+
+          }
+
+
+          /*
+           * Bergerak ke atas = nilai naik.
+           *
+           * deltaY negatif => nilai positif.
+           */
+
+          const range =
+            channelState[
+              channelIndex
+            ].range;
+
+
+          const valuePerPixel =
+            (
+              range * 2
+            ) /
+            trackHeight;
+
+
+          const newValue =
+            pointerStartValue -
+            (
+              deltaY *
+              valuePerPixel
+            );
+
+
+          setBandValue(
+            channelIndex,
+            bandIndex,
+            newValue,
+            band,
+            slider,
+            valueLabel
+          );
+
+        },
+        {
+          passive: false
+        }
+      );
+
+
+      /* =====================================================
+         POINTER UP
+         ===================================================== */
+
+      band.addEventListener(
+        "pointerup",
+        event => {
+
+          if (
+            !pointerActive
+          ) {
+
+            return;
+
+          }
+
+
+          /*
+           * Jika tadi drag vertical,
+           * tidak dianggap sebagai tap.
+           */
+
+          if (
+            pointerMode ===
+            "fader"
+          ) {
+
+            band.classList.remove(
+              "is-dragging"
+            );
+
+            try {
+
+              band.releasePointerCapture(
+                event.pointerId
+              );
+
+            } catch (_) {}
+
+            pointerActive =
+              false;
+
+            pointerMode =
+              null;
+
+            return;
+
+          }
+
+
+          /*
+           * Horizontal = browser scroll.
+           */
+
+          if (
+            pointerMode ===
+            "scroll"
+          ) {
+
+            pointerActive =
+              false;
+
+            pointerMode =
+              null;
+
+            return;
+
+          }
+
+
+          /*
+           * =================================================
+           * ONE TAP FADER
+           * =================================================
+           *
+           * Tap di atas knob:
+           *     +0.5 dB
+           *
+           * Tap di bawah knob:
+           *     -0.5 dB
+           */
+
+          if (
+            !pointerMoved
+          ) {
+
+            const trackRect =
+              track.getBoundingClientRect();
+
+
+            const currentValue =
+              Number(
+                slider.value
+              );
+
+
+            const range =
+              channelState[
+                channelIndex
+              ].range;
+
+
+            const trackHeight =
+              trackRect.height;
+
+
+            /*
+             * Posisi knob:
+             *
+             * +range = atas
+             * 0      = tengah
+             * -range = bawah
+             */
+
+            const currentPercent =
+              (
+                (currentValue + range) /
+                (range * 2)
+              );
+
+
+            const knobY =
+              trackRect.bottom -
+              (
+                currentPercent *
+                trackHeight
+              );
+
+
+            const tapY =
+              event.clientY;
+
+
+            const tapThreshold =
+              5;
+
+
+            if (
+              tapY <
+              knobY -
+                tapThreshold
+            ) {
+
+              setBandValue(
+                channelIndex,
+                bandIndex,
+                currentValue +
+                  FADER_STEP,
+                band,
+                slider,
+                valueLabel
+              );
+
+            } else if (
+              tapY >
+              knobY +
+                tapThreshold
+            ) {
+
+              setBandValue(
+                channelIndex,
+                bandIndex,
+                currentValue -
+                  FADER_STEP,
+                band,
+                slider,
+                valueLabel
+              );
+
+            }
+
+          }
+
+
+          pointerActive =
+            false;
+
+          pointerMode =
+            null;
+
+          pointerMoved =
+            false;
+
+        },
+        {
+          passive: true
+        }
+      );
+
+
+      /* =====================================================
+         POINTER CANCEL
+         ===================================================== */
+
+      band.addEventListener(
+        "pointercancel",
+        event => {
+
+          band.classList.remove(
+            "is-dragging"
+          );
+
+          try {
+
+            if (
+              band.hasPointerCapture(
+                event.pointerId
+              )
+            ) {
+
+              band.releasePointerCapture(
+                event.pointerId
+              );
+
+            }
+
+          } catch (_) {}
+
+
+          pointerActive =
+            false;
+
+          pointerMode =
+            null;
+
+          pointerMoved =
+            false;
+
+        }
+      );
+
+
+      /* =====================================================
+         KEYBOARD / NATIVE INPUT
+         ===================================================== */
+
       slider.addEventListener(
         "input",
         () => {
 
-          const range =
-            channelState[channelIndex].range;
-
-          let value =
-            Number(slider.value);
-
-          /*
-           * FIX RANGE:
-           * Nilai selalu dipastikan berada
-           * di dalam range aktif.
-           */
-
-          value =
-            Math.max(
-              -range,
-              Math.min(range, value)
-            );
-
-          slider.value =
-            String(value);
-
-          channelState[
-            channelIndex
-          ].bands[bandIndex] = value;
-
-          valueLabel.textContent =
-            formatDb(value);
-
-          updateChannelAudio(
-            channelIndex
+          setBandValue(
+            channelIndex,
+            bandIndex,
+            Number(
+              slider.value
+            ),
+            band,
+            slider,
+            valueLabel
           );
 
         }
       );
+
 
       bandsContainer.appendChild(
         band
@@ -3155,33 +3358,42 @@ function createChannel(channelIndex) {
     }
   );
 
+
   /* =======================================================
      GAIN
-  ======================================================= */
+     ======================================================= */
 
   const gainSlider =
     channel.querySelector(
       '[data-role="gain"]'
     );
 
+
   const gainValue =
     channel.querySelector(
       '[data-role="gain-value"]'
     );
+
 
   gainSlider.addEventListener(
     "input",
     () => {
 
       const value =
-        Number(gainSlider.value);
+        Number(
+          gainSlider.value
+        );
+
 
       channelState[
         channelIndex
-      ].gain = value;
+      ].gain =
+        value;
+
 
       gainValue.textContent =
         `${formatDb(value)} dB`;
+
 
       updateChannelAudio(
         channelIndex
@@ -3190,9 +3402,10 @@ function createChannel(channelIndex) {
     }
   );
 
+
   /* =======================================================
      LOW CUT
-  ======================================================= */
+     ======================================================= */
 
   channel
     .querySelector(
@@ -3209,20 +3422,24 @@ function createChannel(channelIndex) {
             channelIndex
           ].lowCut;
 
+
         const enabled =
           channelState[
             channelIndex
           ].lowCut;
+
 
         event.currentTarget.classList.toggle(
           "active",
           enabled
         );
 
+
         event.currentTarget.textContent =
           enabled
             ? "ON / 40 Hz"
             : "OFF / 40 Hz";
+
 
         updateChannelAudio(
           channelIndex
@@ -3231,9 +3448,10 @@ function createChannel(channelIndex) {
       }
     );
 
+
   /* =======================================================
      RANGE ±6 / ±15
-  ======================================================= */
+     ======================================================= */
 
   channel
     .querySelector(
@@ -3252,27 +3470,39 @@ function createChannel(channelIndex) {
             ? 6
             : 15;
 
+
         const range =
           channelState[
             channelIndex
           ].range;
 
+
         event.currentTarget.textContent =
           `±${range} dB`;
+
+
         event.currentTarget.classList.toggle(
-              "active",
-  range === 6
-);
-        channel.querySelector(
-          '[data-role="footer-range"]'
-        ).textContent =
-          `RANGE: ±${range} dB`;
+          "active",
+          range === 6
+        );
+
+
+        const footerRange =
+          channel.querySelector(
+            '[data-role="footer-range"]'
+          );
+
+
+        if (footerRange) {
+
+          footerRange.textContent =
+            `RANGE: ±${range} dB`;
+
+        }
+
 
         /*
-         * FIX:
-         * Saat pindah ±15 → ±6,
-         * nilai yang lebih besar dari ±6
-         * langsung dipotong ke ±6.
+         * Clamp semua band.
          */
 
         channel
@@ -3280,10 +3510,16 @@ function createChannel(channelIndex) {
             ".band input"
           )
           .forEach(
-            (slider, index) => {
+            (
+              slider,
+              index
+            ) => {
 
               let value =
-                Number(slider.value);
+                Number(
+                  slider.value
+                );
+
 
               value =
                 Math.max(
@@ -3294,32 +3530,69 @@ function createChannel(channelIndex) {
                   )
                 );
 
+
+              value =
+                Math.round(
+                  value / FADER_STEP
+                ) *
+                FADER_STEP;
+
+
               slider.min =
                 String(-range);
+
 
               slider.max =
                 String(range);
 
+
+              slider.step =
+                String(FADER_STEP);
+
+
               slider.value =
                 String(value);
+
 
               channelState[
                 channelIndex
               ].bands[index] =
                 value;
 
+
               const valueLabel =
                 channel.querySelector(
                   `[data-value-index="${index}"]`
                 );
 
+
               if (valueLabel) {
+
                 valueLabel.textContent =
                   formatDb(value);
+
+              }
+
+
+              const band =
+                slider.closest(
+                  ".band"
+                );
+
+
+              if (band) {
+
+                updateBandVisual(
+                  channelIndex,
+                  band,
+                  value
+                );
+
               }
 
             }
           );
+
 
         updateChannelAudio(
           channelIndex
@@ -3328,9 +3601,10 @@ function createChannel(channelIndex) {
       }
     );
 
+
   /* =======================================================
      BYPASS
-  ======================================================= */
+     ======================================================= */
 
   channel
     .querySelector(
@@ -3347,12 +3621,14 @@ function createChannel(channelIndex) {
             channelIndex
           ].bypass;
 
+
         event.currentTarget.classList.toggle(
           "active",
           channelState[
             channelIndex
           ].bypass
         );
+
 
         updateChannelAudio(
           channelIndex
@@ -3361,9 +3637,10 @@ function createChannel(channelIndex) {
       }
     );
 
+
   /* =======================================================
      TEST
-  ======================================================= */
+     ======================================================= */
 
   channel
     .querySelector(
@@ -3376,29 +3653,40 @@ function createChannel(channelIndex) {
         const button =
           event.currentTarget;
 
+
         const testing =
           button.classList.toggle(
             "active"
           );
+
 
         const meter =
           channel.querySelector(
             '[data-role="meter"]'
           );
 
+
         const clip =
           channel.querySelector(
             '[data-role="clip"]'
           );
 
-        if (!meter || !clip) {
+
+        if (
+          !meter ||
+          !clip
+        ) {
+
           return;
+
         }
+
 
         const segments =
           meter.querySelectorAll(
             "span"
           );
+
 
         /*
          * TEST menampilkan
@@ -3406,22 +3694,28 @@ function createChannel(channelIndex) {
          */
 
         segments.forEach(
-          (segment, index) => {
+          (
+            segment,
+            index
+          ) => {
 
             segment.classList.toggle(
               "on",
               testing &&
               index >=
-                segments.length - 13
+                segments.length -
+                13
             );
 
           }
         );
 
+
         const clipLed =
           clip.querySelector(
             ".clip-led"
           );
+
 
         if (clipLed) {
 
@@ -3435,56 +3729,73 @@ function createChannel(channelIndex) {
       }
     );
 
+
   channelsContainer.appendChild(
     channel
   );
+
 }
+
 
 /* =========================================================
    BUILD CHANNELS
-========================================================= */
+   ========================================================= */
 
 function buildChannels() {
 
-  channelsContainer.innerHTML = "";
+  channelsContainer.innerHTML =
+    "";
 
   createChannel(0);
+
   createChannel(1);
 
 }
 
+
 /* =========================================================
    AUDIO CONTEXT
-========================================================= */
+   ========================================================= */
 
 function createAudioContext() {
 
   if (audioContext) {
+
     return;
+
   }
+
 
   const AudioContextClass =
     window.AudioContext ||
     window.webkitAudioContext;
 
+
   if (!AudioContextClass) {
+
     throw new Error(
       "Web Audio API tidak didukung browser."
     );
+
   }
+
 
   audioContext =
     new AudioContextClass();
 
+
   masterGainNode =
     audioContext.createGain();
+
 
   masterGainNode.gain.value =
     dbToGain(-12);
 
+
   masterGainNode.connect(
     audioContext.destination
   );
+
 
   channelGraphs =
     channelState.map(
@@ -3493,17 +3804,22 @@ function createAudioContext() {
         const inputGain =
           audioContext.createGain();
 
+
         const lowCut =
           audioContext.createBiquadFilter();
+
 
         lowCut.type =
           "highpass";
 
+
         lowCut.frequency.value =
           5;
 
+
         lowCut.Q.value =
           0.707;
+
 
         const filters =
           frequencies.map(
@@ -3512,41 +3828,53 @@ function createAudioContext() {
               const filter =
                 audioContext.createBiquadFilter();
 
+
               filter.type =
                 "peaking";
+
 
               filter.frequency.value =
                 frequency;
 
+
               filter.Q.value =
                 4.318;
 
+
               filter.gain.value =
                 0;
+
 
               return filter;
 
             }
           );
 
+
         const analyser =
           audioContext.createAnalyser();
+
 
         analyser.fftSize =
           1024;
 
+
         analyser.smoothingTimeConstant =
           0.65;
 
+
         let previousNode =
           inputGain;
+
 
         previousNode.connect(
           lowCut
         );
 
+
         previousNode =
           lowCut;
+
 
         filters.forEach(
           filter => {
@@ -3555,34 +3883,46 @@ function createAudioContext() {
               filter
             );
 
+
             previousNode =
               filter;
 
           }
         );
 
+
         previousNode.connect(
           analyser
         );
+
 
         analyser.connect(
           masterGainNode
         );
 
+
         return {
+
           inputGain,
+
           lowCut,
+
           filters,
+
           analyser
+
         };
 
       }
     );
 
+
   analyserNodes =
     channelGraphs.map(
-      graph => graph.analyser
+      graph =>
+        graph.analyser
     );
+
 
   updateAllAudioGraphs();
 
@@ -3590,9 +3930,10 @@ function createAudioContext() {
 
 }
 
+
 /* =========================================================
    UPDATE CHANNEL AUDIO
-========================================================= */
+   ========================================================= */
 
 function updateChannelAudio(
   channelIndex
@@ -3601,23 +3942,41 @@ function updateChannelAudio(
   if (
     !channelGraphs[channelIndex]
   ) {
+
     return;
+
   }
 
+
   const state =
-    channelState[channelIndex];
+    channelState[
+      channelIndex
+    ];
+
 
   const graph =
-    channelGraphs[channelIndex];
+    channelGraphs[
+      channelIndex
+    ];
+
+
+  /*
+   * Gain.
+   */
 
   graph.inputGain.gain.value =
     state.bypass
       ? 1
-      : dbToGain(state.gain);
+      : dbToGain(
+          state.gain
+        );
+
 
   /*
-   * OFF = 5 Hz agar praktis transparan.
-   * ON  = 40 Hz.
+   * Low cut.
+   *
+   * OFF = 5 Hz
+   * ON  = 40 Hz
    */
 
   graph.lowCut.frequency.value =
@@ -3625,8 +3984,16 @@ function updateChannelAudio(
       ? 40
       : 5;
 
+
+  /*
+   * EQ filters.
+   */
+
   graph.filters.forEach(
-    (filter, index) => {
+    (
+      filter,
+      index
+    ) => {
 
       filter.gain.value =
         state.bypass
@@ -3638,14 +4005,18 @@ function updateChannelAudio(
 
 }
 
+
 /* =========================================================
    UPDATE ALL AUDIO GRAPHS
-========================================================= */
+   ========================================================= */
 
 function updateAllAudioGraphs() {
 
   channelState.forEach(
-    (_, index) => {
+    (
+      _,
+      index
+    ) => {
 
       updateChannelAudio(
         index
@@ -3656,27 +4027,33 @@ function updateAllAudioGraphs() {
 
 }
 
+
 /* =========================================================
-   DISCONNECT CURRENT SOURCE
-========================================================= */
+   DISCONNECT SOURCE
+   ========================================================= */
 
 function disconnectCurrentSource() {
 
   if (sourceNode) {
 
     try {
+
       sourceNode.disconnect();
+
     } catch (_) {}
 
   }
 
-  sourceNode = null;
+
+  sourceNode =
+    null;
 
 }
 
+
 /* =========================================================
    CONNECT SOURCE TO CHANNELS
-========================================================= */
+   ========================================================= */
 
 function connectSourceToChannels(
   newSource
@@ -3684,8 +4061,10 @@ function connectSourceToChannels(
 
   disconnectCurrentSource();
 
+
   sourceNode =
     newSource;
+
 
   channelGraphs.forEach(
     graph => {
@@ -3699,30 +4078,52 @@ function connectSourceToChannels(
 
 }
 
+
 /* =========================================================
    MICROPHONE
-========================================================= */
+   ========================================================= */
 
 async function startMicrophone() {
 
   createAudioContext();
 
-  if (microphoneStream) {
+
+  if (
+    microphoneStream
+  ) {
 
     microphoneStream
       .getTracks()
       .forEach(
-        track => track.stop()
+        track =>
+          track.stop()
       );
+
 
     microphoneStream =
       null;
+
   }
+
+
+  if (
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.getUserMedia
+  ) {
+
+    throw new Error(
+      "getUserMedia tidak didukung."
+    );
+
+  }
+
 
   const deviceId =
     inputDevice.value;
 
+
   const constraints = {
+
     audio:
       deviceId
         ? {
@@ -3731,7 +4132,9 @@ async function startMicrophone() {
             }
           }
         : true
+
   };
+
 
   microphoneStream =
     await navigator.mediaDevices
@@ -3739,45 +4142,56 @@ async function startMicrophone() {
         constraints
       );
 
+
   const micSource =
     audioContext.createMediaStreamSource(
       microphoneStream
     );
 
+
   connectSourceToChannels(
     micSource
   );
 
+
   await audioContext.resume();
+
 
   readyStatus.textContent =
     "MICROPHONE ACTIVE";
 
 }
 
+
 /* =========================================================
    AUDIO FILE
-========================================================= */
+   ========================================================= */
 
 async function startAudioFile() {
 
   createAudioContext();
 
-  if (!audioPlayer.src) {
+
+  if (
+    !audioPlayer.src
+  ) {
 
     alert(
       "Pilih file audio terlebih dahulu."
     );
 
     return;
+
   }
 
+
   /*
-   * FIX:
    * MediaElementSource dibuat satu kali.
    */
 
-  if (!audioFileSourceNode) {
+  if (
+    !audioFileSourceNode
+  ) {
 
     audioFileSourceNode =
       audioContext.createMediaElementSource(
@@ -3786,60 +4200,80 @@ async function startAudioFile() {
 
   }
 
+
   connectSourceToChannels(
     audioFileSourceNode
   );
 
+
   await audioContext.resume();
 
+
   await audioPlayer.play();
+
 
   readyStatus.textContent =
     "AUDIO FILE ACTIVE";
 
 }
 
+
 /* =========================================================
    STOP AUDIO
-========================================================= */
+   ========================================================= */
 
 function stopAudio() {
 
-  if (microphoneStream) {
+  if (
+    microphoneStream
+  ) {
 
     microphoneStream
       .getTracks()
       .forEach(
-        track => track.stop()
+        track =>
+          track.stop()
       );
+
 
     microphoneStream =
       null;
+
   }
 
+
   audioPlayer.pause();
+
 
   audioPlayer.currentTime =
     0;
 
+
   disconnectCurrentSource();
+
 
   readyStatus.textContent =
     "AUDIO STOPPED";
 
 }
 
+
 /* =========================================================
    REAL TIME METER
-========================================================= */
+   ========================================================= */
 
 function startMeterAnimation() {
 
-  if (meterAnimationId) {
+  if (
+    meterAnimationId
+  ) {
+
     cancelAnimationFrame(
       meterAnimationId
     );
+
   }
+
 
   const dataArrays =
     analyserNodes.map(
@@ -3849,6 +4283,7 @@ function startMeterAnimation() {
         )
     );
 
+
   function drawMeters() {
 
     meterAnimationId =
@@ -3856,41 +4291,58 @@ function startMeterAnimation() {
         drawMeters
       );
 
+
     analyserNodes.forEach(
-      (analyser, channelIndex) => {
+      (
+        analyser,
+        channelIndex
+      ) => {
 
         const channel =
           document.querySelector(
             `.channel[data-channel="${channelIndex}"]`
           );
 
+
         if (!channel) {
+
           return;
+
         }
+
 
         const meter =
           channel.querySelector(
             '[data-role="meter"]'
           );
 
+
         const clip =
           channel.querySelector(
             '[data-role="clip"]'
           );
 
-        if (!meter || !clip) {
+
+        if (
+          !meter ||
+          !clip
+        ) {
+
           return;
+
         }
+
 
         const testButton =
           channel.querySelector(
             '[data-role="test"]'
           );
 
+
         /*
-         * Jika TEST aktif, meter simulasi
-         * dipertahankan dan tidak ditimpa
-         * oleh audio meter.
+         * Jika TEST aktif,
+         * meter simulasi tidak ditimpa
+         * oleh meter audio.
          */
 
         if (
@@ -3904,27 +4356,40 @@ function startMeterAnimation() {
 
         }
 
+
         analyser.getByteTimeDomainData(
-          dataArrays[channelIndex]
+          dataArrays[
+            channelIndex
+          ]
         );
 
-        let peak = 0;
+
+        let peak =
+          0;
+
 
         for (
           let i = 0;
           i <
-          dataArrays[channelIndex].length;
+          dataArrays[
+            channelIndex
+          ].length;
           i++
         ) {
 
           const normalized =
             Math.abs(
-              dataArrays[channelIndex][i] -
+              dataArrays[
+                channelIndex
+              ][i] -
               128
-            ) / 128;
+            ) /
+            128;
+
 
           if (
-            normalized > peak
+            normalized >
+            peak
           ) {
 
             peak =
@@ -3933,6 +4398,7 @@ function startMeterAnimation() {
           }
 
         }
+
 
         /*
          * Peak dBFS.
@@ -3946,6 +4412,7 @@ function startMeterAnimation() {
               )
             : -60;
 
+
         const clampedDb =
           Math.max(
             -60,
@@ -3955,18 +4422,25 @@ function startMeterAnimation() {
             )
           );
 
+
         const level =
           Math.max(
             0,
             Math.min(
               18,
               Math.round(
-                ((clampedDb + 60) /
-                  60) *
+                (
+                  (
+                    clampedDb +
+                    60
+                  ) /
+                  60
+                ) *
                 18
               )
             )
           );
+
 
         meter
           .querySelectorAll(
@@ -3987,10 +4461,12 @@ function startMeterAnimation() {
             }
           );
 
+
         const clipLed =
           clip.querySelector(
             ".clip-led"
           );
+
 
         if (clipLed) {
 
@@ -4006,13 +4482,15 @@ function startMeterAnimation() {
 
   }
 
+
   drawMeters();
 
 }
 
+
 /* =========================================================
    RESET
-========================================================= */
+   ========================================================= */
 
 function resetAll() {
 
@@ -4022,14 +4500,18 @@ function resetAll() {
       state.gain =
         0;
 
+
       state.lowCut =
         false;
+
 
       state.range =
         15;
 
+
       state.bypass =
         false;
+
 
       state.bands =
         Array(31).fill(0);
@@ -4037,55 +4519,160 @@ function resetAll() {
     }
   );
 
+
   buildChannels();
 
+
   updateAllAudioGraphs();
+
 
   readyStatus.textContent =
     "RESET COMPLETE";
 
 }
 
+
 /* =========================================================
    PRESETS
-========================================================= */
+   ========================================================= */
 
-function applyPreset(name) {
+function applyPreset(
+  name
+) {
 
   const presets = {
 
     flat:
       Array(31).fill(0),
 
+
     vocal: [
-      -3, -2, -1, 0, 1, 2, 3, 3, 2, 2,
-      1, 0, 1, 2, 3, 4, 4, 3, 2, 2,
-      3, 4, 4, 3, 2, 1, 0, -1, -2, -3, -3
+      -3,
+      -2,
+      -1,
+      0,
+      1,
+      2,
+      3,
+      3,
+      2,
+      2,
+
+      1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      4,
+      3,
+      2,
+
+      2,
+      3,
+      4,
+      4,
+      3,
+      2,
+      1,
+      0,
+      -1,
+      -2,
+      -3,
+      -3
     ],
+
 
     live: [
-      3, 2, 1, 0, -1, -2, -2, -1, 0, 1,
-      2, 3, 3, 2, 1, 0, 1, 2, 3, 4,
-      4, 3, 2, 1, 0, -1, -2, -2, -1, 0, 1
+      3,
+      2,
+      1,
+      0,
+      -1,
+      -2,
+      -2,
+      -1,
+      0,
+      1,
+
+      2,
+      3,
+      3,
+      2,
+      1,
+      0,
+      1,
+      2,
+      3,
+
+      4,
+      4,
+      3,
+      2,
+      1,
+      0,
+      -1,
+      -2,
+      -2,
+      -1,
+      0,
+      1
     ],
 
+
     feedback: [
-      -5, -4, -3, -2, -1, 0, -2, -4, -6, -4,
-      -2, 0, 1, 0, -3, -5, -4, -2, 0, -2,
-      -4, -5, -3, -1, 0, -2, -4, -5, -3, -2, -1
+      -5,
+      -4,
+      -3,
+      -2,
+      -1,
+      0,
+      -2,
+      -4,
+      -6,
+      -4,
+
+      -2,
+      0,
+      1,
+      0,
+      -3,
+      -5,
+      -4,
+      -2,
+      0,
+
+      -2,
+      -4,
+      -5,
+      -3,
+      -1,
+      0,
+      -2,
+      -4,
+      -5,
+      -3,
+      -2,
+      -1
     ]
 
   };
+
 
   const values =
     presets[name] ||
     presets.flat;
 
+
   channelState.forEach(
-    (state, channelIndex) => {
+    (
+      state,
+      channelIndex
+    ) => {
 
       const range =
         state.range;
+
 
       state.bands =
         values.map(
@@ -4099,43 +4686,79 @@ function applyPreset(name) {
             )
         );
 
+
       const channel =
         document.querySelector(
           `.channel[data-channel="${channelIndex}"]`
         );
 
+
       if (!channel) {
+
         return;
+
       }
+
 
       channel
         .querySelectorAll(
           ".band input"
         )
         .forEach(
-          (slider, index) => {
+          (
+            slider,
+            index
+          ) => {
 
             const value =
-              state.bands[index];
+              state.bands[
+                index
+              ];
+
 
             slider.min =
               String(-range);
 
+
             slider.max =
               String(range);
 
+
+            slider.step =
+              String(FADER_STEP);
+
+
             slider.value =
               String(value);
+
 
             const valueLabel =
               channel.querySelector(
                 `[data-value-index="${index}"]`
               );
 
+
             if (valueLabel) {
 
               valueLabel.textContent =
                 formatDb(value);
+
+            }
+
+
+            const band =
+              slider.closest(
+                ".band"
+              );
+
+
+            if (band) {
+
+              updateBandVisual(
+                channelIndex,
+                band,
+                value
+              );
 
             }
 
@@ -4145,26 +4768,31 @@ function applyPreset(name) {
     }
   );
 
+
   updateAllAudioGraphs();
+
 
   readyStatus.textContent =
     `PRESET ${name.toUpperCase()} APPLIED`;
 
 }
 
+
 /* =========================================================
    LOAD AUDIO DEVICES
-========================================================= */
+   ========================================================= */
 
 async function loadDevices() {
 
   if (
-    !navigator.mediaDevices?.enumerateDevices
+    !navigator.mediaDevices ||
+    !navigator.mediaDevices.enumerateDevices
   ) {
 
     return;
 
   }
+
 
   try {
 
@@ -4172,36 +4800,68 @@ async function loadDevices() {
       await navigator.mediaDevices
         .enumerateDevices();
 
+
     inputDevice.innerHTML =
       "";
 
-    devices
-      .filter(
+
+    const audioInputs =
+      devices.filter(
         device =>
           device.kind ===
           "audioinput"
-      )
-      .forEach(
-        device => {
+      );
 
-          const option =
-            document.createElement(
-              "option"
-            );
 
-          option.value =
-            device.deviceId;
+    if (
+      audioInputs.length === 0
+    ) {
 
-          option.textContent =
-            device.label ||
-            "Audio Input";
+      const option =
+        document.createElement(
+          "option"
+        );
 
-          inputDevice.appendChild(
-            option
+
+      option.value =
+        "";
+
+
+      option.textContent =
+        "DEFAULT MICROPHONE";
+
+
+      inputDevice.appendChild(
+        option
+      );
+
+    }
+
+
+    audioInputs.forEach(
+      device => {
+
+        const option =
+          document.createElement(
+            "option"
           );
 
-        }
-      );
+
+        option.value =
+          device.deviceId;
+
+
+        option.textContent =
+          device.label ||
+          "Audio Input";
+
+
+        inputDevice.appendChild(
+          option
+        );
+
+      }
+    );
 
   } catch (error) {
 
@@ -4214,9 +4874,10 @@ async function loadDevices() {
 
 }
 
+
 /* =========================================================
    MIC BUTTON
-========================================================= */
+   ========================================================= */
 
 document
   .getElementById(
@@ -4236,6 +4897,7 @@ document
           "Mikrofon tidak dapat digunakan. Pastikan izin mikrofon diberikan."
         );
 
+
         console.error(
           error
         );
@@ -4245,9 +4907,10 @@ document
     }
   );
 
+
 /* =========================================================
    START AUDIO
-========================================================= */
+   ========================================================= */
 
 document
   .getElementById(
@@ -4267,6 +4930,7 @@ document
           "Audio tidak dapat diputar."
         );
 
+
         console.error(
           error
         );
@@ -4276,9 +4940,10 @@ document
     }
   );
 
+
 /* =========================================================
    STOP
-========================================================= */
+   ========================================================= */
 
 document
   .getElementById(
@@ -4289,9 +4954,10 @@ document
     stopAudio
   );
 
+
 /* =========================================================
    REFRESH DEVICES
-========================================================= */
+   ========================================================= */
 
 document
   .getElementById(
@@ -4299,12 +4965,20 @@ document
   )
   .addEventListener(
     "click",
-    loadDevices
+    async () => {
+
+      await loadDevices();
+
+      readyStatus.textContent =
+        "DEVICES REFRESHED";
+
+    }
   );
+
 
 /* =========================================================
    AUDIO FILE SELECT
-========================================================= */
+   ========================================================= */
 
 audioFile.addEventListener(
   "change",
@@ -4313,15 +4987,21 @@ audioFile.addEventListener(
     const file =
       event.target.files[0];
 
+
     if (!file) {
+
       return;
+
     }
 
+
     /*
-     * Hentikan URL lama bila ada.
+     * Hapus object URL lama.
      */
 
-    if (audioPlayer.dataset.objectUrl) {
+    if (
+      audioPlayer.dataset.objectUrl
+    ) {
 
       URL.revokeObjectURL(
         audioPlayer.dataset.objectUrl
@@ -4329,16 +5009,20 @@ audioFile.addEventListener(
 
     }
 
+
     const objectUrl =
       URL.createObjectURL(
         file
       );
 
+
     audioPlayer.src =
       objectUrl;
 
+
     audioPlayer.dataset.objectUrl =
       objectUrl;
+
 
     readyStatus.textContent =
       "FILE READY";
@@ -4346,9 +5030,10 @@ audioFile.addEventListener(
   }
 );
 
+
 /* =========================================================
    MASTER GAIN
-========================================================= */
+   ========================================================= */
 
 document
   .getElementById(
@@ -4363,10 +5048,12 @@ document
           event.target.value
         );
 
+
       document.getElementById(
         "masterValue"
       ).textContent =
         `${value} dB`;
+
 
       if (
         masterGainNode
@@ -4384,9 +5071,10 @@ document
     }
   );
 
+
 /* =========================================================
    MUTE OUTPUT
-========================================================= */
+   ========================================================= */
 
 document
   .getElementById(
@@ -4399,10 +5087,12 @@ document
       isMuted =
         !isMuted;
 
+
       event.currentTarget.classList.toggle(
         "active",
         isMuted
       );
+
 
       if (
         masterGainNode
@@ -4415,6 +5105,7 @@ document
             ).value
           );
 
+
         masterGainNode.gain.value =
           isMuted
             ? 0
@@ -4424,10 +5115,12 @@ document
 
       }
 
+
       event.currentTarget.textContent =
         isMuted
           ? "UNMUTE OUTPUT"
           : "MUTE OUTPUT";
+
 
       readyStatus.textContent =
         isMuted
@@ -4437,9 +5130,10 @@ document
     }
   );
 
+
 /* =========================================================
    RESET BUTTON
-========================================================= */
+   ========================================================= */
 
 document
   .getElementById(
@@ -4450,9 +5144,10 @@ document
     resetAll
   );
 
+
 /* =========================================================
    APPLY PRESET
-========================================================= */
+   ========================================================= */
 
 document
   .getElementById(
@@ -4471,9 +5166,10 @@ document
     }
   );
 
+
 /* =========================================================
    SAVE
-========================================================= */
+   ========================================================= */
 
 document
   .getElementById(
@@ -4488,10 +5184,12 @@ document
           channelState
         );
 
+
       localStorage.setItem(
         "dbx2231Preset",
         saved
       );
+
 
       readyStatus.textContent =
         "PRESET SAVED";
@@ -4499,9 +5197,10 @@ document
     }
   );
 
+
 /* =========================================================
    RECALL
-========================================================= */
+   ========================================================= */
 
 document
   .getElementById(
@@ -4516,6 +5215,7 @@ document
           "dbx2231Preset"
         );
 
+
       if (!saved) {
 
         alert(
@@ -4526,12 +5226,14 @@ document
 
       }
 
+
       try {
 
         const data =
           JSON.parse(
             saved
           );
+
 
         if (
           !Array.isArray(data) ||
@@ -4544,64 +5246,86 @@ document
 
         }
 
+
         data.forEach(
-          (state, index) => {
+          (
+            state,
+            index
+          ) => {
+
+            const range =
+              Number(
+                state.range
+              ) === 6
+                ? 6
+                : 15;
+
 
             channelState[index] = {
 
               gain:
-                Number(
-                  state.gain
-                ) || 0,
+                Number.isFinite(
+                  Number(
+                    state.gain
+                  )
+                )
+                  ? Number(
+                      state.gain
+                    )
+                  : 0,
+
 
               lowCut:
                 Boolean(
                   state.lowCut
                 ),
 
+
               range:
-                Number(
-                  state.range
-                ) === 6
-                  ? 6
-                  : 15,
+                range,
+
 
               bypass:
                 Boolean(
                   state.bypass
                 ),
 
+
               bands:
                 Array.from(
-                  { length: 31 },
-                  (_, bandIndex) => {
+                  {
+                    length: 31
+                  },
+                  (
+                    _,
+                    bandIndex
+                  ) => {
 
-                    const value =
+                    const rawValue =
                       Number(
                         state.bands?.[
                           bandIndex
                         ]
                       );
 
-                    const safeValue =
+
+                    const value =
                       Number.isFinite(
-                        value
+                        rawValue
                       )
-                        ? value
+                        ? rawValue
                         : 0;
 
-                    const range =
-                      Number(
-                        state.range
-                      ) === 6
-                        ? 6
-                        : 15;
 
                     return Math.max(
                       -range,
                       Math.min(
                         range,
-                        safeValue
+                        Math.round(
+                          value /
+                          FADER_STEP
+                        ) *
+                        FADER_STEP
                       )
                     );
 
@@ -4613,9 +5337,12 @@ document
           }
         );
 
+
         buildChannels();
 
+
         updateAllAudioGraphs();
+
 
         readyStatus.textContent =
           "PRESET RECALLED";
@@ -4626,6 +5353,7 @@ document
           error
         );
 
+
         alert(
           "Preset tersimpan rusak atau tidak valid."
         );
@@ -4635,17 +5363,77 @@ document
     }
   );
 
+
+/* =========================================================
+   PAGE VISIBILITY
+   ========================================================= */
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    /*
+     * Jangan menghentikan audio ketika
+     * tab hanya berpindah.
+     *
+     * Browser tetap mengatur lifecycle
+     * AudioContext.
+     */
+
+    if (
+      !document.hidden &&
+      audioContext &&
+      audioContext.state === "suspended"
+    ) {
+
+      audioContext.resume().catch(
+        () => {}
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   CLEANUP OBJECT URL
+   ========================================================= */
+
+window.addEventListener(
+  "beforeunload",
+  () => {
+
+    if (
+      audioPlayer.dataset.objectUrl
+    ) {
+
+      try {
+
+        URL.revokeObjectURL(
+          audioPlayer.dataset.objectUrl
+        );
+
+      } catch (_) {}
+
+    }
+
+  }
+);
+
+
 /* =========================================================
    INITIALIZE
-========================================================= */
+   ========================================================= */
 
 buildChannels();
 
 loadDevices();
 
+
 /* =========================================================
    MICROPHONE SUPPORT CHECK
-========================================================= */
+   ========================================================= */
 
 if (
   !navigator.mediaDevices?.getUserMedia
@@ -4655,7 +5443,6 @@ if (
     "MICROPHONE NOT SUPPORTED";
 
 }
-
 </script>
 
 </body>
