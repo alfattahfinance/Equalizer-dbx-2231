@@ -1769,6 +1769,47 @@
       }
 
     }
+    /* =========================================================
+   REAL STATUS LIGHT
+   OFF = REDUP
+   ON  = MENYALA
+   ========================================================= */
+
+.status-light::before {
+  background: #26342c;
+  box-shadow: none;
+  opacity: .45;
+}
+
+.status-light.active::before {
+  background: var(--green);
+  box-shadow: 0 0 7px var(--green);
+  opacity: 1;
+}
+
+.status-light.bypass::before {
+  background: #3a171b;
+  box-shadow: none;
+  opacity: .45;
+}
+
+.status-light.bypass.active::before {
+  background: var(--red);
+  box-shadow: 0 0 7px var(--red);
+  opacity: 1;
+}
+
+.status-light.test::before {
+  background: #3a3214;
+  box-shadow: none;
+  opacity: .45;
+}
+
+.status-light.test.active::before {
+  background: var(--yellow);
+  box-shadow: 0 0 7px var(--yellow);
+  opacity: 1;
+}
   </style>
 </head>
 
@@ -2052,12 +2093,15 @@
     </footer>
 
   </main>
-
-
 <script>
 /* =========================================================
    DBX 2231 GRAPHIC EQUALIZER
-   COMPLETE JAVASCRIPT
+   COMPLETE AUDIO ENGINE
+   TRUE STEREO L/R
+   31 BAND
+   REAL TIME METER
+   ACTIVE / BYPASS / TEST STATUS
+   MASTER SYNC
    ========================================================= */
 
 
@@ -2076,7 +2120,6 @@ const frequencies = [
   100,
   125,
   160,
-
   200,
   250,
   315,
@@ -2086,7 +2129,6 @@ const frequencies = [
   800,
   1000,
   1250,
-
   1600,
   2000,
   2500,
@@ -2095,7 +2137,6 @@ const frequencies = [
   5000,
   6300,
   8000,
-
   10000,
   12500,
   16000,
@@ -2124,7 +2165,7 @@ const readyStatus =
 
 
 /* =========================================================
-   AUDIO STATE
+   AUDIO ENGINE STATE
    ========================================================= */
 
 let audioContext = null;
@@ -2133,6 +2174,28 @@ let masterGainNode = null;
 
 let sourceNode = null;
 
+
+/*
+ * TRUE STEREO NODES
+ *
+ * stereoInputNode
+ *      ↓
+ * stereoSplitter
+ *   ┌──┴──┐
+ *   L    R
+ *   ↓    ↓
+ *  CH1  CH2
+ *   ↓    ↓
+ * stereoMerger
+ */
+
+let stereoInputNode = null;
+
+let stereoSplitter = null;
+
+let stereoMerger = null;
+
+
 /*
  * MediaElementSource hanya boleh dibuat satu kali
  * untuk elemen audio yang sama.
@@ -2140,15 +2203,48 @@ let sourceNode = null;
 
 let audioFileSourceNode = null;
 
+
+/*
+ * Analyser CH1 / CH2.
+ */
+
 let analyserNodes = [];
+
+
+/*
+ * Audio graph CH1 / CH2.
+ */
 
 let channelGraphs = [];
 
+
+/*
+ * Microphone stream.
+ */
+
 let microphoneStream = null;
+
+
+/*
+ * Master mute.
+ */
 
 let isMuted = false;
 
+
+/*
+ * Meter animation.
+ */
+
 let meterAnimationId = null;
+
+
+/*
+ * Supaya startMeterAnimation()
+ * tidak membuat loop ganda.
+ */
+
+let meterAnimationRunning = false;
 
 
 /* =========================================================
@@ -2166,6 +2262,8 @@ const channelState = [
 
     bypass: false,
 
+    test: false,
+
     bands: Array(31).fill(0)
   },
 
@@ -2177,6 +2275,8 @@ const channelState = [
     range: 15,
 
     bypass: false,
+
+    test: false,
 
     bands: Array(31).fill(0)
   }
@@ -2191,13 +2291,10 @@ const channelState = [
 function formatFrequency(freq) {
 
   if (freq >= 1000) {
-
     return `${freq / 1000}K`;
-
   }
 
   return String(freq);
-
 }
 
 
@@ -2207,13 +2304,10 @@ function formatDb(value) {
     Number(value);
 
   if (number > 0) {
-
     return `+${number.toFixed(1)}`;
-
   }
 
   return number.toFixed(1);
-
 }
 
 
@@ -2223,25 +2317,15 @@ function dbToGain(db) {
     10,
     db / 20
   );
-
 }
 
 
 /* =========================================================
-   FADER HELPERS
+   FADER
    ========================================================= */
-
-/*
- * Step fader:
- * 0.5 dB
- */
 
 const FADER_STEP = 0.5;
 
-
-/*
- * Membatasi nilai ke range channel.
- */
 
 function clampBandValue(
   channelIndex,
@@ -2249,9 +2333,7 @@ function clampBandValue(
 ) {
 
   const range =
-    channelState[
-      channelIndex
-    ].range;
+    channelState[channelIndex].range;
 
   let result =
     Number(value);
@@ -2269,27 +2351,14 @@ function clampBandValue(
       )
     );
 
-  /*
-   * Pastikan selalu kelipatan 0.5 dB.
-   */
-
   result =
     Math.round(
       result / FADER_STEP
     ) * FADER_STEP;
 
   return result;
-
 }
 
-
-/*
- * Menghitung posisi fill.
- *
- * -range = 0%
- * 0 dB    = 50%
- * +range  = 100%
- */
 
 function calculateFaderPercent(
   channelIndex,
@@ -2297,9 +2366,7 @@ function calculateFaderPercent(
 ) {
 
   const range =
-    channelState[
-      channelIndex
-    ].range;
+    channelState[channelIndex].range;
 
   if (range <= 0) {
     return 50;
@@ -2318,13 +2385,8 @@ function calculateFaderPercent(
       percent
     )
   );
-
 }
 
-
-/*
- * Update visual fader.
- */
 
 function updateBandVisual(
   channelIndex,
@@ -2342,13 +2404,8 @@ function updateBandVisual(
     "--fader-level",
     `${percent}%`
   );
-
 }
 
-
-/*
- * Update nilai fader + UI + audio.
- */
 
 function setBandValue(
   channelIndex,
@@ -2365,11 +2422,9 @@ function setBandValue(
       value
     );
 
-  channelState[
-    channelIndex
-  ].bands[
-    bandIndex
-  ] = safeValue;
+  channelState[channelIndex]
+    .bands[bandIndex] =
+    safeValue;
 
   slider.value =
     String(safeValue);
@@ -2386,6 +2441,132 @@ function setBandValue(
   updateChannelAudio(
     channelIndex
   );
+}
+
+
+/* =========================================================
+   STATUS LAMP
+   ========================================================= */
+
+function updateChannelStatusLights(
+  channelIndex
+) {
+
+  const channel =
+    document.querySelector(
+      `.channel[data-channel="${channelIndex}"]`
+    );
+
+  if (!channel) {
+    return;
+  }
+
+
+  const activeLight =
+    channel.querySelector(
+      '[data-role="status-active"]'
+    );
+
+
+  const bypassLight =
+    channel.querySelector(
+      '[data-role="status-bypass"]'
+    );
+
+
+  const testLight =
+    channel.querySelector(
+      '[data-role="status-test"]'
+    );
+
+
+  const state =
+    channelState[channelIndex];
+
+
+  /*
+   * AUDIO ACTIVE
+   *
+   * ACTIVE hanya ON ketika:
+   * - AudioContext running
+   * - sourceNode tersedia
+   */
+
+  const audioActive =
+    !!(
+      audioContext &&
+      audioContext.state === "running" &&
+      sourceNode
+    );
+
+
+  /*
+   * TEST
+   */
+
+  const testing =
+    !!state.test;
+
+
+  /*
+   * ACTIVE
+   */
+
+  if (activeLight) {
+
+    activeLight.classList.toggle(
+      "active",
+      audioActive
+    );
+
+  }
+
+
+  /*
+   * BYPASS
+   */
+
+  if (bypassLight) {
+
+    bypassLight.classList.toggle(
+      "active",
+      state.bypass
+    );
+
+  }
+
+
+  /*
+   * TEST
+   */
+
+  if (testLight) {
+
+    testLight.classList.toggle(
+      "active",
+      testing
+    );
+
+  }
+
+}
+
+
+/*
+ * Update semua lampu channel.
+ */
+
+function updateAllStatusLights() {
+
+  channelState.forEach(
+    (_, index) => {
+
+      updateChannelStatusLights(
+        index
+      );
+
+    }
+  );
 
 }
 
@@ -2401,11 +2582,16 @@ function createChannel(
   const channelNumber =
     channelIndex + 1;
 
+
   const channel =
-    document.createElement("article");
+    document.createElement(
+      "article"
+    );
+
 
   channel.className =
     "channel";
+
 
   channel.dataset.channel =
     channelIndex;
@@ -2421,23 +2607,36 @@ function createChannel(
 
       <div class="channel-label">
 
-  <span class="power-led"></span>
+        <span class="power-led"></span>
 
-  ${channelNumber === 1 ? "CH1 — LEFT / L" : "CH2 — RIGHT / R"}
+        ${
+          channelNumber === 1
+            ? "CH1 — LEFT / L"
+            : "CH2 — RIGHT / R"
+        }
 
-</div>
+      </div>
 
       <div class="channel-status">
 
-        <span class="status-light">
+        <span
+          class="status-light"
+          data-role="status-active"
+        >
           ACTIVE
         </span>
 
-        <span class="status-light bypass">
+        <span
+          class="status-light bypass"
+          data-role="status-bypass"
+        >
           BYPASS
         </span>
 
-        <span class="status-light test">
+        <span
+          class="status-light test"
+          data-role="status-test"
+        >
           TEST
         </span>
 
@@ -2473,9 +2672,7 @@ function createChannel(
 
           <strong data-role="gain-value">
             ${formatDb(
-              channelState[
-                channelIndex
-              ].gain
+              channelState[channelIndex].gain
             )} dB
           </strong>
 
@@ -2584,9 +2781,7 @@ function createChannel(
     </div>
 
 
-    <!-- =================================================
-         EQ
-         ================================================= -->
+    <!-- EQ -->
 
     <div class="eq-wrapper">
 
@@ -2628,8 +2823,6 @@ function createChannel(
     </div>
 
 
-    <!-- FOOTER -->
-
     <div class="channel-footer">
 
       <span>
@@ -2642,8 +2835,6 @@ function createChannel(
 
     </div>
 
-
-    <!-- BUTTONS -->
 
     <div class="channel-buttons">
 
@@ -2667,13 +2858,11 @@ function createChannel(
 
 
   /* =======================================================
-     INITIAL BUTTON STATE
+     INITIAL STATE
      ======================================================= */
 
   const initialState =
-    channelState[
-      channelIndex
-    ];
+    channelState[channelIndex];
 
 
   const lowCutButton =
@@ -2691,6 +2880,12 @@ function createChannel(
   const bypassButton =
     channel.querySelector(
       '[data-role="bypass"]'
+    );
+
+
+  const testButton =
+    channel.querySelector(
+      '[data-role="test"]'
     );
 
 
@@ -2724,6 +2919,16 @@ function createChannel(
   }
 
 
+  if (testButton) {
+
+    testButton.classList.toggle(
+      "active",
+      initialState.test
+    );
+
+  }
+
+
   const bandsContainer =
     channel.querySelector(
       '[data-role="bands"]'
@@ -2745,14 +2950,13 @@ function createChannel(
           "div"
         );
 
+
       band.className =
         "band";
 
 
       const state =
-        channelState[
-          channelIndex
-        ];
+        channelState[channelIndex];
 
 
       band.innerHTML = `
@@ -2778,9 +2982,7 @@ function createChannel(
           data-value-index="${bandIndex}"
         >
           ${formatDb(
-            state.bands[
-              bandIndex
-            ]
+            state.bands[bandIndex]
           )}
         </div>
 
@@ -2788,9 +2990,7 @@ function createChannel(
 
 
       const slider =
-        band.querySelector(
-          "input"
-        );
+        band.querySelector("input");
 
 
       const valueLabel =
@@ -2798,12 +2998,6 @@ function createChannel(
           `[data-value-index="${bandIndex}"]`
         );
 
-
-      /*
-       * =====================================================
-       * INITIAL VISUAL FADER
-       * =====================================================
-       */
 
       updateBandVisual(
         channelIndex,
@@ -2813,31 +3007,21 @@ function createChannel(
 
 
       /* =====================================================
-         FADER POINTER STATE
+         POINTER STATE
          ===================================================== */
 
-      let pointerMode =
-        null;
+      let pointerMode = null;
 
-      let pointerStartX =
-        0;
+      let pointerStartX = 0;
 
-      let pointerStartY =
-        0;
+      let pointerStartY = 0;
 
-      let pointerStartValue =
-        0;
+      let pointerStartValue = 0;
 
-      let pointerMoved =
-        false;
+      let pointerMoved = false;
 
-      let pointerActive =
-        false;
+      let pointerActive = false;
 
-
-      /* =====================================================
-         TRACK
-         ===================================================== */
 
       const track =
         band.querySelector(
@@ -2853,11 +3037,6 @@ function createChannel(
         "pointerdown",
         event => {
 
-          /*
-           * Jangan mengambil pointer dari
-           * label frekuensi/value.
-           */
-
           if (
             event.target.closest(
               ".band-frequency, .band-value"
@@ -2868,11 +3047,6 @@ function createChannel(
 
           }
 
-
-          /*
-           * Hanya area track/fader yang
-           * menjadi area kontrol.
-           */
 
           const trackRect =
             track.getBoundingClientRect();
@@ -2890,14 +3064,11 @@ function createChannel(
           }
 
 
-          pointerActive =
-            true;
+          pointerActive = true;
 
-          pointerMode =
-            null;
+          pointerMode = null;
 
-          pointerMoved =
-            false;
+          pointerMoved = false;
 
           pointerStartX =
             event.clientX;
@@ -2906,9 +3077,7 @@ function createChannel(
             event.clientY;
 
           pointerStartValue =
-            Number(
-              slider.value
-            );
+            Number(slider.value);
 
         },
         {
@@ -2925,12 +3094,8 @@ function createChannel(
         "pointermove",
         event => {
 
-          if (
-            !pointerActive
-          ) {
-
+          if (!pointerActive) {
             return;
-
           }
 
 
@@ -2952,14 +3117,6 @@ function createChannel(
             Math.abs(deltaY);
 
 
-          /*
-           * Tunggu sedikit gerakan sebelum
-           * menentukan apakah gesture:
-           *
-           * horizontal = scroll
-           * vertical   = fader
-           */
-
           if (
             !pointerMode &&
             (
@@ -2968,19 +3125,13 @@ function createChannel(
             )
           ) {
 
-            pointerMoved =
-              true;
+            pointerMoved = true;
 
 
-            if (
-              absX > absY
-            ) {
+            if (absX > absY) {
 
               /*
-               * HORIZONTAL:
-               * Jangan mengambil pointer.
-               * Browser akan melakukan horizontal
-               * scroll pada .eq-wrapper.
+               * Horizontal = scroll.
                */
 
               pointerMode =
@@ -2995,8 +3146,7 @@ function createChannel(
 
 
             /*
-             * VERTICAL:
-             * Sekarang pointer menjadi milik fader.
+             * Vertical = fader.
              */
 
             pointerMode =
@@ -3017,11 +3167,6 @@ function createChannel(
 
           }
 
-
-          /*
-           * Hanya fader yang diproses
-           * pada gerakan vertikal.
-           */
 
           if (
             pointerMode !==
@@ -3052,12 +3197,6 @@ function createChannel(
 
           }
 
-
-          /*
-           * Bergerak ke atas = nilai naik.
-           *
-           * deltaY negatif => nilai positif.
-           */
 
           const range =
             channelState[
@@ -3104,19 +3243,10 @@ function createChannel(
         "pointerup",
         event => {
 
-          if (
-            !pointerActive
-          ) {
-
+          if (!pointerActive) {
             return;
-
           }
 
-
-          /*
-           * Jika tadi drag vertical,
-           * tidak dianggap sebagai tap.
-           */
 
           if (
             pointerMode ===
@@ -3127,6 +3257,7 @@ function createChannel(
               "is-dragging"
             );
 
+
             try {
 
               band.releasePointerCapture(
@@ -3135,31 +3266,26 @@ function createChannel(
 
             } catch (_) {}
 
-            pointerActive =
-              false;
 
-            pointerMode =
-              null;
+            pointerActive = false;
+
+            pointerMode = null;
+
+            pointerMoved = false;
 
             return;
 
           }
 
-
-          /*
-           * Horizontal = browser scroll.
-           */
 
           if (
             pointerMode ===
             "scroll"
           ) {
 
-            pointerActive =
-              false;
+            pointerActive = false;
 
-            pointerMode =
-              null;
+            pointerMode = null;
 
             return;
 
@@ -3167,29 +3293,17 @@ function createChannel(
 
 
           /*
-           * =================================================
-           * ONE TAP FADER
-           * =================================================
-           *
-           * Tap di atas knob:
-           *     +0.5 dB
-           *
-           * Tap di bawah knob:
-           *     -0.5 dB
+           * ONE TAP
            */
 
-          if (
-            !pointerMoved
-          ) {
+          if (!pointerMoved) {
 
             const trackRect =
               track.getBoundingClientRect();
 
 
             const currentValue =
-              Number(
-                slider.value
-              );
+              Number(slider.value);
 
 
             const range =
@@ -3201,14 +3315,6 @@ function createChannel(
             const trackHeight =
               trackRect.height;
 
-
-            /*
-             * Posisi knob:
-             *
-             * +range = atas
-             * 0      = tengah
-             * -range = bawah
-             */
 
             const currentPercent =
               (
@@ -3236,7 +3342,7 @@ function createChannel(
             if (
               tapY <
               knobY -
-                tapThreshold
+              tapThreshold
             ) {
 
               setBandValue(
@@ -3252,7 +3358,7 @@ function createChannel(
             } else if (
               tapY >
               knobY +
-                tapThreshold
+              tapThreshold
             ) {
 
               setBandValue(
@@ -3270,14 +3376,11 @@ function createChannel(
           }
 
 
-          pointerActive =
-            false;
+          pointerActive = false;
 
-          pointerMode =
-            null;
+          pointerMode = null;
 
-          pointerMoved =
-            false;
+          pointerMoved = false;
 
         },
         {
@@ -3298,6 +3401,7 @@ function createChannel(
             "is-dragging"
           );
 
+
           try {
 
             if (
@@ -3315,21 +3419,18 @@ function createChannel(
           } catch (_) {}
 
 
-          pointerActive =
-            false;
+          pointerActive = false;
 
-          pointerMode =
-            null;
+          pointerMode = null;
 
-          pointerMoved =
-            false;
+          pointerMoved = false;
 
         }
       );
 
 
       /* =====================================================
-         KEYBOARD / NATIVE INPUT
+         KEYBOARD
          ===================================================== */
 
       slider.addEventListener(
@@ -3339,9 +3440,7 @@ function createChannel(
           setBandValue(
             channelIndex,
             bandIndex,
-            Number(
-              slider.value
-            ),
+            Number(slider.value),
             band,
             slider,
             valueLabel
@@ -3407,309 +3506,291 @@ function createChannel(
      LOW CUT
      ======================================================= */
 
-  channel
-    .querySelector(
-      '[data-role="lowcut"]'
-    )
-    .addEventListener(
-      "click",
-      event => {
+  lowCutButton.addEventListener(
+    "click",
+    event => {
 
-        channelState[
-          channelIndex
-        ].lowCut =
-          !channelState[
-            channelIndex
-          ].lowCut;
+      const state =
+        channelState[channelIndex];
 
 
-        const enabled =
-          channelState[
-            channelIndex
-          ].lowCut;
+      state.lowCut =
+        !state.lowCut;
 
 
-        event.currentTarget.classList.toggle(
-          "active",
-          enabled
-        );
+      event.currentTarget.classList.toggle(
+        "active",
+        state.lowCut
+      );
 
 
-        event.currentTarget.textContent =
-          enabled
-            ? "ON / 40 Hz"
-            : "OFF / 40 Hz";
+      event.currentTarget.textContent =
+        state.lowCut
+          ? "ON / 40 Hz"
+          : "OFF / 40 Hz";
 
 
-        updateChannelAudio(
-          channelIndex
-        );
+      updateChannelAudio(
+        channelIndex
+      );
 
-      }
-    );
+    }
+  );
 
 
   /* =======================================================
-     RANGE ±6 / ±15
+     RANGE
      ======================================================= */
 
-  channel
-    .querySelector(
-      '[data-role="range"]'
-    )
-    .addEventListener(
-      "click",
-      event => {
+  rangeButton.addEventListener(
+    "click",
+    event => {
 
-        channelState[
-          channelIndex
-        ].range =
-          channelState[
-            channelIndex
-          ].range === 15
-            ? 6
-            : 15;
+      const state =
+        channelState[channelIndex];
 
 
-        const range =
-          channelState[
-            channelIndex
-          ].range;
+      state.range =
+        state.range === 15
+          ? 6
+          : 15;
 
 
-        event.currentTarget.textContent =
-          `±${range} dB`;
+      const range =
+        state.range;
 
 
-        event.currentTarget.classList.toggle(
-          "active",
-          range === 6
+      event.currentTarget.textContent =
+        `±${range} dB`;
+
+
+      event.currentTarget.classList.toggle(
+        "active",
+        range === 6
+      );
+
+
+      const footerRange =
+        channel.querySelector(
+          '[data-role="footer-range"]'
         );
 
 
-        const footerRange =
-          channel.querySelector(
-            '[data-role="footer-range"]'
-          );
+      if (footerRange) {
 
-
-        if (footerRange) {
-
-          footerRange.textContent =
-            `RANGE: ±${range} dB`;
-
-        }
-
-
-        /*
-         * Clamp semua band.
-         */
-
-        channel
-          .querySelectorAll(
-            ".band input"
-          )
-          .forEach(
-            (
-              slider,
-              index
-            ) => {
-
-              let value =
-                Number(
-                  slider.value
-                );
-
-
-              value =
-                Math.max(
-                  -range,
-                  Math.min(
-                    range,
-                    value
-                  )
-                );
-
-
-              value =
-                Math.round(
-                  value / FADER_STEP
-                ) *
-                FADER_STEP;
-
-
-              slider.min =
-                String(-range);
-
-
-              slider.max =
-                String(range);
-
-
-              slider.step =
-                String(FADER_STEP);
-
-
-              slider.value =
-                String(value);
-
-
-              channelState[
-                channelIndex
-              ].bands[index] =
-                value;
-
-
-              const valueLabel =
-                channel.querySelector(
-                  `[data-value-index="${index}"]`
-                );
-
-
-              if (valueLabel) {
-
-                valueLabel.textContent =
-                  formatDb(value);
-
-              }
-
-
-              const band =
-                slider.closest(
-                  ".band"
-                );
-
-
-              if (band) {
-
-                updateBandVisual(
-                  channelIndex,
-                  band,
-                  value
-                );
-
-              }
-
-            }
-          );
-
-
-        updateChannelAudio(
-          channelIndex
-        );
+        footerRange.textContent =
+          `RANGE: ±${range} dB`;
 
       }
-    );
+
+
+      channel
+        .querySelectorAll(
+          ".band input"
+        )
+        .forEach(
+          (
+            slider,
+            index
+          ) => {
+
+            let value =
+              Number(slider.value);
+
+
+            value =
+              Math.max(
+                -range,
+                Math.min(
+                  range,
+                  value
+                )
+              );
+
+
+            value =
+              Math.round(
+                value /
+                FADER_STEP
+              ) *
+              FADER_STEP;
+
+
+            slider.min =
+              String(-range);
+
+
+            slider.max =
+              String(range);
+
+
+            slider.step =
+              String(FADER_STEP);
+
+
+            slider.value =
+              String(value);
+
+
+            state.bands[index] =
+              value;
+
+
+            const valueLabel =
+              channel.querySelector(
+                `[data-value-index="${index}"]`
+              );
+
+
+            if (valueLabel) {
+
+              valueLabel.textContent =
+                formatDb(value);
+
+            }
+
+
+            const band =
+              slider.closest(
+                ".band"
+              );
+
+
+            if (band) {
+
+              updateBandVisual(
+                channelIndex,
+                band,
+                value
+              );
+
+            }
+
+          }
+        );
+
+
+      updateChannelAudio(
+        channelIndex
+      );
+
+    }
+  );
 
 
   /* =======================================================
      BYPASS
      ======================================================= */
 
-  channel
-    .querySelector(
-      '[data-role="bypass"]'
-    )
-    .addEventListener(
-      "click",
-      event => {
+  bypassButton.addEventListener(
+    "click",
+    event => {
 
-        channelState[
-          channelIndex
-        ].bypass =
-          !channelState[
-            channelIndex
-          ].bypass;
+      const state =
+        channelState[channelIndex];
 
 
-        event.currentTarget.classList.toggle(
-          "active",
-          channelState[
-            channelIndex
-          ].bypass
-        );
+      state.bypass =
+        !state.bypass;
 
 
-        updateChannelAudio(
-          channelIndex
-        );
+      event.currentTarget.classList.toggle(
+        "active",
+        state.bypass
+      );
 
-      }
-    );
+
+      updateChannelAudio(
+        channelIndex
+      );
+
+
+      updateChannelStatusLights(
+        channelIndex
+      );
+
+
+      readyStatus.textContent =
+        state.bypass
+          ? `CH${channelNumber} BYPASS ON`
+          : `CH${channelNumber} BYPASS OFF`;
+
+    }
+  );
 
 
   /* =======================================================
      TEST
      ======================================================= */
 
-  channel
-    .querySelector(
-      '[data-role="test"]'
-    )
-    .addEventListener(
-      "click",
-      event => {
+  testButton.addEventListener(
+    "click",
+    event => {
 
-        const button =
-          event.currentTarget;
+      const state =
+        channelState[channelIndex];
 
 
-        const testing =
-          button.classList.toggle(
-            "active"
-          );
+      state.test =
+        !state.test;
 
 
-        const meter =
-          channel.querySelector(
-            '[data-role="meter"]'
-          );
+      const testing =
+        state.test;
 
 
-        const clip =
-          channel.querySelector(
-            '[data-role="clip"]'
-          );
+      event.currentTarget.classList.toggle(
+        "active",
+        testing
+      );
 
 
-        if (
-          !meter ||
-          !clip
-        ) {
-
-          return;
-
-        }
-
-
-        const segments =
-          meter.querySelectorAll(
-            "span"
-          );
-
-
-        /*
-         * TEST menampilkan
-         * level simulasi.
-         */
-
-        segments.forEach(
-          (
-            segment,
-            index
-          ) => {
-
-            segment.classList.toggle(
-              "on",
-              testing &&
-              index >=
-                segments.length -
-                13
-            );
-
-          }
+      const meter =
+        channel.querySelector(
+          '[data-role="meter"]'
         );
 
+
+      const clip =
+        channel.querySelector(
+          '[data-role="clip"]'
+        );
+
+
+      const segments =
+        meter
+          ? meter.querySelectorAll(
+              "span"
+            )
+          : [];
+
+
+      /*
+       * TEST meter.
+       */
+
+      segments.forEach(
+        (
+          segment,
+          index
+        ) => {
+
+          segment.classList.toggle(
+            "on",
+            testing &&
+            index >=
+              segments.length - 13
+          );
+
+        }
+      );
+
+
+      /*
+       * TEST clip.
+       */
+
+      if (clip) {
 
         const clipLed =
           clip.querySelector(
@@ -3727,11 +3808,33 @@ function createChannel(
         }
 
       }
-    );
+
+
+      updateChannelStatusLights(
+        channelIndex
+      );
+
+
+      readyStatus.textContent =
+        testing
+          ? `CH${channelNumber} TEST ON`
+          : `CH${channelNumber} TEST OFF`;
+
+    }
+  );
 
 
   channelsContainer.appendChild(
     channel
+  );
+
+
+  /*
+   * Status awal.
+   */
+
+  updateChannelStatusLights(
+    channelIndex
   );
 
 }
@@ -3750,84 +3853,360 @@ function buildChannels() {
 
   createChannel(1);
 
+  updateAllStatusLights();
+
 }
 
 
 /* =========================================================
-   AUDIO CONTEXT
+   CREATE AUDIO CONTEXT
    ========================================================= */
+
 function createAudioContext() {
-  if (audioContext) return;
 
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioContext) {
 
-  masterGainNode = audioContext.createGain();
-  masterGainNode.gain.value = 1;
+    return;
 
-  // Memastikan sumber mono dapat di-upmix menjadi stereo.
-  stereoInputNode = audioContext.createGain();
-  stereoInputNode.gain.value = 1;
-  stereoInputNode.channelCount = 2;
-  stereoInputNode.channelCountMode = "explicit";
-  stereoInputNode.channelInterpretation = "speakers";
+  }
 
-  stereoSplitter = audioContext.createChannelSplitter(2);
-  stereoMerger = audioContext.createChannelMerger(2);
 
-  stereoInputNode.connect(stereoSplitter);
+  audioContext =
+    new (
+      window.AudioContext ||
+      window.webkitAudioContext
+    )();
 
-  channelGraphs = channelState.map((state, channelIndex) => {
-    const inputGain = audioContext.createGain();
 
-    const lowCut = audioContext.createBiquadFilter();
-    lowCut.type = "highpass";
-    lowCut.frequency.value = state.lowCut || 5;
+  /* =======================================================
+     MASTER
+     ======================================================= */
 
-    const filters = frequencies.map((frequency, bandIndex) => {
-      const filter = audioContext.createBiquadFilter();
+  masterGainNode =
+    audioContext.createGain();
 
-      filter.type = "peaking";
-      filter.frequency.value = frequency;
-      filter.Q.value = 1.4;
-      filter.gain.value = state.bands[bandIndex] || 0;
 
-      return filter;
-    });
+  /*
+   * Sinkronkan gain audio dengan slider UI.
+   *
+   * Slider default = -12 dB.
+   */
 
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 2048;
-    analyser.smoothingTimeConstant = 0.75;
+  const masterSlider =
+    document.getElementById(
+      "masterGain"
+    );
 
-    let previousNode = inputGain;
 
-    previousNode.connect(lowCut);
-    previousNode = lowCut;
+  const initialMasterDb =
+    masterSlider
+      ? Number(masterSlider.value)
+      : -12;
 
-    filters.forEach(filter => {
-      previousNode.connect(filter);
-      previousNode = filter;
-    });
 
-    previousNode.connect(analyser);
+  masterGainNode.gain.value =
+    isMuted
+      ? 0
+      : dbToGain(
+          initialMasterDb
+        );
 
-    // CH1 hanya masuk output LEFT.
-    // CH2 hanya masuk output RIGHT.
-    analyser.connect(stereoMerger, 0, channelIndex);
 
-    return {
-      inputGain,
-      lowCut,
-      filters,
-      analyser
-    };
-  });
+  /* =======================================================
+     STEREO INPUT
+     ======================================================= */
 
-  // Setelah L/R diproses masing-masing, gabungkan kembali
-  // menjadi satu output stereo.
-  stereoMerger.connect(masterGainNode);
+  stereoInputNode =
+    audioContext.createGain();
 
-  masterGainNode.connect(audioContext.destination);
+
+  stereoInputNode.gain.value =
+    1;
+
+
+  /*
+   * Memastikan sumber mono dapat
+   * di-upmix menjadi stereo.
+   */
+
+  stereoInputNode.channelCount =
+    2;
+
+
+  stereoInputNode.channelCountMode =
+    "explicit";
+
+
+  stereoInputNode.channelInterpretation =
+    "speakers";
+
+
+  /* =======================================================
+     SPLITTER / MERGER
+     ======================================================= */
+
+  stereoSplitter =
+    audioContext.createChannelSplitter(
+      2
+    );
+
+
+  stereoMerger =
+    audioContext.createChannelMerger(
+      2
+    );
+
+
+  stereoInputNode.connect(
+    stereoSplitter
+  );
+
+
+  /* =======================================================
+     CHANNEL GRAPHS
+     ======================================================= */
+
+  channelGraphs =
+    channelState.map(
+      (
+        state,
+        channelIndex
+      ) => {
+
+        const inputGain =
+          audioContext.createGain();
+
+
+        /*
+         * LOW CUT
+         */
+
+        const lowCut =
+          audioContext.createBiquadFilter();
+
+
+        lowCut.type =
+          "highpass";
+
+
+        lowCut.frequency.value =
+          state.bypass
+            ? 5
+            : state.lowCut
+              ? 40
+              : 5;
+
+
+        /*
+         * 31 BAND EQ
+         */
+
+        const filters =
+          frequencies.map(
+            (
+              frequency,
+              bandIndex
+            ) => {
+
+              const filter =
+                audioContext.createBiquadFilter();
+
+
+              filter.type =
+                "peaking";
+
+
+              filter.frequency.value =
+                frequency;
+
+
+              filter.Q.value =
+                1.4;
+
+
+              filter.gain.value =
+                state.bypass
+                  ? 0
+                  : state.bands[
+                      bandIndex
+                    ] || 0;
+
+
+              return filter;
+
+            }
+          );
+
+
+        /*
+         * ANALYSER
+         */
+
+        const analyser =
+          audioContext.createAnalyser();
+
+
+        analyser.fftSize =
+          2048;
+
+
+        analyser.smoothingTimeConstant =
+          0.75;
+
+
+        /*
+         * AUDIO CHAIN
+         *
+         * Gain
+         *   ↓
+         * Low Cut
+         *   ↓
+         * 31 Band EQ
+         *   ↓
+         * Analyser
+         */
+
+        let previousNode =
+          inputGain;
+
+
+        previousNode.connect(
+          lowCut
+        );
+
+
+        previousNode =
+          lowCut;
+
+
+        filters.forEach(
+          filter => {
+
+            previousNode.connect(
+              filter
+            );
+
+
+            previousNode =
+              filter;
+
+          }
+        );
+
+
+        previousNode.connect(
+          analyser
+        );
+
+
+        /*
+         * CH1 → LEFT
+         * CH2 → RIGHT
+         */
+
+        analyser.connect(
+          stereoMerger,
+          0,
+          channelIndex
+        );
+
+
+        return {
+
+          inputGain,
+
+          lowCut,
+
+          filters,
+
+          analyser
+
+        };
+
+      }
+    );
+
+
+  /* =======================================================
+     ANALYSER ARRAY
+     ======================================================= */
+
+  analyserNodes =
+    channelGraphs.map(
+      graph =>
+        graph.analyser
+    );
+
+
+  /* =======================================================
+     TRUE STEREO ROUTING
+     ======================================================= */
+
+  /*
+   * CHANNEL 1
+   *
+   * Splitter output 0 = LEFT
+   */
+
+  if (
+    channelGraphs[0]
+  ) {
+
+    stereoSplitter.connect(
+      channelGraphs[0].inputGain,
+      0
+    );
+
+  }
+
+
+  /*
+   * CHANNEL 2
+   *
+   * Splitter output 1 = RIGHT
+   */
+
+  if (
+    channelGraphs[1]
+  ) {
+
+    stereoSplitter.connect(
+      channelGraphs[1].inputGain,
+      1
+    );
+
+  }
+
+
+  /* =======================================================
+     STEREO OUTPUT
+     ======================================================= */
+
+  stereoMerger.connect(
+    masterGainNode
+  );
+
+
+  masterGainNode.connect(
+    audioContext.destination
+  );
+
+
+  /*
+   * Mulai meter setelah analyser tersedia.
+   */
+
+  startMeterAnimation();
+
+
+  /*
+   * Update status.
+   */
+
+  updateAllStatusLights();
+
 }
+
 
 /* =========================================================
    UPDATE CHANNEL AUDIO
@@ -3858,34 +4237,50 @@ function updateChannelAudio(
     ];
 
 
+  /* =======================================================
+     CHANNEL GAIN
+     ======================================================= */
+
   /*
-   * Gain.
+   * PENTING:
+   *
+   * BYPASS TIDAK mengubah gain.
+   *
+   * Fader tetap aktif.
    */
 
   graph.inputGain.gain.value =
-    state.bypass
-      ? 1
-      : dbToGain(
-          state.gain
-        );
+    dbToGain(
+      state.gain
+    );
 
+
+  /* =======================================================
+     LOW CUT
+     ======================================================= */
 
   /*
-   * Low cut.
+   * BYPASS:
+   * Low cut dilewati.
    *
-   * OFF = 5 Hz
-   * ON  = 40 Hz
+   * OFF:
+   * 5 Hz.
+   *
+   * ON:
+   * 40 Hz.
    */
 
   graph.lowCut.frequency.value =
-    state.lowCut
-      ? 40
-      : 5;
+    state.bypass
+      ? 5
+      : state.lowCut
+        ? 40
+        : 5;
 
 
-  /*
-   * EQ filters.
-   */
+  /* =======================================================
+     31 BAND EQ
+     ======================================================= */
 
   graph.filters.forEach(
     (
@@ -3893,12 +4288,21 @@ function updateChannelAudio(
       index
     ) => {
 
+      /*
+       * BYPASS = semua EQ 0 dB.
+       */
+
       filter.gain.value =
         state.bypass
           ? 0
           : state.bands[index];
 
     }
+  );
+
+
+  updateChannelStatusLights(
+    channelIndex
   );
 
 }
@@ -3929,41 +4333,71 @@ function updateAllAudioGraphs() {
 /* =========================================================
    DISCONNECT SOURCE
    ========================================================= */
-function disconnectCurrentSource() {
-  if (!sourceNode) return;
 
-  try {
-    sourceNode.disconnect();
-  } catch (e) {
-    // source mungkin sudah terputus
+function disconnectCurrentSource() {
+
+  if (!sourceNode) {
+
+    return;
+
   }
 
-  sourceNode = null;
+
+  try {
+
+    sourceNode.disconnect();
+
+  } catch (error) {
+
+    console.warn(
+      "Source sudah terputus.",
+      error
+    );
+
+  }
+
+
+  sourceNode =
+    null;
+
+
+  updateAllStatusLights();
+
 }
 
+
 /* =========================================================
-   CONNECT SOURCE TO CHANNELS
+   CONNECT SOURCE
    ========================================================= */
-function connectSourceToChannels(newSource) {
+
+function connectSourceToChannels(
+  newSource
+) {
+
   disconnectCurrentSource();
 
-  sourceNode = newSource;
 
-  // Source masuk ke stereo router terlebih dahulu.
-  // Setelah itu otomatis dipisahkan:
-  // output 0 = LEFT
-  // output 1 = RIGHT
-  sourceNode.connect(stereoInputNode);
+  sourceNode =
+    newSource;
 
-  stereoSplitter.connect(
-    channelGraphs[0].inputGain,
-    0
+
+  /*
+   * HANYA source → stereoInputNode.
+   *
+   * Jangan menghubungkan splitter
+   * ke CH1/CH2 di sini.
+   *
+   * Routing splitter sudah dilakukan
+   * sekali di createAudioContext().
+   */
+
+  sourceNode.connect(
+    stereoInputNode
   );
 
-  stereoSplitter.connect(
-    channelGraphs[1].inputGain,
-    0
-  );
+
+  updateAllStatusLights();
+
 }
 
 
@@ -4048,6 +4482,9 @@ async function startMicrophone() {
   readyStatus.textContent =
     "MICROPHONE ACTIVE";
 
+
+  updateAllStatusLights();
+
 }
 
 
@@ -4074,7 +4511,8 @@ async function startAudioFile() {
 
 
   /*
-   * MediaElementSource dibuat satu kali.
+   * MediaElementSource hanya dibuat
+   * satu kali.
    */
 
   if (
@@ -4102,6 +4540,9 @@ async function startAudioFile() {
 
   readyStatus.textContent =
     "AUDIO FILE ACTIVE";
+
+
+  updateAllStatusLights();
 
 }
 
@@ -4143,6 +4584,9 @@ function stopAudio() {
   readyStatus.textContent =
     "AUDIO STOPPED";
 
+
+  updateAllStatusLights();
+
 }
 
 
@@ -4152,15 +4596,30 @@ function stopAudio() {
 
 function startMeterAnimation() {
 
+  /*
+   * Jangan membuat loop kedua.
+   */
+
   if (
-    meterAnimationId
+    meterAnimationRunning
   ) {
 
-    cancelAnimationFrame(
-      meterAnimationId
-    );
+    return;
 
   }
+
+
+  if (
+    !analyserNodes.length
+  ) {
+
+    return;
+
+  }
+
+
+  meterAnimationRunning =
+    true;
 
 
   const dataArrays =
@@ -4221,23 +4680,21 @@ function startMeterAnimation() {
         }
 
 
-        const testButton =
-          channel.querySelector(
-            '[data-role="test"]'
-          );
+        const state =
+          channelState[
+            channelIndex
+          ];
 
 
         /*
-         * Jika TEST aktif,
-         * meter simulasi tidak ditimpa
-         * oleh meter audio.
+         * TEST mode:
+         *
+         * Jangan timpa meter TEST
+         * dengan meter audio.
          */
 
         if (
-          testButton &&
-          testButton.classList.contains(
-            "active"
-          )
+          state.test
         ) {
 
           return;
@@ -4350,6 +4807,10 @@ function startMeterAnimation() {
           );
 
 
+        /*
+         * Clip.
+         */
+
         const clipLed =
           clip.querySelector(
             ".clip-led"
@@ -4367,6 +4828,14 @@ function startMeterAnimation() {
 
       }
     );
+
+
+    /*
+     * ACTIVE lamp mengikuti
+     * keadaan audio.
+     */
+
+    updateAllStatusLights();
 
   }
 
@@ -4401,6 +4870,10 @@ function resetAll() {
         false;
 
 
+      state.test =
+        false;
+
+
       state.bands =
         Array(31).fill(0);
 
@@ -4416,6 +4889,9 @@ function resetAll() {
 
   readyStatus.textContent =
     "RESET COMPLETE";
+
+
+  updateAllStatusLights();
 
 }
 
@@ -4445,7 +4921,6 @@ function applyPreset(
       3,
       2,
       2,
-
       1,
       0,
       1,
@@ -4455,7 +4930,6 @@ function applyPreset(
       4,
       3,
       2,
-
       2,
       3,
       4,
@@ -4482,7 +4956,6 @@ function applyPreset(
       -1,
       0,
       1,
-
       2,
       3,
       3,
@@ -4492,7 +4965,6 @@ function applyPreset(
       1,
       2,
       3,
-
       4,
       4,
       3,
@@ -4519,7 +4991,6 @@ function applyPreset(
       -4,
       -6,
       -4,
-
       -2,
       0,
       1,
@@ -4529,7 +5000,6 @@ function applyPreset(
       -4,
       -2,
       0,
-
       -2,
       -4,
       -5,
@@ -4599,9 +5069,7 @@ function applyPreset(
           ) => {
 
             const value =
-              state.bands[
-                index
-              ];
+              state.bands[index];
 
 
             slider.min =
@@ -4857,6 +5325,7 @@ document
 
       await loadDevices();
 
+
       readyStatus.textContent =
         "DEVICES REFRESHED";
 
@@ -4865,7 +5334,7 @@ document
 
 
 /* =========================================================
-   AUDIO FILE SELECT
+   AUDIO FILE
    ========================================================= */
 
 audioFile.addEventListener(
@@ -4882,10 +5351,6 @@ audioFile.addEventListener(
 
     }
 
-
-    /*
-     * Hapus object URL lama.
-     */
 
     if (
       audioPlayer.dataset.objectUrl
@@ -4943,6 +5408,10 @@ document
         `${value} dB`;
 
 
+      /*
+       * Audio mengikuti slider.
+       */
+
       if (
         masterGainNode
       ) {
@@ -4950,9 +5419,7 @@ document
         masterGainNode.gain.value =
           isMuted
             ? 0
-            : dbToGain(
-                value
-              );
+            : dbToGain(value);
 
       }
 
@@ -4997,9 +5464,7 @@ document
         masterGainNode.gain.value =
           isMuted
             ? 0
-            : dbToGain(
-                value
-              );
+            : dbToGain(value);
 
       }
 
@@ -5118,9 +5583,7 @@ document
       try {
 
         const data =
-          JSON.parse(
-            saved
-          );
+          JSON.parse(saved);
 
 
         if (
@@ -5153,13 +5616,9 @@ document
 
               gain:
                 Number.isFinite(
-                  Number(
-                    state.gain
-                  )
+                  Number(state.gain)
                 )
-                  ? Number(
-                      state.gain
-                    )
+                  ? Number(state.gain)
                   : 0,
 
 
@@ -5169,13 +5628,18 @@ document
                 ),
 
 
-              range:
-                range,
+              range,
 
 
               bypass:
                 Boolean(
                   state.bypass
+                ),
+
+
+              test:
+                Boolean(
+                  state.test
                 ),
 
 
@@ -5235,6 +5699,7 @@ document
         readyStatus.textContent =
           "PRESET RECALLED";
 
+
       } catch (error) {
 
         console.error(
@@ -5260,28 +5725,42 @@ document.addEventListener(
   "visibilitychange",
   () => {
 
-    /*
-     * Jangan menghentikan audio ketika
-     * tab hanya berpindah.
-     *
-     * Browser tetap mengatur lifecycle
-     * AudioContext.
-     */
-
     if (
       !document.hidden &&
       audioContext &&
-      audioContext.state === "suspended"
+      audioContext.state ===
+        "suspended"
     ) {
 
-      audioContext.resume().catch(
-        () => {}
-      );
+      audioContext
+        .resume()
+        .catch(
+          () => {}
+        );
 
     }
 
+
+    updateAllStatusLights();
+
   }
 );
+
+
+/* =========================================================
+   AUDIO CONTEXT STATE
+   ========================================================= */
+
+function watchAudioContextState() {
+
+  if (!audioContext) {
+    return;
+  }
+
+
+  updateAllStatusLights();
+
+}
 
 
 /* =========================================================
@@ -5306,6 +5785,17 @@ window.addEventListener(
 
     }
 
+
+    if (
+      meterAnimationId
+    ) {
+
+      cancelAnimationFrame(
+        meterAnimationId
+      );
+
+    }
+
   }
 );
 
@@ -5318,9 +5808,11 @@ buildChannels();
 
 loadDevices();
 
+updateAllStatusLights();
+
 
 /* =========================================================
-   MICROPHONE SUPPORT CHECK
+   MICROPHONE SUPPORT
    ========================================================= */
 
 if (
