@@ -72,10 +72,32 @@
 
     <main id="pageContainer">
 
-      <!--
-        equalizer.js akan memasukkan
-        halaman DBX 2231 di sini.
-      -->
+      <!-- ===================================================
+           DBX 2231 EQUALIZER
+           =================================================== -->
+
+      <section
+        class="equalizer-page"
+        id="equalizerPage"
+      >
+
+        <div class="section-title">
+          DBX 2231 GRAPHIC EQUALIZER
+        </div>
+
+
+        <!-- =================================================
+             CHANNEL CONTAINER
+
+             CH1 dan CH2 dibuat oleh equalizer.js
+             ================================================= -->
+
+        <div
+          id="channels"
+          class="channels"
+        ></div>
+
+      </section>
 
     </main>
 
@@ -95,7 +117,9 @@
 
       <div class="engine-grid">
 
-        <!-- INPUT -->
+        <!-- =================================================
+             INPUT
+             ================================================= -->
 
         <div class="engine-box">
 
@@ -139,7 +163,9 @@
         </div>
 
 
-        <!-- AUDIO CONTROL -->
+        <!-- =================================================
+             AUDIO CONTROL
+             ================================================= -->
 
         <div class="engine-box">
 
@@ -175,11 +201,13 @@
 
           </div>
 
+
           <audio
             id="audioPlayer"
             controls
             preload="metadata"
           ></audio>
+
 
           <div
             id="currentAudioName"
@@ -188,6 +216,7 @@
             NO AUDIO SELECTED
           </div>
 
+
           <div
             id="playlistCount"
             class="playlist-count"
@@ -195,14 +224,18 @@
             PLAYLIST: 0 FILE
           </div>
 
+
           <div
             id="audioPlaylist"
             class="audio-playlist"
           >
+
             <div class="playlist-empty">
               BELUM ADA FILE AUDIO
             </div>
+
           </div>
+
 
           <div class="playlist-buttons">
 
@@ -214,6 +247,7 @@
               ◀ PREV
             </button>
 
+
             <button
               class="small-button"
               id="playSelectedAudio"
@@ -222,6 +256,7 @@
               ▶ PLAY
             </button>
 
+
             <button
               class="small-button"
               id="nextAudio"
@@ -229,6 +264,7 @@
             >
               NEXT ▶
             </button>
+
 
             <button
               class="small-button"
@@ -243,13 +279,16 @@
         </div>
 
 
-        <!-- MASTER -->
+        <!-- =================================================
+             MASTER
+             ================================================= -->
 
         <div class="engine-box">
 
           <div class="engine-label">
             MASTER OUTPUT
           </div>
+
 
           <div class="master-row">
 
@@ -262,6 +301,7 @@
               value="-12"
             >
 
+
             <div
               class="master-value"
               id="masterValue"
@@ -271,7 +311,9 @@
 
           </div>
 
+
           <br>
+
 
           <button
             class="hardware-button"
@@ -297,6 +339,7 @@
       <div>
         EQUALIZER ONLINE • WEB AUDIO API
       </div>
+
 
       <div
         class="ready"
