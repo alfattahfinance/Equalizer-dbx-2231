@@ -3758,32 +3758,23 @@ function createChannel(
 
 
       const segments =
-        meter
-          ? meter.querySelectorAll(
-              "span"
-            )
-          : [];
+        const segments =
+ meter.querySelectorAll("span");
 
 
-      /*
-       * TEST meter.
-       */
+segments.forEach(
+(segment,index)=>{
 
-      segments.forEach(
-        (
-          segment,
-          index
-        ) => {
+ const reverseIndex =
+   segments.length - 1 - index;
 
-          segment.classList.toggle(
-            "on",
-            testing &&
-            index >=
-              segments.length - 13
-          );
 
-        }
-      );
+ segment.classList.toggle(
+   "on",
+   reverseIndex < level
+ );
+
+});
 
 
       /*
@@ -4644,6 +4635,48 @@ function startMeterAnimation() {
         analyser,
         channelIndex
       ) => {
+
+        if(!sourceNode){
+
+ const meter =
+ channel.querySelector(
+ '[data-role="meter"]'
+ );
+
+ if(meter){
+
+   meter
+   .querySelectorAll("span")
+   .forEach(
+    led=>{
+      led.classList.remove("on");
+    }
+   );
+
+ }
+
+
+ const clip =
+ channel.querySelector(
+ '[data-role="clip"]'
+ );
+
+ if(clip){
+
+   const clipLed =
+   clip.querySelector(
+    ".clip-led"
+   );
+
+   if(clipLed){
+     clipLed.classList.remove("on");
+   }
+
+ }
+
+ return;
+
+}
 
         const channel =
           document.querySelector(
