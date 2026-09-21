@@ -1,11 +1,12 @@
 /* =========================================================
-   DBX 2231 EQUALIZER
-   UI + AUDIO ENGINE
+   DBX 2231 GRAPHIC EQUALIZER
+   CHANNEL 1 + CHANNEL 2
+   UI + AUDIO PROCESSING
    ========================================================= */
 
 
 /* =========================================================
-   FREQUENCIES
+   31 BAND FREQUENCIES
    ========================================================= */
 
 const frequencies = [
@@ -46,14 +47,31 @@ const channelState = [
 
 
 /* =========================================================
-   CHANNEL AUDIO GRAPHS
+   AUDIO GRAPH
    ========================================================= */
 
 let channelGraphs = [];
 
 
 /* =========================================================
+   TEST OSCILLATORS
+   ========================================================= */
+
+const testOscillators = [
+  null,
+  null
+];
+
+const testGains = [
+  null,
+  null
+];
+
+
+/* =========================================================
    CHANNEL CONTAINER
+   =========================================================
+   #channels sudah disediakan oleh index.html
    ========================================================= */
 
 const channelsContainer =
@@ -92,6 +110,9 @@ function buildChannels() {
     }
   );
 
+
+  updateAllChannelButtons();
+
 }
 
 
@@ -116,7 +137,7 @@ function createChannel(
     channelIndex + 1;
 
 
-  const channelNumber =
+  const number =
     channelIndex + 1;
 
 
@@ -129,76 +150,31 @@ function createChannel(
   channel.innerHTML = `
 
     <!-- =================================================
-         CHANNEL HEADER
+         HEADER
          ================================================= -->
 
     <div class="channel-header">
 
       <div class="channel-name">
-        CH ${channelNumber}
-      </div>
-
-      <div class="channel-side">
-        ${side}
-      </div>
-
-    </div>
-
-
-    <div class="channel-body">
-
-
-      <!-- =================================================
-           INPUT / GAIN
-           ================================================= -->
-
-      <div class="channel-control">
-
-        <div class="control-label">
-          INPUT GAIN
-        </div>
-
-        <input
-          class="channel-gain"
-          type="range"
-          min="-15"
-          max="15"
-          step="0.5"
-          value="${state.gain}"
-          data-channel="${channelIndex}"
-        >
-
-        <div
-          class="channel-gain-value"
-          data-gain-value="${channelIndex}"
-        >
-          ${Number(state.gain).toFixed(1)} dB
-        </div>
-
+        CH${number} — ${side}
       </div>
 
 
-      <!-- =================================================
-           CHANNEL BUTTONS
-           ================================================= -->
-
-      <div class="channel-buttons">
+      <div class="channel-status-top">
 
         <button
           type="button"
-          class="hardware-button low-cut-button"
-          data-action="lowcut"
-          data-channel="${channelIndex}"
+          class="status-button active-status"
+          data-status="active"
         >
-          LOW CUT
+          ACTIVE
         </button>
 
 
         <button
           type="button"
-          class="hardware-button bypass-button"
-          data-action="bypass"
-          data-channel="${channelIndex}"
+          class="status-button bypass-status"
+          data-status="bypass"
         >
           BYPASS
         </button>
@@ -206,59 +182,126 @@ function createChannel(
 
         <button
           type="button"
-          class="hardware-button test-button"
-          data-action="test"
-          data-channel="${channelIndex}"
+          class="status-button test-status"
+          data-status="test"
         >
           TEST
         </button>
 
       </div>
 
+    </div>
 
-      <!-- =================================================
-           EQ RANGE
-           ================================================= -->
 
-      <div class="channel-control">
+    <!-- =================================================
+         TOP CONTROL AREA
+         ================================================= -->
+
+    <div class="channel-top-controls">
+
+
+      <!-- GAIN -->
+
+      <div class="channel-control gain-control">
 
         <div class="control-label">
-          EQ RANGE
+          GAIN
         </div>
 
-        <select
-          class="hardware-select range-select"
+
+        <input
+          type="range"
+          class="channel-gain"
+          min="-12"
+          max="12"
+          step="0.5"
+          value="${state.gain}"
           data-channel="${channelIndex}"
-        >
+        />
 
-          <option
-            value="6"
-            ${state.range === 6 ? 'selected' : ''}
+
+        <div class="gain-scale">
+
+          <span>-12</span>
+
+          <strong
+            class="channel-gain-value"
+            data-gain-value="${channelIndex}"
           >
-            ±6 dB
-          </option>
+            ${Number(state.gain).toFixed(1)} dB
+          </strong>
 
-          <option
-            value="15"
-            ${state.range === 15 ? 'selected' : ''}
-          >
-            ±15 dB
-          </option>
+          <span>+12</span>
 
-        </select>
+        </div>
 
       </div>
 
 
-      <!-- =================================================
-           LED METER
-           ================================================= -->
+      <!-- LOW CUT -->
 
-      <div class="channel-meter">
+      <div class="channel-control lowcut-control">
 
-        <div class="meter-title">
-          LEVEL
+        <div class="control-label">
+          LOW CUT
         </div>
+
+
+        <button
+          type="button"
+          class="control-value-button low-cut-button"
+          data-action="lowcut"
+          data-channel="${channelIndex}"
+        >
+          ${state.lowCut ? 'ON / 40 Hz' : 'OFF / 40 Hz'}
+        </button>
+
+      </div>
+
+
+      <!-- RANGE -->
+
+      <div class="channel-control range-control">
+
+        <div class="control-label">
+          RANGE
+        </div>
+
+
+        <button
+          type="button"
+          class="control-value-button range-button"
+          data-action="range"
+          data-channel="${channelIndex}"
+        >
+          ±${state.range} dB
+        </button>
+
+      </div>
+
+
+      <!-- LEVEL METER -->
+
+      <div class="channel-control level-control">
+
+        <div class="control-label">
+          LEVEL METER
+        </div>
+
+
+        <div class="meter-scale">
+
+          <span>-60</span>
+          <span>-40</span>
+          <span>-20</span>
+          <span>-10</span>
+          <span>-6</span>
+          <span>-3</span>
+          <span>0</span>
+          <span>+3</span>
+
+        </div>
+
 
         <div
           class="led-meter"
@@ -277,116 +320,161 @@ function createChannel(
 
         </div>
 
+      </div>
 
-        <div
-          class="clip-indicator"
-          data-clip="${channelIndex}"
-        >
+
+      <!-- CLIP -->
+
+      <div
+        class="clip-indicator"
+        data-clip="${channelIndex}"
+      >
+
+        <div class="clip-light"></div>
+
+        <span>
           CLIP
-        </div>
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- =================================================
+         EQUALIZER
+         ================================================= -->
+
+    <div class="eq-wrapper">
+
+
+      <div class="eq-scale">
+
+        <span>+15</span>
+        <span>+10</span>
+        <span>+5</span>
+        <span>0</span>
+        <span>-5</span>
+        <span>-10</span>
+        <span>-15</span>
 
       </div>
 
 
-      <!-- =================================================
-           STATUS
-           ================================================= -->
-
-      <div class="channel-status">
+      <div class="eq-scroll">
 
         <div
-          class="status-light"
-          data-status-active="${channelIndex}"
+          class="eq-bands"
+          data-eq="${channelIndex}"
         >
-          ACTIVE
-        </div>
+
+          ${frequencies.map(
+            (
+              frequency,
+              bandIndex
+            ) => {
+
+              const value =
+                Number(
+                  state.bands[bandIndex] || 0
+                );
 
 
-        <div
-          class="status-light"
-          data-status-bypass="${channelIndex}"
-        >
-          BYPASS
-        </div>
-
-
-        <div
-          class="status-light"
-          data-status-test="${channelIndex}"
-        >
-          TEST
-        </div>
-
-      </div>
-
-
-      <!-- =================================================
-           GRAPHIC EQ
-           ================================================= -->
-
-      <div class="eq-wrapper">
-
-        <div class="eq-title">
-          31 BAND GRAPHIC EQ
-        </div>
-
-
-        <div class="eq-scroll">
-
-          <div
-            class="eq-bands"
-            data-eq="${channelIndex}"
-          >
-
-            ${frequencies.map(
-              (
-                frequency,
-                bandIndex
-              ) => `
+              return `
 
                 <div
                   class="eq-band"
-                  data-band="${bandIndex}"
                   data-channel="${channelIndex}"
+                  data-band="${bandIndex}"
                 >
+
+                  <div class="eq-fader-wrap">
+
+                    <input
+                      class="eq-slider"
+                      type="range"
+                      min="-${state.range}"
+                      max="${state.range}"
+                      step="0.5"
+                      value="${value}"
+                      orient="vertical"
+                      data-channel="${channelIndex}"
+                      data-band="${bandIndex}"
+                    />
+
+                  </div>
+
 
                   <div class="eq-frequency">
                     ${formatFrequency(frequency)}
                   </div>
 
 
-                  <input
-                    class="eq-slider"
-                    type="range"
-                    min="${-state.range}"
-                    max="${state.range}"
-                    step="0.5"
-                    value="${state.bands[bandIndex]}"
-                    data-channel="${channelIndex}"
-                    data-band="${bandIndex}"
-                  >
-
-
                   <div
                     class="eq-value"
                     data-eq-value="${channelIndex}-${bandIndex}"
                   >
-                    ${Number(
-                      state.bands[bandIndex]
-                    ).toFixed(1)}
+                    ${value.toFixed(1)}
                   </div>
 
                 </div>
 
-              `
-            ).join('')}
+              `;
 
-          </div>
+            }
+          ).join('')}
 
         </div>
 
       </div>
 
+    </div>
+
+
+    <!-- =================================================
+         EQ FOOTER
+         ================================================= -->
+
+    <div class="eq-footer">
+
+      <span>
+        31 BAND ISO 1/3 OCTAVE
+      </span>
+
+
+      <span
+        data-range-label="${channelIndex}"
+      >
+        RANGE : ±${state.range} dB
+      </span>
+
+    </div>
+
+
+    <!-- =================================================
+         CHANNEL BUTTONS
+         ================================================= -->
+
+    <div class="channel-buttons">
+
+      <button
+        type="button"
+        class="hardware-button bypass-button"
+        data-action="bypass"
+        data-channel="${channelIndex}"
+      >
+        BYPASS
+      </button>
+
+
+      <button
+        type="button"
+        class="hardware-button test-button"
+        data-action="test"
+        data-channel="${channelIndex}"
+      >
+        TEST
+      </button>
 
     </div>
 
@@ -418,9 +506,14 @@ function formatFrequency(
       frequency / 1000;
 
 
-    return khz
-      .toString()
-      .replace('.0', '') + 'k';
+    if (Number.isInteger(khz)) {
+
+      return `${khz}K`;
+
+    }
+
+
+    return `${khz}K`;
 
   }
 
@@ -490,28 +583,96 @@ function attachChannelEvents(
 
 
   /* =======================================================
-     RANGE
+     LOW CUT
      ======================================================= */
 
-  const range =
+  const lowCutButton =
     channel.querySelector(
-      '.range-select'
+      '.low-cut-button'
     );
 
 
-  if (range) {
+  if (lowCutButton) {
 
-    range.addEventListener(
-      'change',
+    lowCutButton.addEventListener(
+      'click',
       () => {
 
-        const value =
-          Number(range.value);
+        const state =
+          channelState[
+            channelIndex
+          ];
 
 
-        channelState[
+        state.lowCut =
+          !state.lowCut;
+
+
+        lowCutButton.textContent =
+          state.lowCut
+            ? 'ON / 40 Hz'
+            : 'OFF / 40 Hz';
+
+
+        updateEqualizerChannel(
           channelIndex
-        ].range = value;
+        );
+
+
+        updateChannelStatus(
+          channelIndex
+        );
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     RANGE
+     ======================================================= */
+
+  const rangeButton =
+    channel.querySelector(
+      '.range-button'
+    );
+
+
+  if (rangeButton) {
+
+    rangeButton.addEventListener(
+      'click',
+      () => {
+
+        const state =
+          channelState[
+            channelIndex
+          ];
+
+
+        state.range =
+          state.range === 15
+            ? 6
+            : 15;
+
+
+        rangeButton.textContent =
+          `±${state.range} dB`;
+
+
+        const rangeLabel =
+          channel.querySelector(
+            `[data-range-label="${channelIndex}"]`
+          );
+
+
+        if (rangeLabel) {
+
+          rangeLabel.textContent =
+            `RANGE : ±${state.range} dB`;
+
+        }
 
 
         const sliders =
@@ -524,12 +685,47 @@ function attachChannelEvents(
           slider => {
 
             slider.min =
-              -value;
+              -state.range;
 
             slider.max =
-              value;
+              state.range;
+
+
+            const current =
+              Number(slider.value);
+
+
+            if (
+              current > state.range
+            ) {
+
+              slider.value =
+                state.range;
+
+            }
+
+
+            if (
+              current < -state.range
+            ) {
+
+              slider.value =
+                -state.range;
+
+            }
 
           }
+        );
+
+
+        updateAllEQValues(
+          channel,
+          channelIndex
+        );
+
+
+        updateEqualizerChannel(
+          channelIndex
         );
 
       }
@@ -539,16 +735,16 @@ function attachChannelEvents(
 
 
   /* =======================================================
-     EQ BANDS
+     EQ SLIDERS
      ======================================================= */
 
-  const eqSliders =
+  const sliders =
     channel.querySelectorAll(
       '.eq-slider'
     );
 
 
-  eqSliders.forEach(
+  sliders.forEach(
     slider => {
 
       slider.addEventListener(
@@ -595,43 +791,42 @@ function attachChannelEvents(
         }
       );
 
+
+      /*
+       * Pointer support
+       * untuk drag/touch pada browser mobile.
+       */
+
+      slider.addEventListener(
+        'pointerdown',
+        () => {
+
+          slider.focus();
+
+        }
+      );
+
     }
   );
 
 
   /* =======================================================
-     LOW CUT
+     BYPASS - TOP
      ======================================================= */
 
-  const lowCutButton =
+  const topBypass =
     channel.querySelector(
-      '[data-action="lowcut"]'
+      '[data-status="bypass"]'
     );
 
 
-  if (lowCutButton) {
+  if (topBypass) {
 
-    lowCutButton.addEventListener(
+    topBypass.addEventListener(
       'click',
       () => {
 
-        const state =
-          channelState[
-            channelIndex
-          ];
-
-
-        state.lowCut =
-          !state.lowCut;
-
-
-        lowCutButton.classList.toggle(
-          'active',
-          state.lowCut
-        );
-
-
-        updateEqualizerChannel(
+        toggleBypass(
           channelIndex
         );
 
@@ -642,7 +837,7 @@ function attachChannelEvents(
 
 
   /* =======================================================
-     BYPASS
+     BYPASS - BOTTOM
      ======================================================= */
 
   const bypassButton =
@@ -657,23 +852,7 @@ function attachChannelEvents(
       'click',
       () => {
 
-        const state =
-          channelState[
-            channelIndex
-          ];
-
-
-        state.bypass =
-          !state.bypass;
-
-
-        bypassButton.classList.toggle(
-          'active',
-          state.bypass
-        );
-
-
-        updateEqualizerChannel(
+        toggleBypass(
           channelIndex
         );
 
@@ -684,7 +863,33 @@ function attachChannelEvents(
 
 
   /* =======================================================
-     TEST
+     TEST - TOP
+     ======================================================= */
+
+  const topTest =
+    channel.querySelector(
+      '[data-status="test"]'
+    );
+
+
+  if (topTest) {
+
+    topTest.addEventListener(
+      'click',
+      () => {
+
+        toggleTest(
+          channelIndex
+        );
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     TEST - BOTTOM
      ======================================================= */
 
   const testButton =
@@ -699,23 +904,7 @@ function attachChannelEvents(
       'click',
       () => {
 
-        const state =
-          channelState[
-            channelIndex
-          ];
-
-
-        state.test =
-          !state.test;
-
-
-        testButton.classList.toggle(
-          'active',
-          state.test
-        );
-
-
-        handleChannelTest(
+        toggleTest(
           channelIndex
         );
 
@@ -728,12 +917,283 @@ function attachChannelEvents(
 
 
 /* =========================================================
-   AUDIO ENGINE
+   UPDATE EQ VALUE LABELS
+   ========================================================= */
+
+function updateAllEQValues(
+  channel,
+  channelIndex
+) {
+
+  const sliders =
+    channel.querySelectorAll(
+      '.eq-slider'
+    );
+
+
+  sliders.forEach(
+    slider => {
+
+      const bandIndex =
+        Number(
+          slider.dataset.band
+        );
+
+
+      const value =
+        Number(
+          slider.value
+        );
+
+
+      channelState[
+        channelIndex
+      ].bands[
+        bandIndex
+      ] = value;
+
+
+      const output =
+        channel.querySelector(
+          `[data-eq-value="${channelIndex}-${bandIndex}"]`
+        );
+
+
+      if (output) {
+
+        output.textContent =
+          value.toFixed(1);
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   TOGGLE BYPASS
+   ========================================================= */
+
+function toggleBypass(
+  channelIndex
+) {
+
+  const state =
+    channelState[
+      channelIndex
+    ];
+
+
+  state.bypass =
+    !state.bypass;
+
+
+  updateEqualizerChannel(
+    channelIndex
+  );
+
+
+  updateChannelStatus(
+    channelIndex
+  );
+
+}
+
+
+/* =========================================================
+   TOGGLE TEST
+   ========================================================= */
+
+function toggleTest(
+  channelIndex
+) {
+
+  const state =
+    channelState[
+      channelIndex
+    ];
+
+
+  state.test =
+    !state.test;
+
+
+  if (state.test) {
+
+    startChannelTest(
+      channelIndex
+    );
+
+  }
+
+  else {
+
+    stopChannelTest(
+      channelIndex
+    );
+
+  }
+
+
+  updateChannelStatus(
+    channelIndex
+  );
+
+}
+
+
+/* =========================================================
+   UPDATE BUTTON STATES
+   ========================================================= */
+
+function updateAllChannelButtons() {
+
+  channelState.forEach(
+    (_, index) => {
+
+      updateChannelStatus(
+        index
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   UPDATE CHANNEL STATUS
+   ========================================================= */
+
+function updateChannelStatus(
+  channelIndex
+) {
+
+  const channel =
+    document.querySelector(
+      `.channel[data-channel="${channelIndex + 1}"]`
+    );
+
+
+  if (!channel) {
+
+    return;
+
+  }
+
+
+  const state =
+    channelState[
+      channelIndex
+    ];
+
+
+  const bypassButtons =
+    channel.querySelectorAll(
+      '[data-status="bypass"], [data-action="bypass"]'
+    );
+
+
+  bypassButtons.forEach(
+    button => {
+
+      button.classList.toggle(
+        'active',
+        state.bypass
+      );
+
+    }
+  );
+
+
+  const testButtons =
+    channel.querySelectorAll(
+      '[data-status="test"], [data-action="test"]'
+    );
+
+
+  testButtons.forEach(
+    button => {
+
+      button.classList.toggle(
+        'active',
+        state.test
+      );
+
+    }
+  );
+
+
+  const activeButton =
+    channel.querySelector(
+      '[data-status="active"]'
+    );
+
+
+  if (activeButton) {
+
+    const active =
+      state.test ||
+      hasActiveExternalSource();
+
+
+    activeButton.classList.toggle(
+      'active',
+      active
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CHECK EXTERNAL SOURCE
+   ========================================================= */
+
+function hasActiveExternalSource() {
+
+  if (
+    typeof sourceNode !== 'undefined' &&
+    sourceNode
+  ) {
+
+    return true;
+
+  }
+
+
+  if (
+    typeof microphoneStream !== 'undefined' &&
+    microphoneStream
+  ) {
+
+    return true;
+
+  }
+
+
+  return false;
+
+}
+
+
+/* =========================================================
+   AUDIO ENGINE INITIALIZATION
    ========================================================= */
 
 function initializeEqualizerEngine() {
 
-  if (!audioContext) {
+  if (
+    typeof audioContext === 'undefined' ||
+    !audioContext
+  ) {
+
+    console.warn(
+      'DBX 2231: AudioContext belum tersedia.'
+    );
 
     return;
 
@@ -768,10 +1228,16 @@ function initializeEqualizerEngine() {
 
 
   /*
-   * INPUT → CH1 LEFT
+   * STEREO SPLITTER
+   *
+   * Output 0 → CH1 LEFT
+   * Output 1 → CH2 RIGHT
    */
 
-  if (stereoSplitter) {
+  if (
+    typeof stereoSplitter !== 'undefined' &&
+    stereoSplitter
+  ) {
 
     stereoSplitter.connect(
       ch1.inputGain,
@@ -779,10 +1245,6 @@ function initializeEqualizerEngine() {
       0
     );
 
-
-    /*
-     * INPUT → CH2 RIGHT
-     */
 
     stereoSplitter.connect(
       ch2.inputGain,
@@ -794,25 +1256,32 @@ function initializeEqualizerEngine() {
 
 
   /*
-   * CH1 → LEFT
+   * CH1 → STEREO MERGER LEFT
    */
 
-  ch1.analyser.connect(
-    stereoMerger,
-    0,
-    0
-  );
+  if (
+    typeof stereoMerger !== 'undefined' &&
+    stereoMerger
+  ) {
+
+    ch1.analyser.connect(
+      stereoMerger,
+      0,
+      0
+    );
 
 
-  /*
-   * CH2 → RIGHT
-   */
+    /*
+     * CH2 → STEREO MERGER RIGHT
+     */
 
-  ch2.analyser.connect(
-    stereoMerger,
-    0,
-    1
-  );
+    ch2.analyser.connect(
+      stereoMerger,
+      0,
+      1
+    );
+
+  }
 
 
   updateEqualizerChannel(0);
@@ -823,7 +1292,7 @@ function initializeEqualizerEngine() {
 
 
 /* =========================================================
-   CREATE AUDIO CHANNEL
+   CREATE AUDIO GRAPH
    ========================================================= */
 
 function createEqualizerChannel(
@@ -853,6 +1322,10 @@ function createEqualizerChannel(
       ? 40
       : 5;
 
+
+  /*
+   * 31 PARAMETRIC FILTERS
+   */
 
   const filters =
     frequencies.map(
@@ -895,9 +1368,21 @@ function createEqualizerChannel(
     2048;
 
 
+  analyser.smoothingTimeConstant =
+    0.75;
+
+
+  /*
+   * INPUT
+   */
+
   let previous =
     inputGain;
 
+
+  /*
+   * LOW CUT
+   */
 
   previous.connect(
     lowCut
@@ -907,6 +1392,10 @@ function createEqualizerChannel(
   previous =
     lowCut;
 
+
+  /*
+   * 31 EQ FILTERS
+   */
 
   filters.forEach(
     filter => {
@@ -922,6 +1411,10 @@ function createEqualizerChannel(
     }
   );
 
+
+  /*
+   * ANALYSER
+   */
 
   previous.connect(
     analyser
@@ -969,10 +1462,12 @@ function updateEqualizerChannel(
 
   /*
    * GAIN
+   *
+   * Gain tetap bekerja ketika BYPASS.
    */
 
   graph.inputGain.gain.value =
-    dbToGain(
+    dbToLinear(
       state.gain
     );
 
@@ -990,7 +1485,9 @@ function updateEqualizerChannel(
 
 
   /*
-   * EQ
+   * 31 BAND EQ
+   *
+   * BYPASS hanya membypass EQ.
    */
 
   graph.filters.forEach(
@@ -1011,10 +1508,10 @@ function updateEqualizerChannel(
 
 
 /* =========================================================
-   DB → LINEAR GAIN
+   DB → LINEAR
    ========================================================= */
 
-function dbToGain(
+function dbToLinear(
   db
 ) {
 
@@ -1030,140 +1527,123 @@ function dbToGain(
    CHANNEL TEST
    ========================================================= */
 
-let equalizerTestOscillators = [
-  null,
-  null
-];
-
-
-let equalizerTestGains = [
-  null,
-  null
-];
-
-
-async function handleChannelTest(
+async function startChannelTest(
   channelIndex
 ) {
 
-  if (!audioContext) {
+  if (
+    typeof audioContext === 'undefined' ||
+    !audioContext
+  ) {
 
     return;
 
   }
 
 
-  const state =
-    channelState[
+  /*
+   * Resume AudioContext terlebih dahulu.
+   */
+
+  try {
+
+    await audioContext.resume();
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      'AudioContext resume gagal:',
+      error
+    );
+
+  }
+
+
+  /*
+   * Pastikan graph sudah dibuat.
+   */
+
+  if (
+    !channelGraphs[channelIndex]
+  ) {
+
+    initializeEqualizerEngine();
+
+  }
+
+
+  /*
+   * Jangan membuat oscillator kedua.
+   */
+
+  if (
+    testOscillators[channelIndex]
+  ) {
+
+    return;
+
+  }
+
+
+  const oscillator =
+    audioContext.createOscillator();
+
+
+  const gainNode =
+    audioContext.createGain();
+
+
+  oscillator.type =
+    'sine';
+
+
+  oscillator.frequency.value =
+    1000;
+
+
+  /*
+   * Level test aman.
+   */
+
+  gainNode.gain.value =
+    0.08;
+
+
+  oscillator.connect(
+    gainNode
+  );
+
+
+  const graph =
+    channelGraphs[
       channelIndex
     ];
 
 
-  if (state.test) {
+  if (graph) {
 
-    try {
-
-      await audioContext.resume();
-
-    } catch (error) {
-
-      console.warn(
-        'AudioContext resume gagal:',
-        error
-      );
-
-    }
-
-
-    if (
-      equalizerTestOscillators[
-        channelIndex
-      ]
-    ) {
-
-      return;
-
-    }
-
-
-    /*
-     * Pastikan audio graph sudah tersedia.
-     */
-
-    if (
-      !channelGraphs[
-        channelIndex
-      ]
-    ) {
-
-      initializeEqualizerEngine();
-
-    }
-
-
-    const oscillator =
-      audioContext.createOscillator();
-
-
-    const gainNode =
-      audioContext.createGain();
-
-
-    oscillator.type =
-      'sine';
-
-
-    oscillator.frequency.value =
-      1000;
-
-
-    gainNode.gain.value =
-      0.08;
-
-
-    oscillator.connect(
-      gainNode
-    );
-
-
-    const graph =
-      channelGraphs[
-        channelIndex
-      ];
-
-
-    if (graph) {
-
-      gainNode.connect(
-        graph.inputGain
-      );
-
-    }
-
-
-    oscillator.start();
-
-
-    equalizerTestOscillators[
-      channelIndex
-    ] =
-      oscillator;
-
-
-    equalizerTestGains[
-      channelIndex
-    ] =
-      gainNode;
-
-  }
-
-  else {
-
-    stopEqualizerChannelTest(
-      channelIndex
+    gainNode.connect(
+      graph.inputGain
     );
 
   }
+
+
+  oscillator.start();
+
+
+  testOscillators[
+    channelIndex
+  ] =
+    oscillator;
+
+
+  testGains[
+    channelIndex
+  ] =
+    gainNode;
 
 }
 
@@ -1172,12 +1652,12 @@ async function handleChannelTest(
    STOP CHANNEL TEST
    ========================================================= */
 
-function stopEqualizerChannelTest(
+function stopChannelTest(
   channelIndex
 ) {
 
   const oscillator =
-    equalizerTestOscillators[
+    testOscillators[
       channelIndex
     ];
 
@@ -1188,9 +1668,11 @@ function stopEqualizerChannelTest(
 
       oscillator.stop();
 
-    } catch (error) {
+    }
 
-      /* sudah berhenti */
+    catch (error) {
+
+      /* oscillator sudah berhenti */
 
     }
 
@@ -1199,7 +1681,9 @@ function stopEqualizerChannelTest(
 
       oscillator.disconnect();
 
-    } catch (error) {
+    }
+
+    catch (error) {
 
     }
 
@@ -1207,7 +1691,7 @@ function stopEqualizerChannelTest(
 
 
   const gainNode =
-    equalizerTestGains[
+    testGains[
       channelIndex
     ];
 
@@ -1218,20 +1702,22 @@ function stopEqualizerChannelTest(
 
       gainNode.disconnect();
 
-    } catch (error) {
+    }
+
+    catch (error) {
 
     }
 
   }
 
 
-  equalizerTestOscillators[
+  testOscillators[
     channelIndex
   ] =
     null;
 
 
-  equalizerTestGains[
+  testGains[
     channelIndex
   ] =
     null;
@@ -1240,14 +1726,262 @@ function stopEqualizerChannelTest(
 
 
 /* =========================================================
-   INITIALIZE EQUALIZER UI
+   METER
+   ========================================================= */
+
+function startEqualizerMeters() {
+
+  function updateMeters() {
+
+    channelGraphs.forEach(
+      (
+        graph,
+        channelIndex
+      ) => {
+
+        updateChannelMeter(
+          graph,
+          channelIndex
+        );
+
+      }
+    );
+
+
+    requestAnimationFrame(
+      updateMeters
+    );
+
+  }
+
+
+  requestAnimationFrame(
+    updateMeters
+  );
+
+}
+
+
+/* =========================================================
+   UPDATE CHANNEL METER
+   ========================================================= */
+
+function updateChannelMeter(
+  graph,
+  channelIndex
+) {
+
+  const meter =
+    document.querySelector(
+      `[data-meter="${channelIndex}"]`
+    );
+
+
+  const clip =
+    document.querySelector(
+      `[data-clip="${channelIndex}"]`
+    );
+
+
+  if (!meter) {
+
+    return;
+
+  }
+
+
+  const segments =
+    meter.querySelectorAll(
+      '.meter-segment'
+    );
+
+
+  /*
+   * Tidak ada audio/test:
+   * meter OFF.
+   */
+
+  const state =
+    channelState[
+      channelIndex
+    ];
+
+
+  const active =
+    state.test ||
+    hasActiveExternalSource();
+
+
+  if (!active || !graph) {
+
+    segments.forEach(
+      segment => {
+
+        segment.classList.remove(
+          'active',
+          'clip'
+        );
+
+      }
+    );
+
+
+    if (clip) {
+
+      clip.classList.remove(
+        'active'
+      );
+
+    }
+
+
+    return;
+
+  }
+
+
+  const data =
+    new Float32Array(
+      graph.analyser.fftSize
+    );
+
+
+  graph.analyser.getFloatTimeDomainData(
+    data
+  );
+
+
+  let peak =
+    0;
+
+
+  for (
+    let i = 0;
+    i < data.length;
+    i++
+  ) {
+
+    const value =
+      Math.abs(
+        data[i]
+      );
+
+
+    if (
+      value > peak
+    ) {
+
+      peak =
+        value;
+
+    }
+
+  }
+
+
+  /*
+   * Convert peak → dB.
+   */
+
+  const db =
+    peak > 0
+      ? 20 * Math.log10(peak)
+      : -60;
+
+
+  const clamped =
+    Math.max(
+      -60,
+      Math.min(
+        3,
+        db
+      )
+    );
+
+
+  /*
+   * 18 LED segments.
+   */
+
+  const level =
+    Math.round(
+      (
+        clamped + 60
+      ) / 63 * 18
+    );
+
+
+  segments.forEach(
+    (
+      segment,
+      index
+    ) => {
+
+      segment.classList.toggle(
+        'active',
+        index < level
+      );
+
+
+      segment.classList.remove(
+        'clip'
+      );
+
+    }
+  );
+
+
+  /*
+   * CLIP.
+   */
+
+  const clipping =
+    peak >= 0.98;
+
+
+  if (clip) {
+
+    clip.classList.toggle(
+      'active',
+      clipping
+    );
+
+  }
+
+
+  if (clipping) {
+
+    segments.forEach(
+      segment => {
+
+        if (
+          segment.classList.contains(
+            'active'
+          )
+        ) {
+
+          segment.classList.add(
+            'clip'
+          );
+
+        }
+
+      }
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   INITIALIZE UI
    ========================================================= */
 
 function initializeEqualizerUI() {
 
   /*
-   * #channels sudah dibuat di index.html.
-   * Jangan membuat ulang #pageContainer.
+   * #channels berasal dari index.html.
    */
 
   buildChannels();
@@ -1281,8 +2015,12 @@ window.createChannel =
   createChannel;
 
 
-window.renderEqualizerPage =
-  initializeEqualizerUI;
+window.channelState =
+  channelState;
+
+
+window.channelGraphs =
+  channelGraphs;
 
 
 window.initializeEqualizerEngine =
@@ -1293,9 +2031,13 @@ window.updateEqualizerChannel =
   updateEqualizerChannel;
 
 
-window.channelState =
-  channelState;
+window.startChannelTest =
+  startChannelTest;
 
 
-window.channelGraphs =
-  channelGraphs;
+window.stopChannelTest =
+  stopChannelTest;
+
+
+window.updateChannelStatus =
+  updateChannelStatus;
