@@ -1,322 +1,1243 @@
-Ini html saat ini
-
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Equalizer Online</title>
-
-  <link
-    rel="stylesheet"
-    href="css/style.css"
+  <meta
+    name="theme-color"
+    content="#111"
   >
+
+  <title>DBX 2231 Graphic Equalizer</title>
+
+
+  <!-- =====================================================
+       CSS
+       ===================================================== -->
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #111;
+      color: #eee;
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+    }
+
+
+    body {
+      overflow-x: hidden;
+    }
+
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+
+    button {
+      cursor: pointer;
+    }
+
+
+    /* =====================================================
+       APP
+       ===================================================== */
+
+    .app {
+      width: 100%;
+      min-height: 100vh;
+      background:
+        linear-gradient(
+          180deg,
+          #1b1b1b 0%,
+          #111 100%
+        );
+      padding: 10px;
+    }
+
+
+    /* =====================================================
+       TOP RACK
+       ===================================================== */
+
+    .top-rack {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px;
+      background: #202020;
+      border: 1px solid #3a3a3a;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+
+    .top-rack button {
+      min-height: 38px;
+      padding: 6px 14px;
+      border: 1px solid #555;
+      border-radius: 5px;
+      background: #292929;
+      color: #fff;
+      font-weight: 700;
+    }
+
+
+    .top-rack button:hover {
+      background: #333;
+    }
+
+
+    /* =====================================================
+       DEVICE TITLE
+       ===================================================== */
+
+    .device-title {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      background: #181818;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+
+
+    .device-title h1 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 1px;
+      color: #f2f2f2;
+    }
+
+
+    .device-title select {
+      min-height: 36px;
+      padding: 5px 10px;
+      background: #222;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 5px;
+    }
+
+
+    .device-title button {
+      min-height: 36px;
+      padding: 5px 12px;
+      background: #292929;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 5px;
+      font-weight: 700;
+    }
+
+
+    /* =====================================================
+       CHANNEL SCROLL
+       ===================================================== */
+
+    .channels-scroll {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 10px;
+    }
+
+
+    /* =====================================================
+       CHANNELS
+       ===================================================== */
+
+    .channels {
+      width: 100%;
+      display: grid;
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      align-items: start;
+    }
+
+
+    /* =====================================================
+       CHANNEL
+       ===================================================== */
+
+    .channel {
+      min-width: 0;
+      background:
+        linear-gradient(
+          180deg,
+          #252525 0%,
+          #181818 100%
+        );
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 8px;
+      box-shadow:
+        0 4px 15px rgba(0,0,0,.35);
+    }
+
+
+    /* =====================================================
+       CHANNEL HEADER
+       ===================================================== */
+
+    .channel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 8px;
+      background: #101010;
+      border: 1px solid #333;
+      border-radius: 5px;
+      margin-bottom: 8px;
+    }
+
+
+    .channel-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+
+    .power-led {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #2e7d32;
+      box-shadow:
+        0 0 7px rgba(50,180,70,.6);
+      flex-shrink: 0;
+    }
+
+
+    .channel-status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+
+    .status-light {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 19px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      background: #272727;
+      border: 1px solid #444;
+      color: #777;
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+
+    .status-light.active {
+      color: #fff;
+      background: #174d22;
+      border-color: #3c9b4b;
+    }
+
+
+    .status-light.bypass.active {
+      background: #594900;
+      border-color: #c9a900;
+      color: #fff;
+    }
+
+
+    .status-light.test.active {
+      background: #5a1515;
+      border-color: #d54b4b;
+      color: #fff;
+    }
+
+
+    /* =====================================================
+       CONTROL ROW
+       ===================================================== */
+
+    .control-row {
+      display: grid;
+      grid-template-columns:
+        1.2fr
+        1fr
+        1fr
+        1fr
+        58px;
+      gap: 6px;
+      align-items: stretch;
+      margin-bottom: 8px;
+    }
+
+
+    .control-box {
+      min-width: 0;
+      min-height: 92px;
+      padding: 7px;
+      background: #1d1d1d;
+      border: 1px solid #3c3c3c;
+      border-radius: 5px;
+    }
+
+
+    .control-title {
+      text-align: center;
+      font-size: 9px;
+      font-weight: 800;
+      color: #aaa;
+      margin-bottom: 6px;
+      letter-spacing: .5px;
+    }
+
+
+    /* =====================================================
+       GAIN
+       ===================================================== */
+
+    .gain-slider {
+      width: 100%;
+      accent-color: #bbb;
+    }
+
+
+    .gain-value {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      margin-top: 4px;
+      font-size: 8px;
+      color: #777;
+    }
+
+
+    .gain-value strong {
+      color: #fff;
+      font-size: 10px;
+    }
+
+
+    /* =====================================================
+       BUTTON
+       ===================================================== */
+
+    .small-button {
+      width: 100%;
+      min-height: 32px;
+      padding: 5px 7px;
+      background: #282828;
+      border: 1px solid #4a4a4a;
+      border-radius: 4px;
+      color: #ccc;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+
+    .small-button:hover {
+      background: #333;
+    }
+
+
+    .small-button.active {
+      background: #555;
+      border-color: #aaa;
+      color: #fff;
+    }
+
+
+    /* =====================================================
+       METER
+       ===================================================== */
+
+    .meter-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+
+    .meter-scale {
+      display: flex;
+      justify-content: space-between;
+      color: #777;
+      font-size: 6px;
+      margin-bottom: 3px;
+    }
+
+
+    .led-meter {
+      height: 48px;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 2px;
+      padding: 2px;
+      background: #090909;
+      border: 1px solid #333;
+      border-radius: 3px;
+      direction: ltr;
+    }
+
+
+    .led-meter span {
+      display: block;
+      flex: 1;
+      min-height: 2px;
+      background: #292929;
+      border-radius: 1px;
+    }
+
+
+    .led-meter span:nth-child(-n+10) {
+      background: #18351d;
+    }
+
+
+    .led-meter span:nth-child(n+11):nth-child(-n+15) {
+      background: #4a400f;
+    }
+
+
+    .led-meter span:nth-child(n+16) {
+      background: #451818;
+    }
+
+
+    /* =====================================================
+       CLIP
+       ===================================================== */
+
+    .clip-box {
+      min-height: 92px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      background: #161616;
+      border: 1px solid #3c3c3c;
+      border-radius: 5px;
+    }
+
+
+    .clip-led {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #351313;
+      border: 2px solid #642020;
+    }
+
+
+    .clip-box.active .clip-led {
+      background: #f22;
+      box-shadow:
+        0 0 12px rgba(255,0,0,.8);
+    }
+
+
+    .clip-text {
+      font-size: 8px;
+      font-weight: 900;
+      color: #777;
+    }
+
+
+    /* =====================================================
+       EQ WRAPPER
+       ===================================================== */
+
+    .eq-wrapper {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+
+    .eq-scale {
+      height: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 7px 0 32px;
+      color: #777;
+      font-size: 8px;
+    }
+
+
+    .eq-area {
+      display: flex;
+      width: 100%;
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid #353535;
+      border-radius: 5px;
+      background: #121212;
+    }
+
+
+    .db-scale {
+      width: 30px;
+      min-width: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 7px 3px;
+      color: #777;
+      font-size: 7px;
+      text-align: right;
+    }
+
+
+    .bands {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-end;
+      gap: 3px;
+      min-width: max-content;
+      padding: 5px 7px 8px;
+    }
+
+
+    /* =====================================================
+       BAND
+       ===================================================== */
+
+    .band {
+      position: relative;
+      width: 30px;
+      min-width: 30px;
+      height: 360px;
+      touch-action: pan-x;
+      user-select: none;
+    }
+
+
+    .band-track {
+      position: absolute;
+      left: 50%;
+      top: 12px;
+      bottom: 45px;
+      width: 4px;
+      transform: translateX(-50%);
+      background: #353535;
+      border-radius: 3px;
+    }
+
+
+    .band-track::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      transform: translateX(-50%);
+      background: #666;
+    }
+
+
+    .band-track::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 8px;
+      height: var(--fader-level, 50%);
+      transform: translateX(-50%);
+      background: #aaa;
+      border-radius: 4px;
+    }
+
+
+    .band input[type="range"] {
+      position: absolute;
+      left: 50%;
+      top: 12px;
+      width: 330px;
+      height: 30px;
+      margin: 0;
+      transform:
+        translateX(-50%)
+        rotate(-90deg);
+      transform-origin: center;
+      opacity: 0;
+      cursor: pointer;
+      pointer-events: none;
+    }
+
+
+    .band.is-dragging {
+      z-index: 10;
+    }
+
+
+    .band-frequency {
+      position: absolute;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #aaa;
+      font-size: 8px;
+      white-space: nowrap;
+    }
+
+
+    .band-value {
+      position: absolute;
+      bottom: 7px;
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 27px;
+      text-align: center;
+      color: #fff;
+      font-size: 7px;
+      white-space: nowrap;
+    }
+
+
+    /* =====================================================
+       CHANNEL FOOTER
+       ===================================================== */
+
+    .channel-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 5px;
+      padding: 5px 7px;
+      background: #101010;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #777;
+      font-size: 8px;
+      font-weight: 700;
+    }
+
+
+    /* =====================================================
+       CHANNEL BUTTONS
+       ===================================================== */
+
+    .channel-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+
+    /* =====================================================
+       AUDIO ENGINE
+       ===================================================== */
+
+    .audio-engine {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      background: #191919;
+      border: 1px solid #383838;
+      border-radius: 8px;
+    }
+
+
+    .audio-engine-title {
+      margin-bottom: 8px;
+      color: #aaa;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
+
+
+    .audio-controls {
+      display: grid;
+      grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+
+    .audio-controls select,
+    .audio-controls input[type="file"],
+    .audio-controls button {
+      width: 100%;
+      min-height: 36px;
+      background: #252525;
+      color: #fff;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 5px 8px;
+    }
+
+
+    .audio-controls button {
+      font-weight: 700;
+    }
+
+
+    .master-control {
+      margin-top: 8px;
+      padding: 8px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 5px;
+    }
+
+
+    .master-control-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 9px;
+      color: #999;
+    }
+
+
+    #masterGain {
+      width: 100%;
+    }
+
+
+    #masterValue {
+      color: #fff;
+      font-weight: 800;
+    }
+
+
+    /* =====================================================
+       AUDIO PLAYER
+       ===================================================== */
+
+    #audioPlayer {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+
+    /* =====================================================
+       STATUS
+       ===================================================== */
+
+    .ready-status {
+      margin-top: 8px;
+      padding: 7px 9px;
+      background: #101010;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #888;
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+
+    /* =====================================================
+       FOOTER
+       ===================================================== */
+
+    .app-footer {
+      margin-top: 10px;
+      padding: 8px;
+      text-align: center;
+      color: #555;
+      font-size: 8px;
+    }
+
+
+    /* =====================================================
+       LARGE SCREEN
+       ===================================================== */
+
+    @media (min-width: 1400px) {
+
+      .band {
+        width: 32px;
+        min-width: 32px;
+        height: 380px;
+      }
+
+    }
+
+
+    /* =====================================================
+       TABLET
+       ===================================================== */
+
+    @media (max-width: 1100px) {
+
+      .channels {
+        grid-template-columns:
+          520px
+          520px;
+        width: max-content;
+      }
+
+      .channel {
+        width: 520px;
+      }
+
+    }
+
+
+    /* =====================================================
+       PORTRAIT / MOBILE
+       ===================================================== */
+
+    @media (max-width: 700px) {
+
+      .app {
+        padding: 5px;
+      }
+
+
+      .top-rack {
+        flex-wrap: wrap;
+      }
+
+
+      .device-title {
+        flex-wrap: wrap;
+      }
+
+
+      .channels {
+        grid-template-columns: 1fr;
+        width: 100%;
+      }
+
+
+      .channel {
+        width: 100%;
+      }
+
+
+      .control-row {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+
+
+      .clip-box {
+        min-height: 80px;
+      }
+
+
+      .audio-controls {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+
+    }
+
+
+    /* =====================================================
+       SMALL PHONE
+       ===================================================== */
+
+    @media (max-width: 420px) {
+
+      .channel-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+
+      .channel-status {
+        justify-content: flex-start;
+      }
+
+
+      .control-row {
+        grid-template-columns: 1fr 1fr;
+      }
+
+
+      .meter-box,
+      .clip-box {
+        min-height: 80px;
+      }
+
+
+      .audio-controls {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+
+    /* =====================================================
+       LANDSCAPE MOBILE
+       ===================================================== */
+
+    @media (
+      orientation: landscape
+    )
+    and (max-width: 1100px) {
+
+      .channels {
+        grid-template-columns:
+          520px
+          520px;
+        width: max-content;
+      }
+
+
+      .channel {
+        width: 520px;
+      }
+
+    }
+
+  </style>
+
 </head>
+
 
 <body>
 
-  <main id="app">
 
-    <!-- =====================================================
-         HEADER
-         ===================================================== -->
+  <div class="app">
 
-    <header class="top-rack">
 
-      <div class="brand">
+    <!-- ===================================================
+         TOP RACK
+         =================================================== -->
 
-        <h1>
-          EQUALIZER ONLINE
-        </h1>
-
-        <p>
-          AUDIO PROCESSOR • ECHO • 31 BAND EQUALIZER
-        </p>
-
-      </div>
-
-    </header>
-
-    <!-- =====================================================
-         NAVIGATION
-         ===================================================== -->
-
-    <nav class="page-navigation">
+    <div class="top-rack">
 
       <button
+        id="saveButton"
         type="button"
-        class="page-button active"
-        data-page="equalizer"
       >
-        1. EQUALIZER
+        SAVE
       </button>
+
 
       <button
+        id="recallButton"
         type="button"
-        class="page-button"
-        data-page="echo"
       >
-        2. ECHO ALESIS
+        RECALL
       </button>
 
-    </nav>
 
-    <!-- =====================================================
-         PAGE CONTAINER
-         ===================================================== -->
+      <button
+        id="resetButton"
+        type="button"
+      >
+        RESET
+      </button>
 
-    <main id="pageContainer">
+    </div>
 
-      <!--
-        equalizer.js akan memasukkan
-        halaman DBX 2231 di sini.
-      -->
 
-    </main>
+    <!-- ===================================================
+         DEVICE TITLE
+         =================================================== -->
 
-    <!-- =====================================================
-         GLOBAL AUDIO ENGINE
-         ===================================================== -->
+    <div class="device-title">
 
-    <section
-      class="audio-engine"
-      id="globalAudioEngine"
-    >
+      <h1>
+        DBX 2231 GRAPHIC EQUALIZER
+      </h1>
 
-      <div class="section-title">
+
+      <select id="presetSelect">
+
+        <option value="">
+          SELECT PRESET
+        </option>
+
+        <option value="flat">
+          FLAT
+        </option>
+
+        <option value="vocal">
+          VOCAL
+        </option>
+
+        <option value="speech">
+          SPEECH
+        </option>
+
+        <option value="music">
+          MUSIC
+        </option>
+
+        <option value="bass">
+          BASS
+        </option>
+
+      </select>
+
+
+      <button
+        id="applyPresetButton"
+        type="button"
+      >
+        APPLY
+      </button>
+
+    </div>
+
+
+    <!-- ===================================================
+         CHANNELS
+         
+         PENTING:
+         CH1 dan CH2 dibuat oleh equalizer.js
+         
+         JANGAN memasukkan CH1 / CH2 manual di sini.
+         =================================================== -->
+
+    <div class="channels-scroll">
+
+      <section
+        class="channels"
+        id="channels"
+      ></section>
+
+    </div>
+
+
+    <!-- ===================================================
+         AUDIO ENGINE
+         =================================================== -->
+
+    <section class="audio-engine">
+
+
+      <div class="audio-engine-title">
         AUDIO ENGINE
       </div>
 
-      <div class="engine-grid">
 
-        <!-- INPUT -->
+      <div class="audio-controls">
 
-        <div class="engine-box">
 
-          <div class="engine-label">
-            INPUT DEVICE / AUDIO FILE
-          </div>
+        <!-- INPUT DEVICE -->
 
-          <div class="engine-controls">
+        <select id="inputDevice">
 
-            <select
-              class="hardware-select"
-              id="inputDevice"
-            >
+          <option value="">
+            SELECT INPUT DEVICE
+          </option>
 
-              <option value="">
-                DEFAULT MICROPHONE
-              </option>
+        </select>
 
-            </select>
 
-            <button
-              class="hardware-button"
-              id="refreshDevices"
-              type="button"
-            >
-              REFRESH
-            </button>
+        <!-- REFRESH DEVICE -->
 
-          </div>
+        <button
+          id="refreshDevices"
+          type="button"
+        >
+          REFRESH
+        </button>
 
-          <br>
+
+        <!-- AUDIO FILE -->
+
+        <input
+          id="audioFile"
+          type="file"
+          accept="audio/*"
+          multiple
+        />
+
+
+        <!-- MICROPHONE -->
+
+        <button
+          id="micButton"
+          type="button"
+        >
+          MICROPHONE
+        </button>
+
+
+        <!-- START -->
+
+        <button
+          id="startButton"
+          type="button"
+        >
+          START
+        </button>
+
+
+        <!-- STOP -->
+
+        <button
+          id="stopButton"
+          type="button"
+        >
+          STOP
+        </button>
+
+      </div>
+
+
+      <!-- =================================================
+           AUDIO PLAYER
+           ================================================= -->
+
+      <audio
+        id="audioPlayer"
+        controls
+        preload="none"
+      ></audio>
+
+
+      <!-- =================================================
+           MASTER
+           ================================================= -->
+
+      <div class="master-control">
+
+        <div class="master-control-title">
+
+          <span>
+            MASTER OUTPUT
+          </span>
+
+          <strong id="masterValue">
+            0.0 dB
+          </strong>
+
+        </div>
+
+
+        <input
+          id="masterGain"
+          type="range"
+          min="-60"
+          max="12"
+          step="0.5"
+          value="0"
+        />
+
+
+        <label
+          style="
+            display:flex;
+            align-items:center;
+            gap:6px;
+            margin-top:7px;
+            font-size:9px;
+            color:#aaa;
+          "
+        >
 
           <input
-            class="file-input"
-            id="audioFile"
-            type="file"
-            accept="audio/*"
-            multiple
-          >
-
-        </div>
-
-        <!-- AUDIO CONTROL -->
-
-        <div class="engine-box">
-
-          <div class="engine-label">
-            AUDIO CONTROL
-          </div>
-
-          <div class="engine-controls">
-
-            <button
-              class="hardware-button"
-              id="micButton"
-              type="button"
-            >
-              MIC INPUT
-            </button>
-
-            <button
-              class="hardware-button"
-              id="startButton"
-              type="button"
-            >
-              START AUDIO
-            </button>
-
-            <button
-              class="hardware-button"
-              id="stopButton"
-              type="button"
-            >
-              STOP AUDIO
-            </button>
-
-          </div>
-
-          <audio
-            id="audioPlayer"
-            controls
-            preload="metadata"
-          ></audio>
-
-          <div
-            id="currentAudioName"
-            class="current-audio-name"
-          >
-            NO AUDIO SELECTED
-          </div>
-
-          <div
-            id="playlistCount"
-            class="playlist-count"
-          >
-            PLAYLIST: 0 FILE
-          </div>
-
-          <div
-            id="audioPlaylist"
-            class="audio-playlist"
-          >
-            <div class="playlist-empty">
-              BELUM ADA FILE AUDIO
-            </div>
-          </div>
-
-          <div class="playlist-buttons">
-
-            <button
-              class="small-button"
-              id="previousAudio"
-              type="button"
-            >
-              ◀ PREV
-            </button>
-
-            <button
-              class="small-button"
-              id="playSelectedAudio"
-              type="button"
-            >
-              ▶ PLAY
-            </button>
-
-            <button
-              class="small-button"
-              id="nextAudio"
-              type="button"
-            >
-              NEXT ▶
-            </button>
-
-            <button
-              class="small-button"
-              id="clearPlaylist"
-              type="button"
-            >
-              CLEAR
-            </button>
-
-          </div>
-
-        </div>
-
-        <!-- MASTER -->
-
-        <div class="engine-box">
-
-          <div class="engine-label">
-            MASTER OUTPUT
-          </div>
-
-          <div class="master-row">
-
-            <input
-              id="masterGain"
-              type="range"
-              min="-30"
-              max="0"
-              step="0.5"
-              value="-12"
-            >
-
-            <div
-              class="master-value"
-              id="masterValue"
-            >
-              -12 dB
-            </div>
-
-          </div>
-
-          <br>
-
-          <button
-            class="hardware-button"
             id="muteOutput"
-            type="button"
+            type="checkbox"
           >
-            MUTE OUTPUT
-          </button>
 
-        </div>
+          MUTE OUTPUT
+
+        </label>
 
       </div>
 
-    </section>
 
-    <!-- =====================================================
-         FOOTER
-         ===================================================== -->
-
-    <footer class="footer">
-
-      <div>
-        EQUALIZER ONLINE • WEB AUDIO API
-      </div>
+      <!-- =================================================
+           STATUS
+           ================================================= -->
 
       <div
-        class="ready"
+        class="ready-status"
         id="readyStatus"
       >
         READY
       </div>
 
+    </section>
+
+
+    <!-- ===================================================
+         FOOTER
+         =================================================== -->
+
+    <footer class="app-footer">
+
+      DBX 2231 GRAPHIC EQUALIZER —
+      31 BAND STEREO
+
     </footer>
 
-  </main>
 
-  <!-- =======================================================
+  </div>
+
+
+  <!-- =====================================================
        JAVASCRIPT
-       URUTAN PENTING
-       ======================================================= -->
+
+       URUTAN PENTING:
+
+       1. audio-engine.js
+       2. equalizer.js
+
+       audio-engine.js menyediakan:
+         updateChannelAudio()
+         createAudioContext()
+         startChannelTest()
+         stopChannelTest()
+
+       equalizer.js membuat:
+         CH1
+         CH2
+         31 band
+         controls
+       ===================================================== -->
+
 
   <script src="js/audio-engine.js"></script>
 
-  <script src="js/echo-alesis.js"></script>
-
   <script src="js/equalizer.js"></script>
 
-  <script src="js/app.js"></script>
 
 </body>
+
 </html>
