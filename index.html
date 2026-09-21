@@ -2402,11 +2402,12 @@ and (max-width: 1100px) {
           <br />
 
           <input
-            class="file-input"
-            id="audioFile"
-            type="file"
-            accept="audio/*"
-          />
+  class="file-input"
+  id="audioFile"
+  type="file"
+  accept="audio/*"
+  multiple
+>
 
         </div>
 
@@ -6552,46 +6553,57 @@ function clearPlaylist() {
    PLAYLIST BUTTONS
    ========================================================= */
 
-document
-  .getElementById(
-    "previousAudio"
-  )
-  .addEventListener(
+const previousAudioButton =
+  document.getElementById("previousAudio");
+
+const playSelectedAudioButton =
+  document.getElementById("playSelectedAudio");
+
+const nextAudioButton =
+  document.getElementById("nextAudio");
+
+const clearPlaylistButton =
+  document.getElementById("clearPlaylist");
+
+
+if (previousAudioButton) {
+
+  previousAudioButton.addEventListener(
     "click",
     previousAudio
   );
 
+}
 
-document
-  .getElementById(
-    "playSelectedAudio"
-  )
-  .addEventListener(
+
+if (playSelectedAudioButton) {
+
+  playSelectedAudioButton.addEventListener(
     "click",
     playSelectedAudio
   );
 
+}
 
-document
-  .getElementById(
-    "nextAudio"
-  )
-  .addEventListener(
+
+if (nextAudioButton) {
+
+  nextAudioButton.addEventListener(
     "click",
     nextAudio
   );
 
+}
 
-document
-  .getElementById(
-    "clearPlaylist"
-  )
-  .addEventListener(
+
+if (clearPlaylistButton) {
+
+  clearPlaylistButton.addEventListener(
     "click",
     clearPlaylist
   );
 
-
+}
 /* =========================================================
    MASTER GAIN
    ========================================================= */
