@@ -8,1809 +8,2236 @@
   />
 
   <title>DBX 2231 Graphic Equalizer</title>
+<style>
+/* =========================================================
+   DBX 2231 GRAPHIC EQUALIZER
+   COMPLETE RESPONSIVE HARDWARE UI
+   ========================================================= */
+
+:root {
+  --bg: #080b0e;
+  --panel: #171c21;
+  --panel-2: #222a31;
+  --panel-3: #303941;
+  --border: #58636d;
+  --text: #e8edf1;
+  --muted: #9da8b1;
+
+  --orange: #ff9d00;
+  --orange-dark: #9d5100;
+
+  --green: #29f56b;
+  --yellow: #ffd52b;
+  --red: #ff3030;
+  --blue: #279cff;
+  --blue-bright: #00c8ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% -10%,
+      #263b49 0%,
+      #101a22 35%,
+      #05090d 75%,
+      #020406 100%
+    );
+
+  color: var(--text);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  -webkit-text-size-adjust: 100%;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button,
+select {
+  color: var(--text);
+}
+
+button {
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+
+/* =========================================================
+   MAIN APP
+   ========================================================= */
+
+.app {
+  width: 100%;
+  max-width: 1900px;
+
+  margin: 0 auto;
+  padding: 7px;
+}
+
+
+/* =========================================================
+   TOP RACK
+   ========================================================= */
 
-  <style>
-    /* =========================================================
-       DBX 2231 GRAPHIC EQUALIZER
-       COMPLETE RESPONSIVE HARDWARE UI
-       ========================================================= */
-
-    :root {
-      --bg: #080b0e;
-      --panel: #171c21;
-      --panel-2: #222a31;
-      --panel-3: #303941;
-      --border: #58636d;
-      --text: #e8edf1;
-      --muted: #9da8b1;
-
-      --orange: #ff9d00;
-      --orange-dark: #9d5100;
-
-      --green: #29f56b;
-      --yellow: #ffd52b;
-      --red: #ff3030;
-      --blue: #279cff;
-      --blue-bright: #00c8ff;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      width: 100%;
-      min-height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      overflow-x: hidden;
-    }
-
-    body {
-      overflow-x: hidden;
-      background:
-        radial-gradient(
-          circle at 50% -10%,
-          #263b49 0%,
-          #101a22 35%,
-          #05090d 75%,
-          #020406 100%
-        );
-      color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
-      -webkit-text-size-adjust: 100%;
-    }
-
-    button,
-    input,
-    select {
-      font: inherit;
-    }
-
-    button,
-    select {
-      color: var(--text);
-    }
-
-    button {
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    button:active {
-      transform: translateY(1px);
-    }
-
-    /* =========================================================
-       MAIN APP
-       ========================================================= */
-
-    .app {
-      width: 100%;
-      max-width: 1900px;
-      margin: 0 auto;
-      padding: 7px;
-    }
-
-    /* =========================================================
-       TOP RACK
-       ========================================================= */
-
-    .top-rack {
-      min-height: 82px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-
-      padding: 8px 14px;
-
-      background:
-        linear-gradient(
-          180deg,
-          #263641 0%,
-          #111c24 48%,
-          #080e13 100%
-        );
-
-      border: 1px solid #566a77;
-      border-radius: 7px;
-
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.15),
-        inset 0 -10px 20px rgba(0,0,0,.45),
-        0 5px 15px rgba(0,0,0,.7);
-    }
-
-    .brand {
-      min-width: 0;
-    }
-
-    .brand h1 {
-      margin: 0;
-
-      font-size: clamp(22px, 3vw, 42px);
-      font-weight: 900;
-      letter-spacing: 2px;
-
-      text-shadow:
-        0 2px 2px #000,
-        0 0 8px rgba(255,255,255,.08);
-    }
-
-    .brand p {
-      margin: 3px 0 0;
-
-      color: #18b9ff;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .5px;
-    }
-
-    .top-actions {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 5px;
-    }
-
-    .hardware-button {
-      min-height: 40px;
-      padding: 8px 15px;
-
-      border: 1px solid #687987;
-      border-radius: 6px;
-
-      background:
-        linear-gradient(
-          180deg,
-          #34434f,
-          #17222c
-        );
-
-      box-shadow:
-        inset 0 1px 0 #ffffff22,
-        inset 0 -2px 0 #0008;
-
-      color: #e9f2f7;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: .3px;
-    }
-
-    .hardware-button:hover {
-      border-color: #18bfff;
-
-      box-shadow:
-        0 0 10px rgba(0,180,255,.35),
-        inset 0 1px 0 rgba(255,255,255,.15);
-    }
-
-    .hardware-button.active {
-      color: #fff;
-
-      background:
-        linear-gradient(
-          180deg,
-          #176a8d,
-          #073246
-        );
-
-      border-color: #1abaff;
-
-      box-shadow:
-        0 0 8px rgba(0,180,255,.4),
-        inset 0 0 8px rgba(0,180,255,.25);
-    }
-
-    /* =========================================================
-       DEVICE TITLE
-       ========================================================= */
-
-    .device-title {
-      min-height: 70px;
-
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 15px;
-
-      margin-top: 9px;
-      padding: 11px 16px;
-
-      border: 1px solid #667581;
-      border-radius: 7px;
+.top-rack {
+  min-height: 82px;
 
-      background:
-        linear-gradient(
-          180deg,
-          #263640,
-          #111a21
-        );
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.12),
-        inset 0 -5px 12px rgba(0,0,0,.35);
-    }
+  gap: 14px;
 
-    .device-name {
-      font-size: clamp(20px, 3vw, 31px);
-      font-weight: 900;
-      letter-spacing: 2px;
-
-      text-shadow: 0 2px 2px #000;
-    }
+  padding: 8px 14px;
 
-    .device-subtitle {
-      margin-top: 3px;
+  background:
+    linear-gradient(
+      180deg,
+      #263641 0%,
+      #111c24 48%,
+      #080e13 100%
+    );
 
-      color: #ffb62a;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: .8px;
+  border: 1px solid #566a77;
+  border-radius: 7px;
 
-      text-shadow:
-        0 0 5px rgba(255,170,0,.3);
-    }
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.15),
+    inset 0 -10px 20px rgba(0,0,0,.45),
+    0 5px 15px rgba(0,0,0,.7);
+}
 
-    .preset-area {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 7px;
-    }
+.brand {
+  min-width: 0;
+}
 
-    select {
-      min-height: 38px;
+.brand h1 {
+  margin: 0;
 
-      padding: 7px 10px;
+  font-size:
+    clamp(
+      22px,
+      3vw,
+      42px
+    );
 
-      border: 1px solid #687987;
-      border-radius: 6px;
-
-      background: #111a22;
-      color: var(--text);
-    }
+  font-weight: 900;
+  letter-spacing: 2px;
 
-    /* =========================================================
-       CHANNEL SCROLL
-       ========================================================= */
+  text-shadow:
+    0 2px 2px #000,
+    0 0 8px rgba(255,255,255,.08);
+}
 
-    .channels-scroll {
-      width: 100%;
-      min-width: 0;
-
-      margin: 0;
-      padding: 0;
-
-      overflow-x: auto;
-      overflow-y: hidden;
-
-      -webkit-overflow-scrolling: touch;
+.brand p {
+  margin: 3px 0 0;
 
-      overscroll-behavior-x: contain;
-      overscroll-behavior-y: none;
-
-      scrollbar-width: auto;
-      scrollbar-color: #788792 #151c22;
+  color: #18b9ff;
 
-      touch-action: pan-x;
-    }
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .5px;
+}
 
-    /* =========================================================
-       CHANNELS
-       ========================================================= */
+.top-actions {
+  display: flex;
+  flex-wrap: wrap;
 
-    .channels {
-      display: grid;
-
-      grid-template-columns:
-        minmax(0, 1fr)
-        minmax(0, 1fr);
+  justify-content: flex-end;
 
-      gap: 10px;
-
-      width: 100%;
-      min-width: 0;
+  gap: 5px;
+}
 
-      margin-top: 9px;
-
-      align-items: stretch;
-    }
-
-    .channel {
-      position: relative;
-
-      min-width: 0;
-      width: 100%;
-
-      padding: 10px;
-
-      border: 1px solid #687782;
-      border-radius: 7px;
 
-      background:
-        linear-gradient(
-          145deg,
-          #263842 0%,
-          #111c24 35%,
-          #0a1117 70%,
-          #1b2932 100%
-        );
-
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.12),
-        inset 0 -15px 25px rgba(0,0,0,.45),
-        0 5px 15px rgba(0,0,0,.75);
-
-      overflow: hidden;
-    }
-
-    /* =========================================================
-       CHANNEL HEADER
-       ========================================================= */
-
-    .channel-header {
-      min-height: 43px;
-
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+/* =========================================================
+   HARDWARE BUTTON
+   ========================================================= */
 
-      gap: 8px;
-      margin-bottom: 9px;
-      padding: 3px 7px;
+.hardware-button {
+  min-height: 40px;
 
-      background:
-        linear-gradient(
-          180deg,
-          #1e2d37,
-          #0a1218
-        );
+  padding: 8px 15px;
 
-      border: 1px solid #435966;
-
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.1),
-        inset 0 -5px 10px rgba(0,0,0,.35);
-    }
-
-    .channel-label {
-      display: flex;
-      align-items: center;
-      gap: 9px;
+  border: 1px solid #687987;
+  border-radius: 6px;
 
-      font-size: clamp(16px, 1.5vw, 22px);
-      font-weight: 900;
-      letter-spacing: .5px;
-
-      text-shadow: 0 2px 2px #000;
-    }
-
-    .power-led {
-      width: 20px;
-      height: 20px;
+  background:
+    linear-gradient(
+      180deg,
+      #34434f,
+      #17222c
+    );
 
-      flex: 0 0 auto;
+  box-shadow:
+    inset 0 1px 0 #ffffff22,
+    inset 0 -2px 0 #0008;
 
-      border-radius: 50%;
+  color: #e9f2f7;
 
-      background:
-        radial-gradient(
-          circle at 35% 30%,
-          #ffffff 0 8%,
-          #62ff9a 20%,
-          #13ef51 55%,
-          #07842d 100%
-        );
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .3px;
+}
 
-      border: 1px solid #42ff83;
-
-      box-shadow:
-        0 0 6px #1dff61,
-        0 0 18px rgba(25,255,90,.8),
-        inset 0 1px 3px #fff;
-    }
-
-    .channel-status {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 5px;
-    }
-
-    .status-light {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-
-      min-height: 31px;
-
-      padding: 5px 9px;
-
-      border: 1px solid #4b606d;
-      border-radius: 5px;
-
-      background:
-        linear-gradient(
-          180deg,
-          #202e37,
-          #0a1117
-        );
-
-      color: #dce4ea;
-      font-size: 10px;
-      font-weight: 800;
-
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.08),
-        0 2px 3px #000;
-    }
+.hardware-button:hover {
+  border-color: #18bfff;
 
-    .status-light::before {
-      content: "";
-
-      width: 9px;
-      height: 9px;
-
-      flex: 0 0 auto;
-
-      border-radius: 50%;
-
-      background: var(--green);
-      box-shadow: 0 0 7px var(--green);
-    }
-
-    .status-light.bypass::before {
-      background: var(--red);
-      box-shadow: 0 0 7px var(--red);
-    }
-
-    .status-light.test::before {
-      background: var(--yellow);
-      box-shadow: 0 0 7px var(--yellow);
-    }
-
-    /* =========================================================
-       CONTROL ROW
-       ========================================================= */
-
-    .control-row {
-      display: grid;
-
-      grid-template-columns:
-        1.15fr
-        .9fr
-        .9fr
-        1.55fr
-        auto;
-
-      gap: 7px;
-
-      align-items: stretch;
-    }
-
-    .control-box {
-      min-width: 0;
-      min-height: 108px;
-
-      padding: 8px;
-
-      border: 1px solid #506674;
-      border-radius: 6px;
-
-      background:
-        linear-gradient(
-          145deg,
-          #1b2a34,
-          #091117
-        );
-
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.09),
-        inset 0 -8px 15px rgba(0,0,0,.4),
-        0 2px 4px rgba(0,0,0,.45);
-    }
-
-    .control-title {
-      margin-bottom: 8px;
-
-      color: #e7edf1;
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: .3px;
-
-      text-shadow: 0 1px 2px #000;
-      white-space: nowrap;
-    }
-
-    /* =========================================================
-       GAIN
-       ========================================================= */
-
-    .gain-slider {
-      width: 100%;
-      height: 18px;
-
-      cursor: pointer;
-      touch-action: pan-y;
-    }
-
-    .gain-slider::-webkit-slider-thumb {
-      appearance: none;
-      -webkit-appearance: none;
-
-      width: 22px;
-      height: 22px;
-
-      border-radius: 50%;
-
-      background:
-        radial-gradient(
-          circle at 35% 30%,
-          #dce5e9 0 7%,
-          #7e8a91 22%,
-          #263038 58%,
-          #080b0e 80%,
-          #6c777d 100%
-        );
-
-      border: 1px solid #aab6bc;
-
-      box-shadow:
-        0 2px 5px #000,
-        0 0 5px rgba(0,160,255,.4);
-    }
-
-    .gain-value {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      gap: 6px;
-      margin-top: 4px;
-
-      font-size: 12px;
-    }
-
-    .gain-value strong {
-      font-size: 15px;
-      color: #f0f3f5;
-    }
-
-    /* =========================================================
-       GENERIC RANGE
-       ========================================================= */
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: var(--orange);
-      cursor: pointer;
-    }
-
-    /* =========================================================
-       SMALL BUTTON
-       ========================================================= */
+  box-shadow:
+    0 0 10px rgba(0,180,255,.35),
+    inset 0 1px 0 rgba(255,255,255,.15);
+}
 
-    .small-button {
-      min-height: 35px;
-      min-width: 38px;
-
-      padding: 5px 10px;
-
-      border: 1px solid #617582;
-      border-radius: 5px;
-
-      background:
-        linear-gradient(
-          180deg,
-          #334754,
-          #101b23
-        );
-
-      color: #e9f2f7;
-
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.12),
-        inset 0 -3px 5px rgba(0,0,0,.45),
-        0 2px 3px #000;
-
-      font-size: 11px;
-      font-weight: 900;
-
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .small-button:hover {
-      border-color: #14baff;
-    }
-
-    .small-button.active {
-      color: #fff;
-
-      background:
-        linear-gradient(
-          180deg,
-          #176a8d,
-          #073246
-        );
-
-      border-color: #1abaff;
-
-      box-shadow:
-        0 0 8px rgba(0,180,255,.4),
-        inset 0 0 8px rgba(0,180,255,.25);
-    }
-
-    .channel-buttons .small-button {
-      min-height: 43px;
-      flex: 1;
-
-      background:
-        linear-gradient(
-          180deg,
-          #30434f,
-          #0e1a22
-        );
-
-      font-size: 11px;
-      letter-spacing: .4px;
-    }
-
-    /* =========================================================
-       METER
-       ========================================================= */
-
-    .meter-box {
-      min-width: 0;
-    }
-
-    .meter-scale {
-      display: flex;
-      justify-content: space-between;
-
-      gap: 2px;
-      margin-bottom: 5px;
-
-      color: #d7e0e7;
-      font-size: 9px;
-    }
-
-    .led-meter {
-      display: grid;
-
-      grid-template-columns:
-        repeat(18, minmax(7px, 1fr));
-
-      gap: 3px;
-
-      min-height: 36px;
-      padding: 5px;
-
-      border: 1px solid #314752;
-      border-radius: 5px;
-
-      background:
-        linear-gradient(
-          180deg,
-          #020609,
-          #071015
-        );
-
-      box-shadow:
-        inset 0 0 10px #000,
-        0 0 2px rgba(0,180,255,.25);
-    }
-
-    .led-meter span {
-      min-width: 7px;
-      height: 22px;
-
-      border-radius: 3px;
-
-      background:
-        linear-gradient(
-          180deg,
-          #10201c,
-          #07100e
-        );
-
-      border: 1px solid #20352d;
-
-      box-shadow:
-        inset 0 0 3px #000;
-    }
-
-    .led-meter span.on {
-      background:
-        linear-gradient(
-          180deg,
-          #75ff9a,
-          #0cff4d
-        );
-
-      border-color: #a0ffb8;
-
-      box-shadow:
-        0 0 5px #20ff65,
-        0 0 11px rgba(20,255,80,.65),
-        inset 0 0 4px #fff;
-    }
-
-    .led-meter span:nth-child(n + 11).on {
-      background:
-        linear-gradient(
-          180deg,
-          #fff176,
-          #ffc400
-        );
-
-      border-color: #fff8a0;
-
-      box-shadow:
-        0 0 7px #ffd21c,
-        inset 0 0 3px #fff;
-    }
-
-    .led-meter span:nth-child(n + 16).on {
-      background:
-        linear-gradient(
-          180deg,
-          #ff8b8b,
-          #ff2020
-        );
-
-      border-color: #ffb0b0;
-
-      box-shadow:
-        0 0 8px #ff3030,
-        0 0 14px rgba(255,40,40,.6);
-    }
-
-    /* =========================================================
-       CLIP
-       ========================================================= */
-
-    .clip-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-
-      gap: 5px;
-
-      min-width: 55px;
-
-      border: 1px solid #743238;
-      border-radius: 6px;
-
-      background:
-        linear-gradient(
-          180deg,
-          #401719,
-          #18090b
-        );
-
-      box-shadow:
-        inset 0 0 10px rgba(255,0,0,.12),
-        0 2px 4px #000;
-    }
-
-    .clip-led {
-      width: 17px;
-      height: 17px;
-
-      border-radius: 50%;
-
-      background:
-        radial-gradient(
-          circle,
-          #87252a,
-          #3b1115
-        );
-
-      border: 1px solid #9d3036;
-    }
-
-    .clip-led.on {
-      background:
-        radial-gradient(
-          circle at 35% 30%,
-          #fff 0 5%,
-          #ff7777 18%,
-          #ff2020 60%,
-          #a40000 100%
-        );
-
-      box-shadow:
-        0 0 8px #ff3030,
-        0 0 20px rgba(255,0,0,.75);
-    }
-
-    .clip-text {
-      color: #ff7777;
-      font-size: 10px;
-      font-weight: 900;
-    }
-
-    /* =========================================================
-       EQ WRAPPER
-       ========================================================= */
-
-    .eq-wrapper {
-      position: relative;
-
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-
-      margin-top: 10px;
-      padding: 8px 4px 10px;
-
-      border: 1px solid #435b68;
-      border-radius: 6px;
-
-      background:
-        linear-gradient(
-          90deg,
-          #080f14,
-          #17252e 50%,
-          #080f14
-        );
-
-      box-shadow:
-        inset 0 0 15px rgba(0,0,0,.55);
-
-      overflow-x: auto;
-      overflow-y: hidden;
-
-      -webkit-overflow-scrolling: touch;
-
-      overscroll-behavior-x: contain;
-      overscroll-behavior-y: none;
-
-      scrollbar-width: auto;
-      scrollbar-color: #788792 #151c22;
+.hardware-button.active {
+  color: #fff;
 
-      /*
-       * Horizontal swipe = scroll.
-       * Vertical movement = ditangani JS.
-       */
-      touch-action: pan-x;
+  background:
+    linear-gradient(
+      180deg,
+      #176a8d,
+      #073246
+    );
 
-      cursor: grab;
-    }
+  border-color: #1abaff;
 
-    .eq-wrapper:active {
-      cursor: grabbing;
-    }
+  box-shadow:
+    0 0 8px rgba(0,180,255,.4),
+    inset 0 0 8px rgba(0,180,255,.25);
+}
 
-    /* =========================================================
-       EQ SCALE
-       ========================================================= */
 
-    .eq-scale {
-      display: grid;
+/* =========================================================
+   DEVICE TITLE
+   ========================================================= */
 
-      grid-template-columns:
-        repeat(7, 1fr);
+.device-title {
+  min-height: 70px;
 
-      width: 100%;
-      min-width: 1178px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-      margin-bottom: 4px;
+  gap: 15px;
 
-      color: #e0e7ec;
-      font-size: 11px;
-      font-weight: 800;
-    }
+  margin-top: 9px;
+  padding: 11px 16px;
 
-    .eq-scale span {
-      text-align: center;
-    }
+  border: 1px solid #667581;
+  border-radius: 7px;
 
-    /* =========================================================
-       EQ AREA
-       ========================================================= */
+  background:
+    linear-gradient(
+      180deg,
+      #263640,
+      #111a21
+    );
 
-    .eq-area {
-      display: flex;
-      flex-direction: row;
-      align-items: stretch;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -5px 12px rgba(0,0,0,.35);
+}
 
-      width: max-content;
-      min-width: 1220px;
+.device-name {
+  font-size:
+    clamp(
+      20px,
+      3vw,
+      31px
+    );
 
-      gap: 8px;
-    }
+  font-weight: 900;
+  letter-spacing: 2px;
 
-    /* =========================================================
-       dB SCALE
-       ========================================================= */
+  text-shadow: 0 2px 2px #000;
+}
 
-    .db-scale {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+.device-subtitle {
+  margin-top: 3px;
 
-      flex: 0 0 31px;
+  color: #ffb62a;
 
-      width: 31px;
-      height: 330px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .8px;
 
-      padding: 9px 0 22px;
+  text-shadow:
+    0 0 5px rgba(255,170,0,.3);
+}
 
-      color: #e2e9ed;
-      font-size: 10px;
-      font-weight: 900;
-      text-align: right;
+.preset-area {
+  display: flex;
+  align-items: center;
 
-      text-shadow: 0 1px 2px #000;
+  flex-wrap: wrap;
 
-      pointer-events: none;
-    }
+  gap: 7px;
+}
 
-    /* =========================================================
-       31 BANDS
-       ========================================================= */
+select {
+  min-height: 38px;
 
-    .bands {
-      display: grid;
+  padding: 7px 10px;
 
-      grid-template-columns:
-        repeat(31, 30px);
+  border: 1px solid #687987;
+  border-radius: 6px;
 
-      grid-auto-columns: 30px;
+  background: #111a22;
 
-      gap: 8px;
+  color: var(--text);
+}
 
-      width: max-content;
-      min-width: 1178px;
 
-      flex: 0 0 auto;
+/* =========================================================
+   CHANNEL SCROLL
+   ========================================================= */
 
-      align-items: stretch;
-    }
+.channels-scroll {
+  width: 100%;
+  min-width: 0;
 
-    /* =========================================================
-       INDIVIDUAL BAND
-       ========================================================= */
+  margin: 0;
+  padding: 0;
 
-    .band {
-      position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
 
-      width: 30px;
-      min-width: 30px;
-      max-width: 30px;
+  -webkit-overflow-scrolling: touch;
 
-      height: 330px;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: none;
 
-      padding: 6px 2px 0;
+  scrollbar-width: auto;
+  scrollbar-color:
+    #788792
+    #151c22;
 
-      border: 1px solid #4c606c;
-      border-radius: 5px;
+  touch-action: pan-x;
+}
 
-      background:
-        linear-gradient(
-          90deg,
-          #091117,
-          #1d2a33 48%,
-          #091117
-        );
 
-      box-shadow:
-        inset 1px 0 rgba(255,255,255,.04),
-        inset -1px 0 rgba(0,0,0,.8),
-        inset 0 0 5px #000;
+/* =========================================================
+   CHANNELS
+   ========================================================= */
 
-      flex: 0 0 30px;
+.channels {
+  display: grid;
 
-      user-select: none;
-      -webkit-user-select: none;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
 
-      /*
-       * Sangat penting:
-       * horizontal gesture diberikan kepada browser
-       * untuk scroll EQ.
-       *
-       * vertical gesture diproses oleh JavaScript.
-       */
-      touch-action: pan-x;
+  gap: 10px;
 
-      -webkit-tap-highlight-color: transparent;
+  width: 100%;
+  min-width: 0;
 
-      cursor: pointer;
-    }
+  margin-top: 9px;
 
-    .band.is-dragging {
-      cursor: ns-resize;
-    }
+  align-items: stretch;
+}
 
-    .band:focus-within {
-      outline: none;
-    }
 
-    /* =========================================================
-       BAND TRACK
-       ========================================================= */
+/* =========================================================
+   CHANNEL
+   ========================================================= */
 
-    .band-track {
-      position: absolute;
+.channel {
+  position: relative;
 
-      top: 12px;
-      bottom: 36px;
+  min-width: 0;
+  width: 100%;
 
-      left: 50%;
+  padding: 10px;
 
-      width: 6px;
+  border: 1px solid #687782;
+  border-radius: 7px;
 
-      transform: translateX(-50%);
+  background:
+    linear-gradient(
+      145deg,
+      #263842 0%,
+      #111c24 35%,
+      #0a1117 70%,
+      #1b2932 100%
+    );
 
-      border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -15px 25px rgba(0,0,0,.45),
+    0 5px 15px rgba(0,0,0,.75);
 
-      background:
-        repeating-linear-gradient(
-          to bottom,
-          #6d7c85 0,
-          #6d7c85 1px,
-          transparent 1px,
-          transparent 16px
-        ),
-        linear-gradient(
-          90deg,
-          #060a0e,
-          #53636d,
-          #060a0e
-        );
+  overflow: hidden;
+}
 
-      box-shadow:
-        inset 0 0 4px #000,
-        0 0 0 1px #05080a;
 
-      pointer-events: none;
-    }
+/* =========================================================
+   CHANNEL HEADER
+   ========================================================= */
 
-    /* =========================================================
-       FADER LEVEL FILL
-       ========================================================= */
+.channel-header {
+  min-height: 43px;
 
-    .band-track::after {
-      content: "";
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-      position: absolute;
+  gap: 8px;
 
-      left: 50%;
-      bottom: 0;
+  margin-bottom: 9px;
+  padding: 3px 7px;
 
-      width: 6px;
-      height: var(--fader-level, 50%);
+  background:
+    linear-gradient(
+      180deg,
+      #1e2d37,
+      #0a1218
+    );
 
-      transform: translateX(-50%);
+  border: 1px solid #435966;
 
-      border-radius: 999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    inset 0 -5px 10px rgba(0,0,0,.35);
+}
 
-      background:
-        linear-gradient(
-          to top,
-          #18a0ff,
-          #49c7ff
-        );
+.channel-label {
+  display: flex;
+  align-items: center;
 
-      box-shadow:
-        0 0 5px #00bfff,
-        0 0 10px rgba(0,180,255,.55);
+  gap: 9px;
 
-      pointer-events: none;
-    }
+  font-size:
+    clamp(
+      16px,
+      1.5vw,
+      22px
+    );
 
-    /* =========================================================
-       NATIVE RANGE
-       ========================================================= */
+  font-weight: 900;
+  letter-spacing: .5px;
 
-    .band input[type="range"] {
-      position: absolute;
+  text-shadow:
+    0 2px 2px #000;
+}
 
-      z-index: 5;
 
-      top: 50%;
-      left: 50%;
+/* =========================================================
+   POWER LED
+   ========================================================= */
 
-      /*
-       * Input diputar -90 derajat.
-       * width = panjang gerakan vertikal.
-       */
-      width: 282px;
-      height: 44px;
+.power-led {
+  width: 20px;
+  height: 20px;
 
-      margin: 0;
+  flex: 0 0 auto;
 
-      transform:
-        translate(-50%, -50%)
-        rotate(-90deg);
+  border-radius: 50%;
 
-      appearance: none;
-      -webkit-appearance: none;
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #ffffff 0 8%,
+      #62ff9a 20%,
+      #13ef51 55%,
+      #07842d 100%
+    );
 
-      background: transparent;
+  border: 1px solid #42ff83;
 
-      cursor: pointer;
+  box-shadow:
+    0 0 6px #1dff61,
+    0 0 18px rgba(25,255,90,.8),
+    inset 0 1px 3px #fff;
+}
 
-      /*
-       * Pointer ditangani oleh .band.
-       * Native range tetap digunakan untuk keyboard
-       * dan sebagai representasi nilai/knob.
-       */
-      pointer-events: none;
 
-      touch-action: none;
-    }
+/* =========================================================
+   CHANNEL STATUS
+   ========================================================= */
 
-    .band input[type="range"]::-webkit-slider-runnable-track {
-      height: 6px;
+.channel-status {
+  display: flex;
+  flex-wrap: wrap;
 
-      border: none;
-      border-radius: 999px;
+  justify-content: flex-end;
 
-      background: transparent;
-    }
+  gap: 5px;
+}
 
-    .band input[type="range"]::-moz-range-track {
-      height: 6px;
 
-      border: none;
-      border-radius: 999px;
+/*
+ * IMPORTANT:
+ * Semua status sekarang MATI secara default.
+ */
 
-      background: transparent;
-    }
+.status-light {
+  display: inline-flex;
+  align-items: center;
 
-    .band input[type="range"]::-webkit-slider-thumb {
-      appearance: none;
-      -webkit-appearance: none;
+  gap: 6px;
 
-      width: 28px;
-      height: 40px;
+  min-height: 31px;
 
-      margin-top: -17px;
+  padding: 5px 9px;
 
-      border: 2px solid rgba(255,255,255,.8);
-      border-radius: 6px;
+  border: 1px solid #4b606d;
+  border-radius: 5px;
 
-      background:
-        linear-gradient(
-          to bottom,
-          #f5f5f5,
-          #aeb6bf
-        );
+  background:
+    linear-gradient(
+      180deg,
+      #202e37,
+      #0a1117
+    );
 
-      box-shadow:
-        0 2px 5px rgba(0,0,0,.45),
-        inset 0 1px 1px rgba(255,255,255,.8);
+  color: #8e9aa2;
 
-      pointer-events: none;
-    }
+  font-size: 10px;
+  font-weight: 800;
 
-    .band input[type="range"]::-moz-range-thumb {
-      width: 28px;
-      height: 40px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 2px 3px #000;
+}
 
-      border: 2px solid rgba(255,255,255,.8);
-      border-radius: 6px;
 
-      background:
-        linear-gradient(
-          to bottom,
-          #f5f5f5,
-          #aeb6bf
-        );
-
-      box-shadow:
-        0 2px 5px rgba(0,0,0,.45),
-        inset 0 1px 1px rgba(255,255,255,.8);
-
-      pointer-events: none;
-    }
-
-    /* =========================================================
-       FREQUENCY / VALUE
-       ========================================================= */
-
-    .band-frequency {
-      position: absolute;
-
-      left: 50%;
-      bottom: 18px;
-
-      transform: translateX(-50%);
-
-      width: max-content;
-
-      color: #e8eef2;
-
-      font-size: 9px;
-      line-height: 1;
-      font-weight: 900;
-
-      white-space: nowrap;
-      text-align: center;
-
-      text-shadow: 0 1px 2px #000;
-
-      pointer-events: none;
-    }
-
-    .band-value {
-      position: absolute;
-
-      left: 50%;
-      bottom: 2px;
-
-      transform: translateX(-50%);
-
-      width: max-content;
-      min-width: 28px;
-
-      color: #ffc12a;
-
-      font-size: 9px;
-      line-height: 1;
-      font-weight: 900;
-
-      white-space: nowrap;
-      text-align: center;
-
-      text-shadow:
-        0 0 4px rgba(255,170,0,.35);
-
-      pointer-events: none;
-    }
-
-    /* =========================================================
-       CHANNEL FOOTER
-       ========================================================= */
-
-    .channel-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      gap: 8px;
-      margin-top: 7px;
-
-      color: #9eabb5;
-      font-size: 10px;
-    }
-
-    /* =========================================================
-       CHANNEL BUTTONS
-       ========================================================= */
-
-    .channel-buttons {
-      display: flex;
-
-      gap: 6px;
-      margin-top: 7px;
-    }
-
-    .channel-buttons .small-button {
-      flex: 1;
-    }
-
-    /* =========================================================
-       AUDIO ENGINE
-       ========================================================= */
-
-    .audio-engine {
-      margin-top: 10px;
-
-      padding: 9px;
-
-      border: 1px solid #637580;
-      border-radius: 7px;
-
-      background:
-        linear-gradient(
-          145deg,
-          #25353f,
-          #0d161d
-        );
-
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.12),
-        inset 0 -12px 20px rgba(0,0,0,.4),
-        0 5px 15px rgba(0,0,0,.65);
-    }
-
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-
-      margin-bottom: 9px;
-
-      font-size: 17px;
-      font-weight: 900;
-      letter-spacing: .5px;
-    }
-
-    .section-title::before {
-      content: "";
-
-      width: 13px;
-      height: 13px;
-
-      flex: 0 0 auto;
-
-      border-radius: 50%;
-
-      background: var(--yellow);
-
-      box-shadow:
-        0 0 9px var(--yellow);
-    }
-
-    .engine-grid {
-      display: grid;
-
-      grid-template-columns:
-        1.3fr
-        1fr
-        1fr;
-
-      gap: 9px;
-    }
-
-    .engine-box {
-      min-width: 0;
-
-      padding: 10px;
-
-      border: 1px solid #506572;
-      border-radius: 6px;
-
-      background:
-        linear-gradient(
-          145deg,
-          #192a34,
-          #081117
-        );
-
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.08),
-        inset 0 -8px 15px rgba(0,0,0,.35);
-    }
-
-    .engine-label {
-      margin-bottom: 8px;
-
-      color: #d9e2e8;
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .engine-controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-    }
-
-    .engine-controls .hardware-button {
-      flex: 1 1 120px;
-      min-height: 43px;
-
-      background:
-        linear-gradient(
-          180deg,
-          #315064,
-          #0c1b24
-        );
-    }
-
-    .hardware-select {
-      width: 100%;
-      min-height: 34px;
-
-      padding: 5px 8px;
-
-      font-size: 12px;
-    }
-
-    .file-input {
-      width: 100%;
-
-      color: #b8c4cc;
-      font-size: 11px;
-    }
-
-    /* =========================================================
-       MASTER
-       ========================================================= */
-
-    .master-row {
-      display: flex;
-      align-items: center;
-
-      gap: 10px;
-    }
-
-    .master-row input {
-      flex: 1;
-    }
-
-    .master-row input[type="range"] {
-      height: 9px;
-
-      appearance: none;
-      -webkit-appearance: none;
-
-      border-radius: 5px;
-
-      background:
-        linear-gradient(
-          90deg,
-          #078bff,
-          #23aaff 65%,
-          #3c4449 65%
-        );
-
-      box-shadow:
-        inset 0 2px 3px #000;
-    }
-
-    .master-row input[type="range"]::-webkit-slider-thumb {
-      appearance: none;
-      -webkit-appearance: none;
-
-      width: 25px;
-      height: 34px;
-
-      border: 1px solid #d4dce0;
-      border-radius: 4px;
-
-      background:
-        linear-gradient(
-          180deg,
-          #f5f8fa,
-          #87949a,
-          #dce3e7,
-          #58646a
-        );
-
-      box-shadow:
-        0 2px 5px #000,
-        0 0 6px rgba(0,170,255,.5);
-    }
-
-    .master-value {
-      min-width: 55px;
-
-      color: #ffb52b;
-      font-weight: 900;
-      text-align: right;
-    }
-
-    /* =========================================================
-       FOOTER
-       ========================================================= */
-
-    .footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      gap: 10px;
-
-      margin-top: 10px;
-      padding: 12px 6px 2px;
-
-      border-top: 1px solid #263944;
-
-      color: #8f9da8;
-      font-size: 11px;
-    }
-
-    .ready {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      color: #c6d0d7;
-    }
-
-    .ready::before {
-      content: "";
-
-      width: 10px;
-      height: 10px;
-
-      flex: 0 0 auto;
-
-      border-radius: 50%;
-
-      background: var(--green);
-
-      box-shadow:
-        0 0 8px var(--green);
-    }
-
-    /* =========================================================
-       TABLET
-       ========================================================= */
-
-    @media (max-width: 1100px) {
-
-      .control-row {
-        grid-template-columns:
-          1fr
-          1fr
-          1fr;
-      }
-
-      .meter-box {
-        grid-column: span 2;
-      }
-
-      .clip-box {
-        min-height: 70px;
-      }
-
-      .engine-grid {
-        grid-template-columns:
-          1fr
-          1fr;
-      }
-
-    }
-
-    /* =========================================================
-       LANDSCAPE TABLET / PHONE
-       ========================================================= */
-
-    @media (orientation: landscape) and (max-width: 1100px) {
-
-      .app {
-        padding: 5px;
-      }
-
-      /*
-       * Dua channel tetap berdampingan.
-       * Karena total lebarnya bisa lebih besar daripada layar,
-       * channels-scroll akan menjadi horizontal scroll.
-       */
-      .channels {
-        grid-template-columns:
-          520px
-          520px;
-
-        width: max-content;
-        min-width: max-content;
-
-        gap: 18px;
-      }
-
-      .channel {
-        width: 520px;
-        min-width: 520px;
-        max-width: 520px;
-      }
-
-      .channel-header {
-        flex-direction: row;
-      }
-
-      .channel-status {
-        justify-content: flex-end;
-      }
-
-      .band {
-        height: 300px;
-      }
-
-      .db-scale {
-        height: 300px;
-      }
-
-      .eq-area {
-        min-width: 1220px;
-      }
-
-    }
-
-    /* =========================================================
-       PORTRAIT
-       ========================================================= */
-
-    @media (max-width: 760px) {
-
-      .app {
-        padding: 7px;
-      }
-
-      .top-rack,
-      .device-title {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .top-actions,
-      .preset-area {
-        width: 100%;
-        justify-content: flex-start;
-      }
-
-      .channels {
-        grid-template-columns: 1fr;
-        width: 100%;
-        min-width: 0;
-      }
-
-      .channel {
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
-        padding: 8px;
-      }
-
-      .channel-header {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .channel-status {
-        justify-content: flex-start;
-      }
-
-      .control-row {
-        grid-template-columns:
-          1fr
-          1fr;
-      }
-
-      .meter-box {
-        grid-column: span 2;
-      }
-
-      .clip-box {
-        min-height: 58px;
-      }
-
-      .engine-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .footer {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .channel-buttons {
-        flex-direction: row;
-      }
-
-      .channel-buttons .small-button {
-        flex: 1;
-      }
-
-    }
-
-    /* =========================================================
-       SMALL PHONE
-       ========================================================= */
-
-    @media (max-width: 480px) {
-
-      .channel {
-        padding: 8px;
-      }
-
-      .eq-scale {
-        min-width: 1178px;
-      }
-
-      .eq-area {
-        min-width: 1220px;
-      }
-
-      .bands {
-        grid-template-columns:
-          repeat(31, 30px);
-
-        gap: 8px;
-      }
-
-      .band {
-        width: 30px;
-        min-width: 30px;
-        max-width: 30px;
-
-        height: 330px;
-
-        flex-basis: 30px;
-      }
-
-      .db-scale {
-        height: 330px;
-      }
-
-    }
-
-    /* =========================================================
-       LARGE SCREEN
-       ========================================================= */
-
-    @media (min-width: 1000px) {
-
-      .band {
-        width: 32px;
-        min-width: 32px;
-        max-width: 32px;
-      }
-
-      .bands {
-        grid-template-columns:
-          repeat(31, 32px);
-
-        grid-auto-columns: 32px;
-
-        gap: 9px;
-      }
-
-    }
-
-    @media (min-width: 1600px) {
-
-      .band,
-      .db-scale {
-        height: 360px;
-      }
-
-    }
-    /* =========================================================
-   REAL STATUS LIGHT
-   OFF = REDUP
-   ON  = MENYALA
+/* =========================================================
+   STATUS LED — OFF
    ========================================================= */
 
 .status-light::before {
+  content: "";
+
+  width: 9px;
+  height: 9px;
+
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+
   background: #26342c;
+
   box-shadow: none;
+
   opacity: .45;
+}
+
+
+/* =========================================================
+   ACTIVE — OFF / ON
+   ========================================================= */
+
+.status-light.active {
+  color: #dfffea;
+
+  border-color: #27663e;
+
+  background:
+    linear-gradient(
+      180deg,
+      #172b20,
+      #09130d
+    );
 }
 
 .status-light.active::before {
   background: var(--green);
-  box-shadow: 0 0 7px var(--green);
+
+  box-shadow:
+    0 0 7px var(--green),
+    0 0 13px rgba(41,245,107,.45);
+
   opacity: 1;
+}
+
+
+/* =========================================================
+   BYPASS — OFF / ON
+   ========================================================= */
+
+.status-light.bypass {
+  color: #9a8587;
 }
 
 .status-light.bypass::before {
   background: #3a171b;
+
   box-shadow: none;
+
   opacity: .45;
+}
+
+.status-light.bypass.active {
+  color: #ffd8da;
+
+  border-color: #71343a;
+
+  background:
+    linear-gradient(
+      180deg,
+      #32171a,
+      #10090a
+    );
 }
 
 .status-light.bypass.active::before {
   background: var(--red);
-  box-shadow: 0 0 7px var(--red);
+
+  box-shadow:
+    0 0 7px var(--red),
+    0 0 14px rgba(255,48,48,.45);
+
   opacity: 1;
+}
+
+
+/* =========================================================
+   TEST — OFF / ON
+   ========================================================= */
+
+.status-light.test {
+  color: #998f69;
 }
 
 .status-light.test::before {
   background: #3a3214;
+
   box-shadow: none;
+
   opacity: .45;
+}
+
+.status-light.test.active {
+  color: #fff2a2;
+
+  border-color: #77651d;
+
+  background:
+    linear-gradient(
+      180deg,
+      #332d12,
+      #110f07
+    );
 }
 
 .status-light.test.active::before {
   background: var(--yellow);
-  box-shadow: 0 0 7px var(--yellow);
+
+  box-shadow:
+    0 0 7px var(--yellow),
+    0 0 14px rgba(255,213,43,.45);
+
   opacity: 1;
 }
-  </style>
+
+
+/* =========================================================
+   CONTROL ROW
+   ========================================================= */
+
+.control-row {
+  display: grid;
+
+  grid-template-columns:
+    1.15fr
+    .9fr
+    .9fr
+    1.55fr
+    auto;
+
+  gap: 7px;
+
+  align-items: stretch;
+}
+
+.control-box {
+  min-width: 0;
+  min-height: 108px;
+
+  padding: 8px;
+
+  border: 1px solid #506674;
+  border-radius: 6px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #1b2a34,
+      #091117
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.09),
+    inset 0 -8px 15px rgba(0,0,0,.4),
+    0 2px 4px rgba(0,0,0,.45);
+}
+
+.control-title {
+  margin-bottom: 8px;
+
+  color: #e7edf1;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  letter-spacing: .3px;
+
+  text-shadow:
+    0 1px 2px #000;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   GAIN
+   ========================================================= */
+
+.gain-slider {
+  width: 100%;
+  height: 18px;
+
+  cursor: pointer;
+
+  touch-action: pan-y;
+}
+
+.gain-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 22px;
+  height: 22px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #dce5e9 0 7%,
+      #7e8a91 22%,
+      #263038 58%,
+      #080b0e 80%,
+      #6c777d 100%
+    );
+
+  border: 1px solid #aab6bc;
+
+  box-shadow:
+    0 2px 5px #000,
+    0 0 5px rgba(0,160,255,.4);
+}
+
+.gain-value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 6px;
+  margin-top: 4px;
+
+  font-size: 12px;
+}
+
+.gain-value strong {
+  font-size: 15px;
+  color: #f0f3f5;
+}
+
+
+/* =========================================================
+   RANGE INPUT
+   ========================================================= */
+
+input[type="range"] {
+  width: 100%;
+
+  accent-color: var(--orange);
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   SMALL BUTTON
+   ========================================================= */
+
+.small-button {
+  min-height: 35px;
+  min-width: 38px;
+
+  padding: 5px 10px;
+
+  border: 1px solid #617582;
+  border-radius: 5px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #334754,
+      #101b23
+    );
+
+  color: #e9f2f7;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -3px 5px rgba(0,0,0,.45),
+    0 2px 3px #000;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  touch-action: manipulation;
+
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+.small-button:hover {
+  border-color: #14baff;
+}
+
+.small-button.active {
+  color: #fff;
+
+  background:
+    linear-gradient(
+      180deg,
+      #176a8d,
+      #073246
+    );
+
+  border-color: #1abaff;
+
+  box-shadow:
+    0 0 8px rgba(0,180,255,.4),
+    inset 0 0 8px rgba(0,180,255,.25);
+}
+
+.channel-buttons {
+  display: flex;
+
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.channel-buttons .small-button {
+  min-height: 43px;
+
+  flex: 1;
+
+  background:
+    linear-gradient(
+      180deg,
+      #30434f,
+      #0e1a22
+    );
+
+  font-size: 11px;
+  letter-spacing: .4px;
+}
+
+
+/* =========================================================
+   METER
+   ========================================================= */
+
+.meter-box {
+  min-width: 0;
+}
+
+.meter-scale {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 2px;
+  margin-bottom: 5px;
+
+  color: #d7e0e7;
+
+  font-size: 9px;
+}
+
+
+/*
+ * IMPORTANT:
+ * Meter memang horizontal.
+ *
+ * LED 1 = paling kiri
+ * LED 18 = paling kanan
+ */
+
+.led-meter {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      18,
+      minmax(7px, 1fr)
+    );
+
+  gap: 3px;
+
+  min-height: 36px;
+
+  padding: 5px;
+
+  border: 1px solid #314752;
+  border-radius: 5px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #020609,
+      #071015
+    );
+
+  box-shadow:
+    inset 0 0 10px #000,
+    0 0 2px rgba(0,180,255,.25);
+
+  /*
+   * Jangan gunakan direction: rtl.
+   * JS menggunakan index 0 → 17.
+   */
+  direction: ltr;
+}
+
+.led-meter span {
+  min-width: 7px;
+  height: 22px;
+
+  border-radius: 3px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #10201c,
+      #07100e
+    );
+
+  border: 1px solid #20352d;
+
+  box-shadow:
+    inset 0 0 3px #000;
+}
+
+.led-meter span.on {
+  background:
+    linear-gradient(
+      180deg,
+      #75ff9a,
+      #0cff4d
+    );
+
+  border-color: #a0ffb8;
+
+  box-shadow:
+    0 0 5px #20ff65,
+    0 0 11px rgba(20,255,80,.65),
+    inset 0 0 4px #fff;
+}
+
+
+/*
+ * LED 11–15 = KUNING
+ */
+
+.led-meter
+span:nth-child(n + 11).on {
+  background:
+    linear-gradient(
+      180deg,
+      #fff176,
+      #ffc400
+    );
+
+  border-color: #fff8a0;
+
+  box-shadow:
+    0 0 7px #ffd21c,
+    inset 0 0 3px #fff;
+}
+
+
+/*
+ * LED 16–18 = MERAH
+ */
+
+.led-meter
+span:nth-child(n + 16).on {
+  background:
+    linear-gradient(
+      180deg,
+      #ff8b8b,
+      #ff2020
+    );
+
+  border-color: #ffb0b0;
+
+  box-shadow:
+    0 0 8px #ff3030,
+    0 0 14px rgba(255,40,40,.6);
+}
+
+
+/* =========================================================
+   CLIP
+   ========================================================= */
+
+.clip-box {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  min-width: 55px;
+
+  border: 1px solid #743238;
+  border-radius: 6px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #401719,
+      #18090b
+    );
+
+  box-shadow:
+    inset 0 0 10px rgba(255,0,0,.12),
+    0 2px 4px #000;
+}
+
+.clip-led {
+  width: 17px;
+  height: 17px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      #87252a,
+      #3b1115
+    );
+
+  border: 1px solid #9d3036;
+}
+
+.clip-led.on {
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #fff 0 5%,
+      #ff7777 18%,
+      #ff2020 60%,
+      #a40000 100%
+    );
+
+  box-shadow:
+    0 0 8px #ff3030,
+    0 0 20px rgba(255,0,0,.75);
+}
+
+.clip-text {
+  color: #ff7777;
+
+  font-size: 10px;
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   EQ WRAPPER
+   ========================================================= */
+
+.eq-wrapper {
+  position: relative;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  margin-top: 10px;
+
+  padding:
+    8px 4px 10px;
+
+  border: 1px solid #435b68;
+  border-radius: 6px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #080f14,
+      #17252e 50%,
+      #080f14
+    );
+
+  box-shadow:
+    inset 0 0 15px rgba(0,0,0,.55);
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  -webkit-overflow-scrolling: touch;
+
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: none;
+
+  scrollbar-width: auto;
+
+  scrollbar-color:
+    #788792
+    #151c22;
+
+  touch-action: pan-x;
+
+  cursor: grab;
+}
+
+.eq-wrapper:active {
+  cursor: grabbing;
+}
+
+
+/* =========================================================
+   EQ SCALE
+   ========================================================= */
+
+.eq-scale {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      7,
+      1fr
+    );
+
+  width: 100%;
+  min-width: 1178px;
+
+  margin-bottom: 4px;
+
+  color: #e0e7ec;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.eq-scale span {
+  text-align: center;
+}
+
+
+/* =========================================================
+   EQ AREA
+   ========================================================= */
+
+.eq-area {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+
+  width: max-content;
+
+  min-width: 1220px;
+
+  gap: 8px;
+}
+
+
+/* =========================================================
+   dB SCALE
+   ========================================================= */
+
+.db-scale {
+  display: flex;
+  flex-direction: column;
+
+  justify-content: space-between;
+
+  flex: 0 0 31px;
+
+  width: 31px;
+  height: 330px;
+
+  padding:
+    9px 0 22px;
+
+  color: #e2e9ed;
+
+  font-size: 10px;
+  font-weight: 900;
+
+  text-align: right;
+
+  text-shadow:
+    0 1px 2px #000;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   31 BANDS
+   ========================================================= */
+
+.bands {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      31,
+      30px
+    );
+
+  grid-auto-columns: 30px;
+
+  gap: 8px;
+
+  width: max-content;
+
+  min-width: 1178px;
+
+  flex: 0 0 auto;
+
+  align-items: stretch;
+}
+
+
+/* =========================================================
+   INDIVIDUAL BAND
+   ========================================================= */
+
+.band {
+  position: relative;
+
+  width: 30px;
+  min-width: 30px;
+  max-width: 30px;
+
+  height: 330px;
+
+  padding:
+    6px 2px 0;
+
+  border: 1px solid #4c606c;
+  border-radius: 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #091117,
+      #1d2a33 48%,
+      #091117
+    );
+
+  box-shadow:
+    inset 1px 0 rgba(255,255,255,.04),
+    inset -1px 0 rgba(0,0,0,.8),
+    inset 0 0 5px #000;
+
+  flex: 0 0 30px;
+
+  user-select: none;
+  -webkit-user-select: none;
+
+  /*
+   * Horizontal = scroll.
+   * Vertical = JS fader.
+   */
+  touch-action: pan-x;
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+  cursor: pointer;
+}
+
+.band.is-dragging {
+  cursor: ns-resize;
+}
+
+.band:focus-within {
+  outline: none;
+}
+
+
+/* =========================================================
+   BAND TRACK
+   ========================================================= */
+
+.band-track {
+  position: absolute;
+
+  top: 12px;
+  bottom: 36px;
+
+  left: 50%;
+
+  width: 6px;
+
+  transform:
+    translateX(-50%);
+
+  border-radius: 999px;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      #6d7c85 0,
+      #6d7c85 1px,
+      transparent 1px,
+      transparent 16px
+    ),
+    linear-gradient(
+      90deg,
+      #060a0e,
+      #53636d,
+      #060a0e
+    );
+
+  box-shadow:
+    inset 0 0 4px #000,
+    0 0 0 1px #05080a;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   FADER LEVEL FILL
+   ========================================================= */
+
+.band-track::after {
+  content: "";
+
+  position: absolute;
+
+  left: 50%;
+  bottom: 0;
+
+  width: 6px;
+
+  height:
+    var(--fader-level, 50%);
+
+  transform:
+    translateX(-50%);
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      to top,
+      #18a0ff,
+      #49c7ff
+    );
+
+  box-shadow:
+    0 0 5px #00bfff,
+    0 0 10px rgba(0,180,255,.55);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   NATIVE RANGE
+   ========================================================= */
+
+.band input[type="range"] {
+  position: absolute;
+
+  z-index: 5;
+
+  top: 50%;
+  left: 50%;
+
+  width: 282px;
+  height: 44px;
+
+  margin: 0;
+
+  transform:
+    translate(-50%, -50%)
+    rotate(-90deg);
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  /*
+   * Pointer drag ditangani oleh JS.
+   */
+  pointer-events: none;
+
+  touch-action: none;
+}
+
+.band input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+
+  border: none;
+  border-radius: 999px;
+
+  background: transparent;
+}
+
+.band input[type="range"]::-moz-range-track {
+  height: 6px;
+
+  border: none;
+  border-radius: 999px;
+
+  background: transparent;
+}
+
+.band input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 28px;
+  height: 40px;
+
+  margin-top: -17px;
+
+  border: 2px solid rgba(255,255,255,.8);
+
+  border-radius: 6px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      #f5f5f5,
+      #aeb6bf
+    );
+
+  box-shadow:
+    0 2px 5px rgba(0,0,0,.45),
+    inset 0 1px 1px rgba(255,255,255,.8);
+
+  pointer-events: none;
+}
+
+.band input[type="range"]::-moz-range-thumb {
+  width: 28px;
+  height: 40px;
+
+  border: 2px solid rgba(255,255,255,.8);
+
+  border-radius: 6px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      #f5f5f5,
+      #aeb6bf
+    );
+
+  box-shadow:
+    0 2px 5px rgba(0,0,0,.45),
+    inset 0 1px 1px rgba(255,255,255,.8);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   FREQUENCY / VALUE
+   ========================================================= */
+
+.band-frequency {
+  position: absolute;
+
+  left: 50%;
+  bottom: 18px;
+
+  transform:
+    translateX(-50%);
+
+  width: max-content;
+
+  color: #e8eef2;
+
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 900;
+
+  white-space: nowrap;
+
+  text-align: center;
+
+  text-shadow:
+    0 1px 2px #000;
+
+  pointer-events: none;
+}
+
+.band-value {
+  position: absolute;
+
+  left: 50%;
+  bottom: 2px;
+
+  transform:
+    translateX(-50%);
+
+  width: max-content;
+  min-width: 28px;
+
+  color: #ffc12a;
+
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 900;
+
+  white-space: nowrap;
+
+  text-align: center;
+
+  text-shadow:
+    0 0 4px rgba(255,170,0,.35);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   CHANNEL FOOTER
+   ========================================================= */
+
+.channel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  margin-top: 7px;
+
+  color: #9eabb5;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   AUDIO ENGINE
+   ========================================================= */
+
+.audio-engine {
+  margin-top: 10px;
+
+  padding: 9px;
+
+  border: 1px solid #637580;
+  border-radius: 7px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #25353f,
+      #0d161d
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -12px 20px rgba(0,0,0,.4),
+    0 5px 15px rgba(0,0,0,.65);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin-bottom: 9px;
+
+  font-size: 17px;
+  font-weight: 900;
+
+  letter-spacing: .5px;
+}
+
+.section-title::before {
+  content: "";
+
+  width: 13px;
+  height: 13px;
+
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+
+  background: var(--yellow);
+
+  box-shadow:
+    0 0 9px var(--yellow);
+}
+
+.engine-grid {
+  display: grid;
+
+  grid-template-columns:
+    1.3fr
+    1fr
+    1fr;
+
+  gap: 9px;
+}
+
+.engine-box {
+  min-width: 0;
+
+  padding: 10px;
+
+  border: 1px solid #506572;
+  border-radius: 6px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #192a34,
+      #081117
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -8px 15px rgba(0,0,0,.35);
+}
+
+.engine-label {
+  margin-bottom: 8px;
+
+  color: #d9e2e8;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.engine-controls {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 7px;
+}
+
+.engine-controls .hardware-button {
+  flex: 1 1 120px;
+
+  min-height: 43px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #315064,
+      #0c1b24
+    );
+}
+
+.hardware-select {
+  width: 100%;
+
+  min-height: 34px;
+
+  padding: 5px 8px;
+
+  font-size: 12px;
+}
+
+.file-input {
+  width: 100%;
+
+  color: #b8c4cc;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   AUDIO PLAYER
+   ========================================================= */
+
+#audioPlayer {
+  width: 100%;
+
+  min-height: 38px;
+
+  margin-top: 10px;
+
+  border-radius: 5px;
+
+  background: #071017;
+}
+
+
+/* =========================================================
+   CURRENT AUDIO NAME
+   ========================================================= */
+
+#currentAudioName {
+  margin-top: 7px;
+
+  padding: 7px 9px;
+
+  border: 1px solid #334a56;
+  border-radius: 5px;
+
+  background: #091219;
+
+  color: #dce6eb;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   PLAYLIST
+   ========================================================= */
+
+#audioPlaylist {
+  margin-top: 6px;
+
+  max-height: 160px;
+
+  overflow-y: auto;
+
+  border: 1px solid #405561;
+  border-radius: 5px;
+
+  background: #071017;
+
+  box-shadow:
+    inset 0 0 8px rgba(0,0,0,.6);
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    #667984
+    #101920;
+}
+
+#audioPlaylist button {
+  transition:
+    background .15s ease,
+    color .15s ease;
+}
+
+#audioPlaylist button:hover {
+  background: #174761 !important;
+}
+
+
+/* =========================================================
+   MASTER
+   ========================================================= */
+
+.master-row {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.master-row input {
+  flex: 1;
+}
+
+.master-row input[type="range"] {
+  height: 9px;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  border-radius: 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #078bff,
+      #23aaff 65%,
+      #3c4449 65%
+    );
+
+  box-shadow:
+    inset 0 2px 3px #000;
+}
+
+.master-row input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 25px;
+  height: 34px;
+
+  border: 1px solid #d4dce0;
+  border-radius: 4px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f5f8fa,
+      #87949a,
+      #dce3e7,
+      #58646a
+    );
+
+  box-shadow:
+    0 2px 5px #000,
+    0 0 6px rgba(0,170,255,.5);
+}
+
+.master-value {
+  min-width: 55px;
+
+  color: #ffb52b;
+
+  font-weight: 900;
+
+  text-align: right;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  margin-top: 10px;
+  padding: 12px 6px 2px;
+
+  border-top: 1px solid #263944;
+
+  color: #8f9da8;
+
+  font-size: 11px;
+}
+
+.ready {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: #c6d0d7;
+}
+
+.ready::before {
+  content: "";
+
+  width: 10px;
+  height: 10px;
+
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+
+  background: var(--green);
+
+  box-shadow:
+    0 0 8px var(--green);
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .control-row {
+    grid-template-columns:
+      1fr
+      1fr
+      1fr;
+  }
+
+  .meter-box {
+    grid-column: span 2;
+  }
+
+  .clip-box {
+    min-height: 70px;
+  }
+
+  .engine-grid {
+    grid-template-columns:
+      1fr
+      1fr;
+  }
+
+}
+
+
+/* =========================================================
+   LANDSCAPE TABLET / PHONE
+   ========================================================= */
+
+@media
+(orientation: landscape)
+and (max-width: 1100px) {
+
+  .app {
+    padding: 5px;
+  }
+
+  /*
+   * Dua channel tetap berdampingan.
+   */
+
+  .channels {
+    grid-template-columns:
+      520px
+      520px;
+
+    width: max-content;
+
+    min-width:
+      max-content;
+
+    gap: 18px;
+  }
+
+  .channel {
+    width: 520px;
+
+    min-width: 520px;
+    max-width: 520px;
+  }
+
+  .channel-header {
+    flex-direction: row;
+  }
+
+  .channel-status {
+    justify-content: flex-end;
+  }
+
+  .band {
+    height: 300px;
+  }
+
+  .db-scale {
+    height: 300px;
+  }
+
+  .eq-area {
+    min-width: 1220px;
+  }
+
+}
+
+
+/* =========================================================
+   PORTRAIT
+   ========================================================= */
+
+@media (max-width: 760px) {
+
+  .app {
+    padding: 7px;
+  }
+
+  .top-rack,
+  .device-title {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .top-actions,
+  .preset-area {
+    width: 100%;
+
+    justify-content: flex-start;
+  }
+
+  /*
+   * CH1 dan CH2 menjadi vertikal
+   * pada layar kecil.
+   */
+
+  .channels {
+    grid-template-columns: 1fr;
+
+    width: 100%;
+    min-width: 0;
+  }
+
+  .channel {
+    width: 100%;
+
+    min-width: 0;
+    max-width: 100%;
+
+    padding: 8px;
+  }
+
+  .channel-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .channel-status {
+    justify-content: flex-start;
+  }
+
+  .control-row {
+    grid-template-columns:
+      1fr
+      1fr;
+  }
+
+  .meter-box {
+    grid-column: span 2;
+  }
+
+  .clip-box {
+    min-height: 58px;
+  }
+
+  .engine-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL PHONE
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+  .channel {
+    padding: 8px;
+  }
+
+  .channel-label {
+    font-size: 16px;
+  }
+
+  .status-light {
+    min-height: 28px;
+
+    padding:
+      4px 7px;
+
+    font-size: 9px;
+  }
+
+  .control-row {
+    gap: 6px;
+  }
+
+  .control-box {
+    padding: 7px;
+  }
+
+  .eq-scale {
+    min-width: 1178px;
+  }
+
+  .eq-area {
+    min-width: 1220px;
+  }
+
+  .bands {
+    grid-template-columns:
+      repeat(
+        31,
+        30px
+      );
+
+    gap: 8px;
+  }
+
+  .band {
+    width: 30px;
+
+    min-width: 30px;
+    max-width: 30px;
+
+    height: 330px;
+
+    flex-basis: 30px;
+  }
+
+  .db-scale {
+    height: 330px;
+  }
+
+  .led-meter {
+    gap: 2px;
+  }
+
+  .led-meter span {
+    min-width: 5px;
+  }
+
+}
+
+
+/* =========================================================
+   LARGE SCREEN
+   ========================================================= */
+
+@media (min-width: 1000px) {
+
+  .band {
+    width: 32px;
+
+    min-width: 32px;
+    max-width: 32px;
+  }
+
+  .bands {
+    grid-template-columns:
+      repeat(
+        31,
+        32px
+      );
+
+    grid-auto-columns: 32px;
+
+    gap: 9px;
+  }
+
+}
+
+
+/* =========================================================
+   VERY LARGE SCREEN
+   ========================================================= */
+
+@media (min-width: 1600px) {
+
+  .band {
+    height: 360px;
+  }
+
+  .db-scale {
+    height: 360px;
+  }
+
+}
+
+
+/* =========================================================
+   AUDIO ENGINE MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .engine-controls {
+    flex-direction: column;
+  }
+
+  .engine-controls .hardware-button {
+    width: 100%;
+    flex: 1 1 auto;
+  }
+
+  .master-row {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+  .master-value {
+    width: 100%;
+
+    text-align: left;
+  }
+
+}
+
+
+/* =========================================================
+   REDUCE MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+
+    animation-duration:
+      .01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    transition-duration:
+      .01ms !important;
+  }
+
+}
+</style>
+
+  
 </head>
 
 <body>
@@ -2100,6 +2527,8 @@
    TRUE STEREO L/R
    31 BAND
    REAL TIME METER
+   REAL 1 kHz TEST
+   PLAYLIST MULTI FILE
    ACTIVE / BYPASS / TEST STATUS
    MASTER SYNC
    ========================================================= */
@@ -2163,6 +2592,15 @@ const inputDevice =
 const readyStatus =
   document.getElementById("readyStatus");
 
+const currentAudioName =
+  document.getElementById("currentAudioName");
+
+const playlistCount =
+  document.getElementById("playlistCount");
+
+const audioPlaylist =
+  document.getElementById("audioPlaylist");
+
 
 /* =========================================================
    AUDIO ENGINE STATE
@@ -2176,20 +2614,21 @@ let sourceNode = null;
 
 
 /*
- * TRUE STEREO NODES
+ * TRUE STEREO ROUTING
  *
+ * INPUT
+ *   ↓
  * stereoInputNode
- *      ↓
+ *   ↓
  * stereoSplitter
- *   ┌──┴──┐
- *   L    R
- *   ↓    ↓
- *  CH1  CH2
- *   ↓    ↓
- * stereoMerger
+ *   ├── CH1 LEFT
+ *   └── CH2 RIGHT
+ *          ↓
+ *     stereoMerger
+ *          ↓
+ *       MASTER
  */
-let audioInputActive = false;
-  
+
 let stereoInputNode = null;
 
 let stereoSplitter = null;
@@ -2198,54 +2637,95 @@ let stereoMerger = null;
 
 
 /*
- * MediaElementSource hanya boleh dibuat satu kali
- * untuk elemen audio yang sama.
+ * Source audio aktif.
+ *
+ * true  = MIC / AUDIO FILE aktif
+ * false = tidak ada source eksternal
+ */
+
+let audioInputActive = false;
+
+
+/*
+ * TEST SIGNAL
+ *
+ * CH1 = oscillator
+ * CH2 = oscillator
+ */
+
+let testOscillators = [
+  null,
+  null
+];
+
+let testGains = [
+  null,
+  null
+];
+
+
+/*
+ * MediaElementSource hanya boleh
+ * dibuat satu kali untuk elemen audio
+ * yang sama.
  */
 
 let audioFileSourceNode = null;
 
 
 /*
- * Analyser CH1 / CH2.
+ * ANALYSER
  */
 
 let analyserNodes = [];
 
 
 /*
- * Audio graph CH1 / CH2.
+ * CHANNEL GRAPHS
  */
 
 let channelGraphs = [];
 
 
 /*
- * Microphone stream.
+ * MICROPHONE STREAM
  */
 
 let microphoneStream = null;
 
 
 /*
- * Master mute.
+ * MASTER MUTE
  */
 
 let isMuted = false;
 
 
 /*
- * Meter animation.
+ * METER ANIMATION
  */
 
 let meterAnimationId = null;
 
+let meterAnimationRunning = false;
+
 
 /*
- * Supaya startMeterAnimation()
- * tidak membuat loop ganda.
+ * PLAYLIST
  */
 
-let meterAnimationRunning = false;
+let audioFiles = [];
+
+let currentAudioIndex = -1;
+
+let audioObjectUrls = [];
+
+
+/*
+ * FADER
+ */
+
+const FADER_STEP = 0.5;
 
 
 /* =========================================================
@@ -2292,10 +2772,13 @@ const channelState = [
 function formatFrequency(freq) {
 
   if (freq >= 1000) {
+
     return `${freq / 1000}K`;
+
   }
 
   return String(freq);
+
 }
 
 
@@ -2305,10 +2788,13 @@ function formatDb(value) {
     Number(value);
 
   if (number > 0) {
+
     return `+${number.toFixed(1)}`;
+
   }
 
   return number.toFixed(1);
+
 }
 
 
@@ -2318,15 +2804,13 @@ function dbToGain(db) {
     10,
     db / 20
   );
+
 }
 
 
 /* =========================================================
-   FADER
+   FADER HELPERS
    ========================================================= */
-
-const FADER_STEP = 0.5;
-
 
 function clampBandValue(
   channelIndex,
@@ -2334,13 +2818,17 @@ function clampBandValue(
 ) {
 
   const range =
-    channelState[channelIndex].range;
+    channelState[
+      channelIndex
+    ].range;
 
   let result =
     Number(value);
 
   if (!Number.isFinite(result)) {
+
     result = 0;
+
   }
 
   result =
@@ -2354,10 +2842,13 @@ function clampBandValue(
 
   result =
     Math.round(
-      result / FADER_STEP
-    ) * FADER_STEP;
+      result /
+      FADER_STEP
+    ) *
+    FADER_STEP;
 
   return result;
+
 }
 
 
@@ -2367,16 +2858,25 @@ function calculateFaderPercent(
 ) {
 
   const range =
-    channelState[channelIndex].range;
+    channelState[
+      channelIndex
+    ].range;
 
   if (range <= 0) {
+
     return 50;
+
   }
 
   const percent =
     (
-      (Number(value) + range) /
-      (range * 2)
+      (
+        Number(value) +
+        range
+      ) /
+      (
+        range * 2
+      )
     ) * 100;
 
   return Math.max(
@@ -2386,6 +2886,7 @@ function calculateFaderPercent(
       percent
     )
   );
+
 }
 
 
@@ -2405,6 +2906,7 @@ function updateBandVisual(
     "--fader-level",
     `${percent}%`
   );
+
 }
 
 
@@ -2423,15 +2925,20 @@ function setBandValue(
       value
     );
 
-  channelState[channelIndex]
-    .bands[bandIndex] =
+  channelState[
+    channelIndex
+  ].bands[
+    bandIndex
+  ] =
     safeValue;
 
   slider.value =
     String(safeValue);
 
   valueLabel.textContent =
-    formatDb(safeValue);
+    formatDb(
+      safeValue
+    );
 
   updateBandVisual(
     channelIndex,
@@ -2442,11 +2949,12 @@ function setBandValue(
   updateChannelAudio(
     channelIndex
   );
+
 }
 
 
 /* =========================================================
-   STATUS LAMP
+   STATUS LIGHTS
    ========================================================= */
 
 function updateChannelStatusLights(
@@ -2459,7 +2967,9 @@ function updateChannelStatusLights(
     );
 
   if (!channel) {
+
     return;
+
   }
 
 
@@ -2468,45 +2978,50 @@ function updateChannelStatusLights(
       '[data-role="status-active"]'
     );
 
-
   const bypassLight =
     channel.querySelector(
       '[data-role="status-bypass"]'
     );
-
 
   const testLight =
     channel.querySelector(
       '[data-role="status-test"]'
     );
 
-
   const state =
-    channelState[channelIndex];
+    channelState[
+      channelIndex
+    ];
 
 
   /*
-   * AUDIO ACTIVE
+   * AUDIO AKTIF
    *
-   * ACTIVE hanya ON ketika:
-   * - AudioContext running
-   * - sourceNode tersedia
+   * Aktif jika:
+   *
+   * 1. AudioContext running
+   * 2. Ada source eksternal
+   *
+   * atau:
+   *
+   * 3. TEST oscillator aktif
    */
 
-  const audioActive =
+  const realAudioActive =
     !!(
       audioContext &&
       audioContext.state === "running" &&
       sourceNode
     );
 
+  const testActive =
+    !!testOscillators[
+      channelIndex
+    ];
 
-  /*
-   * TEST
-   */
-
-  const testing =
-    !!state.test;
+  const audioActive =
+    realAudioActive ||
+    testActive;
 
 
   /*
@@ -2531,7 +3046,7 @@ function updateChannelStatusLights(
 
     bypassLight.classList.toggle(
       "active",
-      state.bypass
+      !!state.bypass
     );
 
   }
@@ -2545,7 +3060,7 @@ function updateChannelStatusLights(
 
     testLight.classList.toggle(
       "active",
-      testing
+      !!state.test
     );
 
   }
@@ -2553,14 +3068,13 @@ function updateChannelStatusLights(
 }
 
 
-/*
- * Update semua lampu channel.
- */
-
 function updateAllStatusLights() {
 
   channelState.forEach(
-    (_, index) => {
+    (
+      _,
+      index
+    ) => {
 
       updateChannelStatusLights(
         index
@@ -2859,11 +3373,13 @@ function createChannel(
 
 
   /* =======================================================
-     INITIAL STATE
+     INITIAL CONTROLS
      ======================================================= */
 
-  const initialState =
-    channelState[channelIndex];
+  const state =
+    channelState[
+      channelIndex
+    ];
 
 
   const lowCutButton =
@@ -2871,18 +3387,15 @@ function createChannel(
       '[data-role="lowcut"]'
     );
 
-
   const rangeButton =
     channel.querySelector(
       '[data-role="range"]'
     );
 
-
   const bypassButton =
     channel.querySelector(
       '[data-role="bypass"]'
     );
-
 
   const testButton =
     channel.querySelector(
@@ -2890,44 +3403,28 @@ function createChannel(
     );
 
 
-  if (lowCutButton) {
-
-    lowCutButton.classList.toggle(
-      "active",
-      initialState.lowCut
-    );
-
-  }
+  lowCutButton.classList.toggle(
+    "active",
+    state.lowCut
+  );
 
 
-  if (rangeButton) {
-
-    rangeButton.classList.toggle(
-      "active",
-      initialState.range === 6
-    );
-
-  }
+  rangeButton.classList.toggle(
+    "active",
+    state.range === 6
+  );
 
 
-  if (bypassButton) {
-
-    bypassButton.classList.toggle(
-      "active",
-      initialState.bypass
-    );
-
-  }
+  bypassButton.classList.toggle(
+    "active",
+    state.bypass
+  );
 
 
-  if (testButton) {
-
-    testButton.classList.toggle(
-      "active",
-      initialState.test
-    );
-
-  }
+  testButton.classList.toggle(
+    "active",
+    state.test
+  );
 
 
   const bandsContainer =
@@ -2956,10 +3453,6 @@ function createChannel(
         "band";
 
 
-      const state =
-        channelState[channelIndex];
-
-
       band.innerHTML = `
 
         <div class="band-track"></div>
@@ -2975,7 +3468,9 @@ function createChannel(
         />
 
         <div class="band-frequency">
-          ${formatFrequency(frequency)}
+          ${formatFrequency(
+            frequency
+          )}
         </div>
 
         <div
@@ -2991,7 +3486,9 @@ function createChannel(
 
 
       const slider =
-        band.querySelector("input");
+        band.querySelector(
+          "input"
+        );
 
 
       const valueLabel =
@@ -3078,7 +3575,9 @@ function createChannel(
             event.clientY;
 
           pointerStartValue =
-            Number(slider.value);
+            Number(
+              slider.value
+            );
 
         },
         {
@@ -3096,14 +3595,15 @@ function createChannel(
         event => {
 
           if (!pointerActive) {
+
             return;
+
           }
 
 
           const deltaX =
             event.clientX -
             pointerStartX;
-
 
           const deltaY =
             event.clientY -
@@ -3112,7 +3612,6 @@ function createChannel(
 
           const absX =
             Math.abs(deltaX);
-
 
           const absY =
             Math.abs(deltaY);
@@ -3126,14 +3625,11 @@ function createChannel(
             )
           ) {
 
-            pointerMoved = true;
+            pointerMoved =
+              true;
 
 
             if (absX > absY) {
-
-              /*
-               * Horizontal = scroll.
-               */
 
               pointerMode =
                 "scroll";
@@ -3146,12 +3642,9 @@ function createChannel(
             }
 
 
-            /*
-             * Vertical = fader.
-             */
-
             pointerMode =
               "fader";
+
 
             band.classList.add(
               "is-dragging"
@@ -3245,7 +3738,9 @@ function createChannel(
         event => {
 
           if (!pointerActive) {
+
             return;
+
           }
 
 
@@ -3268,11 +3763,14 @@ function createChannel(
             } catch (_) {}
 
 
-            pointerActive = false;
+            pointerActive =
+              false;
 
-            pointerMode = null;
+            pointerMode =
+              null;
 
-            pointerMoved = false;
+            pointerMoved =
+              false;
 
             return;
 
@@ -3284,18 +3782,18 @@ function createChannel(
             "scroll"
           ) {
 
-            pointerActive = false;
+            pointerActive =
+              false;
 
-            pointerMode = null;
+            pointerMode =
+              null;
 
             return;
 
           }
 
 
-          /*
-           * ONE TAP
-           */
+          /* ONE TAP */
 
           if (!pointerMoved) {
 
@@ -3304,7 +3802,9 @@ function createChannel(
 
 
             const currentValue =
-              Number(slider.value);
+              Number(
+                slider.value
+              );
 
 
             const range =
@@ -3319,8 +3819,13 @@ function createChannel(
 
             const currentPercent =
               (
-                (currentValue + range) /
-                (range * 2)
+                (
+                  currentValue +
+                  range
+                ) /
+                (
+                  range * 2
+                )
               );
 
 
@@ -3377,11 +3882,14 @@ function createChannel(
           }
 
 
-          pointerActive = false;
+          pointerActive =
+            false;
 
-          pointerMode = null;
+          pointerMode =
+            null;
 
-          pointerMoved = false;
+          pointerMoved =
+            false;
 
         },
         {
@@ -3420,18 +3928,21 @@ function createChannel(
           } catch (_) {}
 
 
-          pointerActive = false;
+          pointerActive =
+            false;
 
-          pointerMode = null;
+          pointerMode =
+            null;
 
-          pointerMoved = false;
+          pointerMoved =
+            false;
 
         }
       );
 
 
       /* =====================================================
-         KEYBOARD
+         KEYBOARD / RANGE INPUT
          ===================================================== */
 
       slider.addEventListener(
@@ -3441,7 +3952,9 @@ function createChannel(
           setBandValue(
             channelIndex,
             bandIndex,
-            Number(slider.value),
+            Number(
+              slider.value
+            ),
             band,
             slider,
             valueLabel
@@ -3468,7 +3981,6 @@ function createChannel(
       '[data-role="gain"]'
     );
 
-
   const gainValue =
     channel.querySelector(
       '[data-role="gain-value"]'
@@ -3485,9 +3997,7 @@ function createChannel(
         );
 
 
-      channelState[
-        channelIndex
-      ].gain =
+      state.gain =
         value;
 
 
@@ -3511,10 +4021,6 @@ function createChannel(
     "click",
     event => {
 
-      const state =
-        channelState[channelIndex];
-
-
       state.lowCut =
         !state.lowCut;
 
@@ -3535,6 +4041,12 @@ function createChannel(
         channelIndex
       );
 
+
+      readyStatus.textContent =
+        state.lowCut
+          ? `CH${channelNumber} LOW CUT ON`
+          : `CH${channelNumber} LOW CUT OFF`;
+
     }
   );
 
@@ -3546,10 +4058,6 @@ function createChannel(
   rangeButton.addEventListener(
     "click",
     event => {
-
-      const state =
-        channelState[channelIndex];
-
 
       state.range =
         state.range === 15
@@ -3596,7 +4104,9 @@ function createChannel(
           ) => {
 
             let value =
-              Number(slider.value);
+              Number(
+                slider.value
+              );
 
 
             value =
@@ -3620,20 +4130,19 @@ function createChannel(
             slider.min =
               String(-range);
 
-
             slider.max =
               String(range);
 
-
             slider.step =
               String(FADER_STEP);
-
 
             slider.value =
               String(value);
 
 
-            state.bands[index] =
+            state.bands[
+              index
+            ] =
               value;
 
 
@@ -3646,7 +4155,9 @@ function createChannel(
             if (valueLabel) {
 
               valueLabel.textContent =
-                formatDb(value);
+                formatDb(
+                  value
+                );
 
             }
 
@@ -3675,6 +4186,10 @@ function createChannel(
         channelIndex
       );
 
+
+      readyStatus.textContent =
+        `CH${channelNumber} RANGE ±${range} dB`;
+
     }
   );
 
@@ -3686,10 +4201,6 @@ function createChannel(
   bypassButton.addEventListener(
     "click",
     event => {
-
-      const state =
-        channelState[channelIndex];
-
 
       state.bypass =
         !state.bypass;
@@ -3720,126 +4231,91 @@ function createChannel(
   );
 
 
-/* =======================================================
-   TEST
-   ======================================================= */
+  /* =======================================================
+     TEST
+     ======================================================= */
 
-testButton.addEventListener(
-  "click",
-  event => {
+  testButton.addEventListener(
+    "click",
+    async event => {
 
-    const state =
-      channelState[channelIndex];
-
-    state.test =
-      !state.test;
-
-    const testing =
-      state.test;
+      state.test =
+        !state.test;
 
 
-    event.currentTarget.classList.toggle(
-      "active",
-      testing
-    );
+      const testing =
+        state.test;
 
 
-    const meter =
-      channel.querySelector(
-        '[data-role="meter"]'
-      );
+      if (testing) {
 
+        try {
 
-    const clip =
-      channel.querySelector(
-        '[data-role="clip"]'
-      );
-
-
-    /*
-     * TEST MODE
-     *
-     * Meter TEST dibuat dari kanan
-     * ke kiri, sama seperti meter audio.
-     */
-
-    if (meter) {
-
-      const segments =
-        meter.querySelectorAll("span");
-
-
-      const testLevel =
-        testing
-          ? 10
-          : 0;
-
-
-      segments.forEach(
-        (
-          segment,
-          index
-        ) => {
-
-          const reverseIndex =
-            segments.length - 1 - index;
-
-
-          segment.classList.toggle(
-            "on",
-            reverseIndex < testLevel
+          startChannelTest(
+            channelIndex
           );
 
+
+          await audioContext.resume();
+
+        } catch (error) {
+
+          console.error(
+            "TEST gagal:",
+            error
+          );
+
+
+          state.test =
+            false;
+
+
+          stopChannelTest(
+            channelIndex
+          );
+
+
+          return;
+
         }
-      );
 
-    }
+      } else {
 
-
-    /*
-     * TEST CLIP
-     */
-
-    if (clip) {
-
-      const clipLed =
-        clip.querySelector(
-          ".clip-led"
-        );
-
-
-      if (clipLed) {
-
-        clipLed.classList.toggle(
-          "on",
-          testing
+        stopChannelTest(
+          channelIndex
         );
 
       }
 
+
+      event.currentTarget.classList.toggle(
+        "active",
+        testing
+      );
+
+
+      updateChannelStatusLights(
+        channelIndex
+      );
+
+
+      readyStatus.textContent =
+        testing
+          ? `CH${channelNumber} TEST 1kHz ON`
+          : `CH${channelNumber} TEST OFF`;
+
     }
+  );
 
 
-    updateChannelStatusLights(
-      channelIndex
-    );
+  /* =======================================================
+     APPEND CHANNEL
+     ======================================================= */
 
-
-    readyStatus.textContent =
-      testing
-        ? `CH${channelNumber} TEST ON`
-        : `CH${channelNumber} TEST OFF`;
-
-  }
-);
   channelsContainer.appendChild(
     channel
   );
 
-
-  /*
-   * Status awal.
-   */
 
   updateChannelStatusLights(
     channelIndex
@@ -3857,9 +4333,11 @@ function buildChannels() {
   channelsContainer.innerHTML =
     "";
 
+
   createChannel(0);
 
   createChannel(1);
+
 
   updateAllStatusLights();
 
@@ -3879,11 +4357,22 @@ function createAudioContext() {
   }
 
 
+  const AudioContextClass =
+    window.AudioContext ||
+    window.webkitAudioContext;
+
+
+  if (!AudioContextClass) {
+
+    throw new Error(
+      "Web Audio API tidak didukung browser."
+    );
+
+  }
+
+
   audioContext =
-    new (
-      window.AudioContext ||
-      window.webkitAudioContext
-    )();
+    new AudioContextClass();
 
 
   /* =======================================================
@@ -3894,12 +4383,6 @@ function createAudioContext() {
     audioContext.createGain();
 
 
-  /*
-   * Sinkronkan gain audio dengan slider UI.
-   *
-   * Slider default = -12 dB.
-   */
-
   const masterSlider =
     document.getElementById(
       "masterGain"
@@ -3908,7 +4391,9 @@ function createAudioContext() {
 
   const initialMasterDb =
     masterSlider
-      ? Number(masterSlider.value)
+      ? Number(
+          masterSlider.value
+        )
       : -12;
 
 
@@ -3933,17 +4418,14 @@ function createAudioContext() {
 
 
   /*
-   * Memastikan sumber mono dapat
-   * di-upmix menjadi stereo.
+   * Tetap 2 channel.
    */
 
   stereoInputNode.channelCount =
     2;
 
-
   stereoInputNode.channelCountMode =
     "explicit";
-
 
   stereoInputNode.channelInterpretation =
     "speakers";
@@ -3985,10 +4467,6 @@ function createAudioContext() {
           audioContext.createGain();
 
 
-        /*
-         * LOW CUT
-         */
-
         const lowCut =
           audioContext.createBiquadFilter();
 
@@ -4004,10 +4482,6 @@ function createAudioContext() {
               ? 40
               : 5;
 
-
-        /*
-         * 31 BAND EQ
-         */
 
         const filters =
           frequencies.map(
@@ -4046,10 +4520,6 @@ function createAudioContext() {
           );
 
 
-        /*
-         * ANALYSER
-         */
-
         const analyser =
           audioContext.createAnalyser();
 
@@ -4065,13 +4535,13 @@ function createAudioContext() {
         /*
          * AUDIO CHAIN
          *
-         * Gain
-         *   ↓
-         * Low Cut
-         *   ↓
-         * 31 Band EQ
-         *   ↓
-         * Analyser
+         * INPUT GAIN
+         *      ↓
+         * LOW CUT
+         *      ↓
+         * 31 BAND EQ
+         *      ↓
+         * ANALYSER
          */
 
         let previousNode =
@@ -4108,8 +4578,7 @@ function createAudioContext() {
 
 
         /*
-         * CH1 → LEFT
-         * CH2 → RIGHT
+         * ANALYSER → STEREO MERGER
          */
 
         analyser.connect(
@@ -4151,14 +4620,10 @@ function createAudioContext() {
      ======================================================= */
 
   /*
-   * CHANNEL 1
-   *
-   * Splitter output 0 = LEFT
+   * CH1 = LEFT
    */
 
-  if (
-    channelGraphs[0]
-  ) {
+  if (channelGraphs[0]) {
 
     stereoSplitter.connect(
       channelGraphs[0].inputGain,
@@ -4169,14 +4634,10 @@ function createAudioContext() {
 
 
   /*
-   * CHANNEL 2
-   *
-   * Splitter output 1 = RIGHT
+   * CH2 = RIGHT
    */
 
-  if (
-    channelGraphs[1]
-  ) {
+  if (channelGraphs[1]) {
 
     stereoSplitter.connect(
       channelGraphs[1].inputGain,
@@ -4187,7 +4648,7 @@ function createAudioContext() {
 
 
   /* =======================================================
-     STEREO OUTPUT
+     MASTER OUTPUT
      ======================================================= */
 
   stereoMerger.connect(
@@ -4201,15 +4662,11 @@ function createAudioContext() {
 
 
   /*
-   * Mulai meter setelah analyser tersedia.
+   * Mulai meter.
    */
 
   startMeterAnimation();
 
-
-  /*
-   * Update status.
-   */
 
   updateAllStatusLights();
 
@@ -4245,16 +4702,10 @@ function updateChannelAudio(
     ];
 
 
-  /* =======================================================
-     CHANNEL GAIN
-     ======================================================= */
-
   /*
-   * PENTING:
+   * GAIN
    *
-   * BYPASS TIDAK mengubah gain.
-   *
-   * Fader tetap aktif.
+   * Tetap aktif walaupun BYPASS.
    */
 
   graph.inputGain.gain.value =
@@ -4263,19 +4714,12 @@ function updateChannelAudio(
     );
 
 
-  /* =======================================================
-     LOW CUT
-     ======================================================= */
-
   /*
-   * BYPASS:
-   * Low cut dilewati.
+   * LOW CUT
    *
-   * OFF:
-   * 5 Hz.
-   *
-   * ON:
-   * 40 Hz.
+   * BYPASS = 5 Hz
+   * OFF    = 5 Hz
+   * ON     = 40 Hz
    */
 
   graph.lowCut.frequency.value =
@@ -4286,9 +4730,11 @@ function updateChannelAudio(
         : 5;
 
 
-  /* =======================================================
-     31 BAND EQ
-     ======================================================= */
+  /*
+   * 31 BAND EQ
+   *
+   * BYPASS = 0 dB
+   */
 
   graph.filters.forEach(
     (
@@ -4296,14 +4742,12 @@ function updateChannelAudio(
       index
     ) => {
 
-      /*
-       * BYPASS = semua EQ 0 dB.
-       */
-
       filter.gain.value =
         state.bypass
           ? 0
-          : state.bands[index];
+          : state.bands[
+              index
+            ];
 
     }
   );
@@ -4344,29 +4788,30 @@ function updateAllAudioGraphs() {
 
 function disconnectCurrentSource() {
 
-  if (!sourceNode) {
+  if (sourceNode) {
 
-    return;
+    try {
 
-  }
+      sourceNode.disconnect();
 
+    } catch (error) {
 
-  try {
+      console.warn(
+        "Source sudah terputus.",
+        error
+      );
 
-    sourceNode.disconnect();
-
-  } catch (error) {
-
-    console.warn(
-      "Source sudah terputus.",
-      error
-    );
+    }
 
   }
 
 
   sourceNode =
     null;
+
+
+  audioInputActive =
+    false;
 
 
   updateAllStatusLights();
@@ -4385,25 +4830,31 @@ function connectSourceToChannels(
   disconnectCurrentSource();
 
 
+  if (!newSource) {
+
+    audioInputActive =
+      false;
+
+    updateAllStatusLights();
+
+    return;
+
+  }
+
+
   sourceNode =
     newSource;
 
 
-  /*
-   * HANYA source → stereoInputNode.
-   *
-   * Jangan menghubungkan splitter
-   * ke CH1/CH2 di sini.
-   *
-   * Routing splitter sudah dilakukan
-   * sekali di createAudioContext().
-   */
-audioInputActive = false;
   sourceNode.connect(
     stereoInputNode
   );
 
-audioInputActive = true;
+
+  audioInputActive =
+    true;
+
+
   updateAllStatusLights();
 
 }
@@ -4418,9 +4869,11 @@ async function startMicrophone() {
   createAudioContext();
 
 
-  if (
-    microphoneStream
-  ) {
+  /*
+   * Stop stream lama.
+   */
+
+  if (microphoneStream) {
 
     microphoneStream
       .getTracks()
@@ -4448,6 +4901,13 @@ async function startMicrophone() {
   }
 
 
+  /*
+   * Stop file audio.
+   */
+
+  audioPlayer.pause();
+
+
   const deviceId =
     inputDevice.value;
 
@@ -4458,7 +4918,8 @@ async function startMicrophone() {
       deviceId
         ? {
             deviceId: {
-              exact: deviceId
+              exact:
+                deviceId
             }
           }
         : true
@@ -4505,9 +4966,7 @@ async function startAudioFile() {
   createAudioContext();
 
 
-  if (
-    !audioPlayer.src
-  ) {
+  if (!audioPlayer.src) {
 
     alert(
       "Pilih file audio terlebih dahulu."
@@ -4519,13 +4978,31 @@ async function startAudioFile() {
 
 
   /*
-   * MediaElementSource hanya dibuat
-   * satu kali.
+   * Stop microphone.
    */
 
-  if (
-    !audioFileSourceNode
-  ) {
+  if (microphoneStream) {
+
+    microphoneStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+
+    microphoneStream =
+      null;
+
+  }
+
+
+  /*
+   * MediaElementSource
+   * hanya dibuat satu kali.
+   */
+
+  if (!audioFileSourceNode) {
 
     audioFileSourceNode =
       audioContext.createMediaElementSource(
@@ -4547,7 +5024,15 @@ async function startAudioFile() {
 
 
   readyStatus.textContent =
-    "AUDIO FILE ACTIVE";
+    `PLAYING: ${
+      audioFiles[
+        currentAudioIndex
+      ]
+        ? audioFiles[
+            currentAudioIndex
+          ].name
+        : "AUDIO"
+    }`;
 
 
   updateAllStatusLights();
@@ -4561,9 +5046,7 @@ async function startAudioFile() {
 
 function stopAudio() {
 
-  if (
-    microphoneStream
-  ) {
+  if (microphoneStream) {
 
     microphoneStream
       .getTracks()
@@ -4582,8 +5065,12 @@ function stopAudio() {
   audioPlayer.pause();
 
 
-  audioPlayer.currentTime =
-    0;
+  try {
+
+    audioPlayer.currentTime =
+      0;
+
+  } catch (_) {}
 
 
   disconnectCurrentSource();
@@ -4596,6 +5083,170 @@ function stopAudio() {
   updateAllStatusLights();
 
 }
+
+
+/* =========================================================
+   TEST SIGNAL
+   ========================================================= */
+
+function startChannelTest(
+  channelIndex
+) {
+
+  createAudioContext();
+
+
+  if (
+    !channelGraphs[channelIndex]
+  ) {
+
+    throw new Error(
+      "Channel audio graph belum tersedia."
+    );
+
+  }
+
+
+  /*
+   * Hentikan oscillator lama.
+   */
+
+  stopChannelTest(
+    channelIndex
+  );
+
+
+  const oscillator =
+    audioContext.createOscillator();
+
+
+  const testGain =
+    audioContext.createGain();
+
+
+  /*
+   * 1 kHz SINE
+   */
+
+  oscillator.type =
+    "sine";
+
+
+  oscillator.frequency.value =
+    1000;
+
+
+  /*
+   * Level TEST.
+   *
+   * 0.08 ≈ -21.9 dBFS peak.
+   */
+
+  testGain.gain.value =
+    0.08;
+
+
+  /*
+   * TEST masuk ke input channel.
+   *
+   * TEST → GAIN → LOW CUT
+   *      → 31 BAND → ANALYSER
+   */
+
+  testGain.connect(
+    channelGraphs[
+      channelIndex
+    ].inputGain
+  );
+
+
+  oscillator.connect(
+    testGain
+  );
+
+
+  testOscillators[
+    channelIndex
+  ] =
+    oscillator;
+
+
+  testGains[
+    channelIndex
+  ] =
+    testGain;
+
+
+  oscillator.start();
+
+
+  updateAllStatusLights();
+
+}
+
+
+function stopChannelTest(
+  channelIndex
+) {
+
+  const oscillator =
+    testOscillators[
+      channelIndex
+    ];
+
+
+  if (oscillator) {
+
+    try {
+
+      oscillator.stop();
+
+    } catch (_) {}
+
+
+    try {
+
+      oscillator.disconnect();
+
+    } catch (_) {}
+
+  }
+
+
+  const gain =
+    testGains[
+      channelIndex
+    ];
+
+
+  if (gain) {
+
+    try {
+
+      gain.disconnect();
+
+    } catch (_) {}
+
+  }
+
+
+  testOscillators[
+    channelIndex
+  ] =
+    null;
+
+
+  testGains[
+    channelIndex
+  ] =
+    null;
+
+
+  updateAllStatusLights();
+
+}
+
+
 /* =========================================================
    REAL TIME METER
    ========================================================= */
@@ -4603,12 +5254,10 @@ function stopAudio() {
 function startMeterAnimation() {
 
   /*
-   * Jangan membuat animation loop kedua.
+   * Jangan membuat loop ganda.
    */
 
-  if (
-    meterAnimationRunning
-  ) {
+  if (meterAnimationRunning) {
 
     return;
 
@@ -4650,14 +5299,6 @@ function startMeterAnimation() {
         analyser,
         channelIndex
       ) => {
-
-        /*
-         * Ambil CHANNEL terlebih dahulu.
-         *
-         * Penting:
-         * jangan menggunakan channel sebelum
-         * deklarasi ini.
-         */
 
         const channel =
           document.querySelector(
@@ -4702,19 +5343,37 @@ function startMeterAnimation() {
 
         /*
          * =====================================================
-         * TIDAK ADA INPUT
+         * CEK SUMBER AUDIO
          * =====================================================
          *
-         * Meter harus benar-benar mati.
+         * REAL AUDIO:
+         *   sourceNode
          *
-         * Jangan membaca analyser karena analyser
-         * bisa mempunyai noise / nilai kecil walaupun
-         * belum ada source.
+         * TEST:
+         *   testOscillators[channelIndex]
+         *
+         * Jika keduanya tidak ada,
+         * meter wajib mati.
          */
 
-      if (
-           !audioInputActive ||
-           !sourceNode
+        const hasRealAudio =
+          !!(
+            audioContext &&
+            audioContext.state ===
+              "running" &&
+            sourceNode
+          );
+
+
+        const hasTestSignal =
+          !!testOscillators[
+            channelIndex
+          ];
+
+
+        if (
+          !hasRealAudio &&
+          !hasTestSignal
         ) {
 
           segments.forEach(
@@ -4748,59 +5407,9 @@ function startMeterAnimation() {
         }
 
 
-        const state =
-          channelState[
-            channelIndex
-          ];
-
-
-        /*
-         * =====================================================
-         * TEST MODE
-         * =====================================================
-         *
-         * TEST tidak boleh ditimpa oleh
-         * analyser audio.
-         */
-
-        if (
-          state.test
-        ) {
-
-          /*
-           * Meter TEST tetap berasal dari
-           * kanan ke kiri.
-           */
-
-          const testLevel =
-            10;
-
-
-          segments.forEach(
-            (
-              segment,
-              index
-            ) => {
-
-              segment.classList.toggle(
-                 "on",
-             index < level
-             );
-
-            }
-          );
-
-
-          return;
-
-        }
-
-
-        /*
-         * =====================================================
-         * BACA AUDIO
-         * =====================================================
-         */
+        /* ===================================================
+           BACA ANALYSER
+           =================================================== */
 
         analyser.getByteTimeDomainData(
           dataArrays[
@@ -4845,11 +5454,9 @@ function startMeterAnimation() {
         }
 
 
-        /*
-         * =====================================================
-         * PEAK dBFS
-         * =====================================================
-         */
+        /* ===================================================
+           PEAK dBFS
+           =================================================== */
 
         const db =
           peak > 0
@@ -4870,19 +5477,17 @@ function startMeterAnimation() {
           );
 
 
-        /*
-         * =====================================================
-         * LEVEL
-         * =====================================================
-         */
+        /* ===================================================
+           LEVEL
+           =================================================== */
 
         let level =
           0;
 
 
         /*
-         * Noise di bawah -55 dB
-         * dianggap tidak ada sinyal.
+         * Di bawah -55 dB dianggap
+         * tidak ada sinyal.
          */
 
         if (
@@ -4911,37 +5516,32 @@ function startMeterAnimation() {
         }
 
 
-        
-        /* =====================================================
- * METER KIRI → KANAN
- * =====================================================
- *
- * index 0  = LED paling kiri
- * index 17 = LED paling kanan
- *
- * Sinyal dimulai dari kiri
- * dan bertambah ke kanan.
- */
+        /* ===================================================
+           METER KIRI → KANAN
+           ===================================================
+           
+           index 0  = LED paling kiri
+           index 17 = LED paling kanan
+        */
 
-segments.forEach(
-  (
-    segment,
-    index
-  ) => {
+        segments.forEach(
+          (
+            segment,
+            index
+          ) => {
 
-    segment.classList.toggle(
-      "on",
-      index < level
-    );
+            segment.classList.toggle(
+              "on",
+              index < level
+            );
 
-  }
-); 
+          }
+        );
 
-        /*
-         * =====================================================
-         * CLIP
-         * =====================================================
-         */
+
+        /* ===================================================
+           CLIP
+           =================================================== */
 
         const clipLed =
           clip.querySelector(
@@ -4962,10 +5562,6 @@ segments.forEach(
     );
 
 
-    /*
-     * ACTIVE / BYPASS / TEST
-     */
-
     updateAllStatusLights();
 
   }
@@ -4975,11 +5571,21 @@ segments.forEach(
 
 }
 
+
 /* =========================================================
    RESET
    ========================================================= */
 
 function resetAll() {
+
+  /*
+   * Matikan TEST oscillator.
+   */
+
+  stopChannelTest(0);
+
+  stopChannelTest(1);
+
 
   channelState.forEach(
     state => {
@@ -4987,22 +5593,17 @@ function resetAll() {
       state.gain =
         0;
 
-
       state.lowCut =
         false;
-
 
       state.range =
         15;
 
-
       state.bypass =
         false;
 
-
       state.test =
         false;
-
 
       state.bands =
         Array(31).fill(0);
@@ -5199,20 +5800,19 @@ function applyPreset(
           ) => {
 
             const value =
-              state.bands[index];
+              state.bands[
+                index
+              ];
 
 
             slider.min =
               String(-range);
 
-
             slider.max =
               String(range);
 
-
             slider.step =
               String(FADER_STEP);
-
 
             slider.value =
               String(value);
@@ -5227,7 +5827,9 @@ function applyPreset(
             if (valueLabel) {
 
               valueLabel.textContent =
-                formatDb(value);
+                formatDb(
+                  value
+                );
 
             }
 
@@ -5259,7 +5861,9 @@ function applyPreset(
 
 
   readyStatus.textContent =
-    `PRESET ${name.toUpperCase()} APPLIED`;
+    `PRESET ${
+      name.toUpperCase()
+    } APPLIED`;
 
 }
 
@@ -5362,120 +5966,482 @@ async function loadDevices() {
 
 
 /* =========================================================
-   MIC BUTTON
+   AUDIO PLAYLIST
    ========================================================= */
 
-document
-  .getElementById(
-    "micButton"
-  )
-  .addEventListener(
-    "click",
-    async () => {
+function revokeAudioObjectUrls() {
+
+  audioObjectUrls.forEach(
+    url => {
 
       try {
 
-        await startMicrophone();
-
-      } catch (error) {
-
-        alert(
-          "Mikrofon tidak dapat digunakan. Pastikan izin mikrofon diberikan."
+        URL.revokeObjectURL(
+          url
         );
 
-
-        console.error(
-          error
-        );
-
-      }
+      } catch (_) {}
 
     }
   );
 
 
+  audioObjectUrls =
+    [];
+
+}
+
+
+function updatePlaylistInfo() {
+
+  if (playlistCount) {
+
+    playlistCount.textContent =
+      `PLAYLIST: ${
+        audioFiles.length
+      } FILE`;
+
+  }
+
+
+  if (currentAudioName) {
+
+    if (
+      currentAudioIndex >= 0 &&
+      currentAudioIndex <
+        audioFiles.length
+    ) {
+
+      currentAudioName.textContent =
+        audioFiles[
+          currentAudioIndex
+        ].name;
+
+    } else {
+
+      currentAudioName.textContent =
+        "NO AUDIO SELECTED";
+
+    }
+
+  }
+
+}
+
+
 /* =========================================================
-   START AUDIO
+   RENDER PLAYLIST
    ========================================================= */
 
-document
-  .getElementById(
-    "startButton"
-  )
-  .addEventListener(
-    "click",
-    async () => {
+function renderAudioPlaylist() {
 
-      try {
+  if (!audioPlaylist) {
 
-        await startAudioFile();
+    return;
 
-      } catch (error) {
+  }
 
-        alert(
-          "Audio tidak dapat diputar."
+
+  audioPlaylist.innerHTML =
+    "";
+
+
+  updatePlaylistInfo();
+
+
+  if (
+    audioFiles.length === 0
+  ) {
+
+    audioPlaylist.innerHTML = `
+      <div
+        style="
+          padding:10px;
+          color:#8d9aa3;
+          font-size:11px;
+          text-align:center;
+        "
+      >
+        BELUM ADA FILE AUDIO
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  audioFiles.forEach(
+    (
+      file,
+      index
+    ) => {
+
+      const item =
+        document.createElement(
+          "button"
         );
 
 
-        console.error(
-          error
-        );
+      item.type =
+        "button";
 
-      }
+
+      item.style.cssText = `
+        display:block;
+        width:100%;
+        padding:9px 10px;
+        border:0;
+        border-bottom:1px solid #263943;
+        background:${
+          index === currentAudioIndex
+            ? "#145a78"
+            : "#0b151c"
+        };
+        color:#e5edf2;
+        text-align:left;
+        font-size:11px;
+        cursor:pointer;
+      `;
+
+
+      item.textContent =
+        `${index + 1}. ${file.name}`;
+
+
+      item.addEventListener(
+        "click",
+        () => {
+
+          selectAudioFile(
+            index
+          );
+
+        }
+      );
+
+
+      audioPlaylist.appendChild(
+        item
+      );
 
     }
   );
 
+}
+
 
 /* =========================================================
-   STOP
+   SELECT AUDIO FILE
    ========================================================= */
 
-document
-  .getElementById(
-    "stopButton"
-  )
-  .addEventListener(
-    "click",
-    stopAudio
+function selectAudioFile(
+  index
+) {
+
+  if (
+    index < 0 ||
+    index >= audioFiles.length
+  ) {
+
+    return;
+
+  }
+
+
+  currentAudioIndex =
+    index;
+
+
+  const file =
+    audioFiles[
+      index
+    ];
+
+
+  audioPlayer.pause();
+
+
+  /*
+   * Revoke URL lama yang sedang
+   * dipakai player.
+   */
+
+  if (
+    audioPlayer.dataset.objectUrl
+  ) {
+
+    try {
+
+      URL.revokeObjectURL(
+        audioPlayer.dataset.objectUrl
+      );
+
+    } catch (_) {}
+
+  }
+
+
+  const objectUrl =
+    URL.createObjectURL(
+      file
+    );
+
+
+  audioObjectUrls.push(
+    objectUrl
   );
 
 
+  audioPlayer.src =
+    objectUrl;
+
+
+  audioPlayer.dataset.objectUrl =
+    objectUrl;
+
+
+  updatePlaylistInfo();
+
+  renderAudioPlaylist();
+
+
+  readyStatus.textContent =
+    `FILE READY: ${
+      file.name
+    }`;
+
+}
+
+
 /* =========================================================
-   REFRESH DEVICES
-   ========================================================= */
-
-document
-  .getElementById(
-    "refreshDevices"
-  )
-  .addEventListener(
-    "click",
-    async () => {
-
-      await loadDevices();
-
-
-      readyStatus.textContent =
-        "DEVICES REFRESHED";
-
-    }
-  );
-
-
-/* =========================================================
-   AUDIO FILE
+   MULTI FILE SELECT
    ========================================================= */
 
 audioFile.addEventListener(
   "change",
   event => {
 
-    const file =
-      event.target.files[0];
+    const selectedFiles =
+      Array.from(
+        event.target.files || []
+      );
 
 
-    if (!file) {
+    if (
+      selectedFiles.length === 0
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+     * Bersihkan playlist lama.
+     */
+
+    audioPlayer.pause();
+
+
+    revokeAudioObjectUrls();
+
+
+    audioFiles =
+      selectedFiles;
+
+
+    currentAudioIndex =
+      0;
+
+
+    /*
+     * Pilih file pertama.
+     */
+
+    selectAudioFile(
+      0
+    );
+
+
+    renderAudioPlaylist();
+
+
+    readyStatus.textContent =
+      `${selectedFiles.length} FILE AUDIO DIPILIH`;
+
+  }
+);
+
+
+/* =========================================================
+   PLAY SELECTED
+   ========================================================= */
+
+async function playSelectedAudio() {
+
+  if (
+    audioFiles.length === 0
+  ) {
+
+    alert(
+      "Belum ada file audio."
+    );
+
+    return;
+
+  }
+
+
+  if (
+    currentAudioIndex < 0
+  ) {
+
+    currentAudioIndex =
+      0;
+
+  }
+
+
+  selectAudioFile(
+    currentAudioIndex
+  );
+
+
+  try {
+
+    await startAudioFile();
+
+  } catch (error) {
+
+    console.error(
+      "Gagal memainkan audio:",
+      error
+    );
+
+    readyStatus.textContent =
+      "AUDIO PLAY ERROR";
+
+  }
+
+}
+
+
+/* =========================================================
+   PREVIOUS AUDIO
+   ========================================================= */
+
+async function previousAudio() {
+
+  if (
+    audioFiles.length === 0
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    currentAudioIndex <= 0
+  ) {
+
+    currentAudioIndex =
+      audioFiles.length - 1;
+
+  } else {
+
+    currentAudioIndex--;
+
+  }
+
+
+  selectAudioFile(
+    currentAudioIndex
+  );
+
+
+  try {
+
+    await startAudioFile();
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   NEXT AUDIO
+   ========================================================= */
+
+async function nextAudio() {
+
+  if (
+    audioFiles.length === 0
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    currentAudioIndex >=
+    audioFiles.length - 1
+  ) {
+
+    currentAudioIndex =
+      0;
+
+  } else {
+
+    currentAudioIndex++;
+
+  }
+
+
+  selectAudioFile(
+    currentAudioIndex
+  );
+
+
+  try {
+
+    await startAudioFile();
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   AUTO NEXT
+   ========================================================= */
+
+audioPlayer.addEventListener(
+  "ended",
+  async () => {
+
+    if (
+      audioFiles.length === 0
+    ) {
+
+      readyStatus.textContent =
+        "PLAYLIST SELESAI";
+
+      disconnectCurrentSource();
 
       return;
 
@@ -5483,35 +6449,147 @@ audioFile.addEventListener(
 
 
     if (
-      audioPlayer.dataset.objectUrl
+      currentAudioIndex <
+      audioFiles.length - 1
     ) {
 
-      URL.revokeObjectURL(
-        audioPlayer.dataset.objectUrl
+      currentAudioIndex++;
+
+
+      selectAudioFile(
+        currentAudioIndex
       );
+
+
+      try {
+
+        await startAudioFile();
+
+      } catch (error) {
+
+        console.error(
+          "AUTO NEXT ERROR:",
+          error
+        );
+
+      }
+
+      return;
 
     }
 
 
-    const objectUrl =
-      URL.createObjectURL(
-        file
-      );
-
-
-    audioPlayer.src =
-      objectUrl;
-
-
-    audioPlayer.dataset.objectUrl =
-      objectUrl;
-
+    /*
+     * Playlist selesai.
+     */
 
     readyStatus.textContent =
-      "FILE READY";
+      "PLAYLIST SELESAI";
+
+
+    disconnectCurrentSource();
+
+    updateAllStatusLights();
 
   }
 );
+
+
+/* =========================================================
+   CLEAR PLAYLIST
+   ========================================================= */
+
+function clearPlaylist() {
+
+  audioPlayer.pause();
+
+
+  try {
+
+    audioPlayer.currentTime =
+      0;
+
+  } catch (_) {}
+
+
+  disconnectCurrentSource();
+
+
+  revokeAudioObjectUrls();
+
+
+  audioFiles =
+    [];
+
+  currentAudioIndex =
+    -1;
+
+
+  audioPlayer.removeAttribute(
+    "src"
+  );
+
+
+  audioPlayer.load();
+
+
+  delete audioPlayer.dataset.objectUrl;
+
+
+  renderAudioPlaylist();
+
+
+  readyStatus.textContent =
+    "PLAYLIST CLEARED";
+
+
+  updateAllStatusLights();
+
+}
+
+
+/* =========================================================
+   PLAYLIST BUTTONS
+   ========================================================= */
+
+document
+  .getElementById(
+    "previousAudio"
+  )
+  .addEventListener(
+    "click",
+    previousAudio
+  );
+
+
+document
+  .getElementById(
+    "playSelectedAudio"
+  )
+  .addEventListener(
+    "click",
+    playSelectedAudio
+  );
+
+
+document
+  .getElementById(
+    "nextAudio"
+  )
+  .addEventListener(
+    "click",
+    nextAudio
+  );
+
+
+document
+  .getElementById(
+    "clearPlaylist"
+  )
+  .addEventListener(
+    "click",
+    clearPlaylist
+  );
 
 
 /* =========================================================
@@ -5538,10 +6616,6 @@ document
         `${value} dB`;
 
 
-      /*
-       * Audio mengikuti slider.
-       */
-
       if (
         masterGainNode
       ) {
@@ -5549,7 +6623,9 @@ document
         masterGainNode.gain.value =
           isMuted
             ? 0
-            : dbToGain(value);
+            : dbToGain(
+                value
+              );
 
       }
 
@@ -5594,7 +6670,9 @@ document
         masterGainNode.gain.value =
           isMuted
             ? 0
-            : dbToGain(value);
+            : dbToGain(
+                value
+              );
 
       }
 
@@ -5609,6 +6687,108 @@ document
         isMuted
           ? "OUTPUT MUTED"
           : "OUTPUT ACTIVE";
+
+    }
+  );
+
+
+/* =========================================================
+   MIC BUTTON
+   ========================================================= */
+
+document
+  .getElementById(
+    "micButton"
+  )
+  .addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        await startMicrophone();
+
+      } catch (error) {
+
+        alert(
+          "Mikrofon tidak dapat digunakan. Pastikan izin mikrofon diberikan."
+        );
+
+
+        console.error(
+          error
+        );
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   START AUDIO BUTTON
+   ========================================================= */
+
+document
+  .getElementById(
+    "startButton"
+  )
+  .addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        await startAudioFile();
+
+      } catch (error) {
+
+        alert(
+          "Audio tidak dapat diputar."
+        );
+
+
+        console.error(
+          error
+        );
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   STOP BUTTON
+   ========================================================= */
+
+document
+  .getElementById(
+    "stopButton"
+  )
+  .addEventListener(
+    "click",
+    stopAudio
+  );
+
+
+/* =========================================================
+   REFRESH DEVICES
+   ========================================================= */
+
+document
+  .getElementById(
+    "refreshDevices"
+  )
+  .addEventListener(
+    "click",
+    async () => {
+
+      await loadDevices();
+
+
+      readyStatus.textContent =
+        "DEVICES REFRESHED";
 
     }
   );
@@ -5713,7 +6893,9 @@ document
       try {
 
         const data =
-          JSON.parse(saved);
+          JSON.parse(
+            saved
+          );
 
 
         if (
@@ -5730,47 +6912,56 @@ document
 
         data.forEach(
           (
-            state,
+            savedState,
             index
           ) => {
 
             const range =
               Number(
-                state.range
+                savedState.range
               ) === 6
                 ? 6
                 : 15;
 
 
-            channelState[index] = {
+            channelState[
+              index
+            ] = {
 
               gain:
                 Number.isFinite(
-                  Number(state.gain)
+                  Number(
+                    savedState.gain
+                  )
                 )
-                  ? Number(state.gain)
+                  ? Number(
+                      savedState.gain
+                    )
                   : 0,
 
 
               lowCut:
                 Boolean(
-                  state.lowCut
+                  savedState.lowCut
                 ),
 
 
               range,
 
 
+              /*
+               * TEST tidak direcall
+               * sebagai oscillator aktif.
+               */
+
               bypass:
                 Boolean(
-                  state.bypass
+                  savedState.bypass
                 ),
 
 
               test:
-                Boolean(
-                  state.test
-                ),
+                false,
 
 
               bands:
@@ -5785,9 +6976,10 @@ document
 
                     const rawValue =
                       Number(
-                        state.bands?.[
-                          bandIndex
-                        ]
+                        savedState
+                          .bands?.[
+                            bandIndex
+                          ]
                       );
 
 
@@ -5818,6 +7010,10 @@ document
 
           }
         );
+
+
+        stopChannelTest(0);
+        stopChannelTest(1);
 
 
         buildChannels();
@@ -5884,7 +7080,9 @@ document.addEventListener(
 function watchAudioContextState() {
 
   if (!audioContext) {
+
     return;
+
   }
 
 
@@ -5894,26 +7092,14 @@ function watchAudioContextState() {
 
 
 /* =========================================================
-   CLEANUP OBJECT URL
+   CLEANUP
    ========================================================= */
 
 window.addEventListener(
   "beforeunload",
   () => {
 
-    if (
-      audioPlayer.dataset.objectUrl
-    ) {
-
-      try {
-
-        URL.revokeObjectURL(
-          audioPlayer.dataset.objectUrl
-        );
-
-      } catch (_) {}
-
-    }
+    revokeAudioObjectUrls();
 
 
     if (
@@ -5923,6 +7109,18 @@ window.addEventListener(
       cancelAnimationFrame(
         meterAnimationId
       );
+
+    }
+
+
+    if (microphoneStream) {
+
+      microphoneStream
+        .getTracks()
+        .forEach(
+          track =>
+            track.stop()
+        );
 
     }
 
@@ -5937,6 +7135,8 @@ window.addEventListener(
 buildChannels();
 
 loadDevices();
+
+renderAudioPlaylist();
 
 updateAllStatusLights();
 
@@ -5953,7 +7153,7 @@ if (
     "MICROPHONE NOT SUPPORTED";
 
 }
-</script>
 
+</script>
 </body>
 </html>
