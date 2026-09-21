@@ -1,117 +1,630 @@
 /* =========================================================
-   DBX 2231 GRAPHIC EQUALIZER
-   CHANNEL 1 + CHANNEL 2
-   UI + AUDIO PROCESSING
+   DBX 2231
+   EQUALIZER CHANNEL ENGINE
+   =========================================================
+
+   CURRENT VERSION
+
+   CHANNEL:
+   CH1 = LEFT / L
+   CH2 = RIGHT / R
+
+   31 BAND
+   GAIN
+   LOW CUT
+   RANGE
+   METER
+   CLIP
+   BYPASS
+   TEST
+
+   ---------------------------------------------------------
+   CATATAN
+   ---------------------------------------------------------
+
+   File ini menangani:
+
+   - Struktur channel
+   - Channel state
+   - 31 band EQ
+   - Gain
+   - Low Cut
+   - Range
+   - Bypass
+   - Test
+   - Visual meter container
+   - Fader interaction
+
+   AUDIO ENGINE tetap ditangani oleh:
+       audio-engine.js
+
+   Komunikasi ke audio engine melalui:
+       updateChannelAudio()
+       createAudioContext()
+       startChannelTest()
+       stopChannelTest()
+
    ========================================================= */
+
+
+/* =========================================================
+   NAMESPACE
+   ========================================================= */
+
+window.DBX2231 =
+  window.DBX2231 || {};
 
 
 /* =========================================================
    31 BAND FREQUENCIES
    ========================================================= */
 
-const frequencies = [
-  20, 25, 31.5, 40, 50, 63, 80,
-  100, 125, 160, 200, 250, 315,
-  400, 500, 630, 800, 1000,
-  1250, 1600, 2000, 2500, 3150,
-  4000, 5000, 6300, 8000,
-  10000, 12500, 16000, 20000
+const DBX_FREQUENCIES = [
+
+  20,
+  25,
+  31.5,
+  40,
+  50,
+  63,
+  80,
+  100,
+  125,
+  160,
+  200,
+  250,
+  315,
+  400,
+  500,
+  630,
+  800,
+  1000,
+  1250,
+  1600,
+  2000,
+  2500,
+  3150,
+  4000,
+  5000,
+  6300,
+  8000,
+  10000,
+  12500,
+  16000,
+  20000
+
 ];
+
+
+/* =========================================================
+   DOM
+   ========================================================= */
+
+const dbxChannelsContainer =
+  document.getElementById("channels");
+
+
+const dbxReadyStatus =
+  document.getElementById("readyStatus");
 
 
 /* =========================================================
    CHANNEL STATE
+   =========================================================
+
+   Gunakan state yang sudah ada jika sebelumnya
+   sudah dibuat oleh aplikasi.
+
+   Ini mencegah:
+   Identifier "channelState" has already been declared
+
    ========================================================= */
 
-const channelState = [
+if (
+  !window.DBX2231.channelState
+) {
 
-  {
-    gain: 0,
-    lowCut: false,
-    range: 15,
-    bypass: false,
-    test: false,
-    bands: Array(31).fill(0)
-  },
+  window.DBX2231.channelState = [
 
-  {
-    gain: 0,
-    lowCut: false,
-    range: 15,
-    bypass: false,
-    test: false,
-    bands: Array(31).fill(0)
+    {
+      gain: 0,
+
+      lowCut: false,
+
+      range: 15,
+
+      bypass: false,
+
+      test: false,
+
+      bands:
+        Array(31).fill(0)
+    },
+
+    {
+      gain: 0,
+
+      lowCut: false,
+
+      range: 15,
+
+      bypass: false,
+
+      test: false,
+
+      bands:
+        Array(31).fill(0)
+    }
+
+  ];
+
+}
+
+
+const dbxChannelState =
+  window.DBX2231.channelState;
+
+
+/* =========================================================
+   FADER
+   ========================================================= */
+
+const DBX_FADER_STEP = 0.5;
+
+
+/* =========================================================
+   FORMAT FREQUENCY
+   ========================================================= */
+
+function dbxFormatFrequency(
+  frequency
+) {
+
+  if (
+    frequency >= 1000
+  ) {
+
+    return `${frequency / 1000}K`;
+
   }
 
-];
+  return String(frequency);
+
+}
 
 
 /* =========================================================
-   AUDIO GRAPH
+   FORMAT dB
    ========================================================= */
 
-let channelGraphs = [];
+function dbxFormatDb(
+  value
+) {
+
+  const number =
+    Number(value);
+
+
+  if (
+    !Number.isFinite(number)
+  ) {
+
+    return "0.0";
+
+  }
+
+
+  if (
+    number > 0
+  ) {
+
+    return `+${number.toFixed(1)}`;
+
+  }
+
+
+  return number.toFixed(1);
+
+}
 
 
 /* =========================================================
-   TEST OSCILLATORS
+   dB → LINEAR
    ========================================================= */
 
-const testOscillators = [
-  null,
-  null
-];
+function dbxDbToGain(
+  db
+) {
 
-const testGains = [
-  null,
-  null
-];
+  return Math.pow(
+    10,
+    db / 20
+  );
+
+}
 
 
 /* =========================================================
-   CHANNEL CONTAINER
-   =========================================================
-   #channels sudah disediakan oleh index.html
+   CLAMP BAND VALUE
    ========================================================= */
 
-const channelsContainer =
-  document.getElementById('channels');
+function dbxClampBandValue(
+  channelIndex,
+  value
+) {
+
+  const state =
+    dbxChannelState[
+      channelIndex
+    ];
 
 
-/* =========================================================
-   BUILD CHANNELS
-   ========================================================= */
+  if (!state) {
 
-function buildChannels() {
+    return 0;
 
-  if (!channelsContainer) {
+  }
 
-    console.error(
-      'Element #channels tidak ditemukan'
+
+  const range =
+    state.range;
+
+
+  let result =
+    Number(value);
+
+
+  if (
+    !Number.isFinite(result)
+  ) {
+
+    result = 0;
+
+  }
+
+
+  result =
+    Math.max(
+      -range,
+      Math.min(
+        range,
+        result
+      )
     );
 
-    return;
+
+  result =
+    Math.round(
+      result /
+      DBX_FADER_STEP
+    ) *
+    DBX_FADER_STEP;
+
+
+  return result;
+
+}
+
+
+/* =========================================================
+   FADER PERCENT
+   ========================================================= */
+
+function dbxCalculateFaderPercent(
+  channelIndex,
+  value
+) {
+
+  const state =
+    dbxChannelState[
+      channelIndex
+    ];
+
+
+  if (!state) {
+
+    return 50;
+
   }
 
 
-  channelsContainer.innerHTML = '';
+  const range =
+    state.range;
 
 
-  channelState.forEach(
-    (state, index) => {
+  if (
+    range <= 0
+  ) {
 
-      channelsContainer.appendChild(
-        createChannel(
-          index,
-          state
-        )
+    return 50;
+
+  }
+
+
+  const percent =
+    (
+      (
+        Number(value) +
+        range
+      ) /
+      (
+        range * 2
+      )
+    ) * 100;
+
+
+  return Math.max(
+    0,
+    Math.min(
+      100,
+      percent
+    )
+  );
+
+}
+
+
+/* =========================================================
+   UPDATE BAND VISUAL
+   ========================================================= */
+
+function dbxUpdateBandVisual(
+  channelIndex,
+  band,
+  value
+) {
+
+  if (!band) {
+
+    return;
+
+  }
+
+
+  const percent =
+    dbxCalculateFaderPercent(
+      channelIndex,
+      value
+    );
+
+
+  band.style.setProperty(
+    "--fader-level",
+    `${percent}%`
+  );
+
+}
+
+
+/* =========================================================
+   SET BAND VALUE
+   ========================================================= */
+
+function dbxSetBandValue(
+  channelIndex,
+  bandIndex,
+  value,
+  band,
+  slider,
+  valueLabel
+) {
+
+  const state =
+    dbxChannelState[
+      channelIndex
+    ];
+
+
+  if (!state) {
+
+    return;
+
+  }
+
+
+  const safeValue =
+    dbxClampBandValue(
+      channelIndex,
+      value
+    );
+
+
+  state.bands[
+    bandIndex
+  ] =
+    safeValue;
+
+
+  if (slider) {
+
+    slider.value =
+      String(
+        safeValue
+      );
+
+  }
+
+
+  if (valueLabel) {
+
+    valueLabel.textContent =
+      dbxFormatDb(
+        safeValue
+      );
+
+  }
+
+
+  dbxUpdateBandVisual(
+    channelIndex,
+    band,
+    safeValue
+  );
+
+
+  /* -------------------------------------------------------
+     KIRIM PERUBAHAN KE AUDIO ENGINE
+     ------------------------------------------------------- */
+
+  if (
+    typeof window.updateChannelAudio ===
+    "function"
+  ) {
+
+    window.updateChannelAudio(
+      channelIndex
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   STATUS LIGHTS
+   ========================================================= */
+
+function dbxUpdateChannelStatusLights(
+  channelIndex
+) {
+
+  const channel =
+    document.querySelector(
+      `.channel[data-channel="${channelIndex}"]`
+    );
+
+
+  if (!channel) {
+
+    return;
+
+  }
+
+
+  const activeLight =
+    channel.querySelector(
+      '[data-role="status-active"]'
+    );
+
+
+  const bypassLight =
+    channel.querySelector(
+      '[data-role="status-bypass"]'
+    );
+
+
+  const testLight =
+    channel.querySelector(
+      '[data-role="status-test"]'
+    );
+
+
+  const state =
+    dbxChannelState[
+      channelIndex
+    ];
+
+
+  if (!state) {
+
+    return;
+
+  }
+
+
+  /* -------------------------------------------------------
+     REAL AUDIO ACTIVE
+     ------------------------------------------------------- */
+
+  const realAudioActive =
+    !!(
+      window.audioContext &&
+      window.audioContext.state ===
+      "running" &&
+      window.sourceNode
+    );
+
+
+  /* -------------------------------------------------------
+     TEST ACTIVE
+     ------------------------------------------------------- */
+
+  const testActive =
+    !!(
+      window.testOscillators &&
+      window.testOscillators[
+        channelIndex
+      ]
+    );
+
+
+  const audioActive =
+    realAudioActive ||
+    testActive;
+
+
+  /* -------------------------------------------------------
+     ACTIVE
+     ------------------------------------------------------- */
+
+  if (activeLight) {
+
+    activeLight.classList.toggle(
+      "active",
+      audioActive
+    );
+
+  }
+
+
+  /* -------------------------------------------------------
+     BYPASS
+     ------------------------------------------------------- */
+
+  if (bypassLight) {
+
+    bypassLight.classList.toggle(
+      "active",
+      !!state.bypass
+    );
+
+  }
+
+
+  /* -------------------------------------------------------
+     TEST
+     ------------------------------------------------------- */
+
+  if (testLight) {
+
+    testLight.classList.toggle(
+      "active",
+      !!state.test
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   UPDATE ALL STATUS LIGHTS
+   ========================================================= */
+
+function dbxUpdateAllStatusLights() {
+
+  dbxChannelState.forEach(
+    (
+      _,
+      index
+    ) => {
+
+      dbxUpdateChannelStatusLights(
+        index
       );
 
     }
   );
-
-
-  updateAllChannelButtons();
 
 }
 
@@ -120,73 +633,103 @@ function buildChannels() {
    CREATE CHANNEL
    ========================================================= */
 
-function createChannel(
-  channelIndex,
-  state
+function dbxCreateChannel(
+  channelIndex
 ) {
 
+  if (
+    !dbxChannelsContainer
+  ) {
+
+    console.error(
+      "DBX 2231: #channels tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+
+  const channelNumber =
+    channelIndex + 1;
+
+
+  const state =
+    dbxChannelState[
+      channelIndex
+    ];
+
+
+  if (!state) {
+
+    return;
+
+  }
+
+
+  /* -------------------------------------------------------
+     CHANNEL ELEMENT
+     ------------------------------------------------------- */
+
   const channel =
-    document.createElement('section');
+    document.createElement(
+      "article"
+    );
 
 
   channel.className =
-    'channel';
+    "channel";
 
 
   channel.dataset.channel =
-    channelIndex + 1;
+    channelIndex;
 
 
-  const number =
-    channelIndex + 1;
-
-
-  const side =
-    channelIndex === 0
-      ? 'LEFT / L'
-      : 'RIGHT / R';
-
+  /* =======================================================
+     CHANNEL HTML
+     ======================================================= */
 
   channel.innerHTML = `
 
-    <!-- =================================================
-         HEADER
-         ================================================= -->
-
     <div class="channel-header">
 
-      <div class="channel-name">
-        CH${number} — ${side}
+      <div class="channel-label">
+
+        <span class="power-led"></span>
+
+        ${
+          channelNumber === 1
+            ? "CH1 — LEFT / L"
+            : "CH2 — RIGHT / R"
+        }
+
       </div>
 
 
-      <div class="channel-status-top">
+      <div class="channel-status">
 
-        <button
-          type="button"
-          class="status-button active-status"
-          data-status="active"
+        <span
+          class="status-light"
+          data-role="status-active"
         >
           ACTIVE
-        </button>
+        </span>
 
 
-        <button
-          type="button"
-          class="status-button bypass-status"
-          data-status="bypass"
+        <span
+          class="status-light bypass"
+          data-role="status-bypass"
         >
           BYPASS
-        </button>
+        </span>
 
 
-        <button
-          type="button"
-          class="status-button test-status"
-          data-status="test"
+        <span
+          class="status-light test"
+          data-role="status-test"
         >
           TEST
-        </button>
+        </span>
 
       </div>
 
@@ -194,41 +737,38 @@ function createChannel(
 
 
     <!-- =================================================
-         TOP CONTROL AREA
+         CONTROL ROW
          ================================================= -->
 
-    <div class="channel-top-controls">
+    <div class="control-row">
 
 
       <!-- GAIN -->
 
-      <div class="channel-control gain-control">
+      <div class="control-box">
 
-        <div class="control-label">
+        <div class="control-title">
           GAIN
         </div>
 
 
         <input
+          class="gain-slider"
           type="range"
-          class="channel-gain"
           min="-12"
           max="12"
           step="0.5"
           value="${state.gain}"
-          data-channel="${channelIndex}"
+          data-role="gain"
         />
 
 
-        <div class="gain-scale">
+        <div class="gain-value">
 
           <span>-12</span>
 
-          <strong
-            class="channel-gain-value"
-            data-gain-value="${channelIndex}"
-          >
-            ${Number(state.gain).toFixed(1)} dB
+          <strong data-role="gain-value">
+            ${dbxFormatDb(state.gain)} dB
           </strong>
 
           <span>+12</span>
@@ -240,20 +780,23 @@ function createChannel(
 
       <!-- LOW CUT -->
 
-      <div class="channel-control lowcut-control">
+      <div class="control-box">
 
-        <div class="control-label">
+        <div class="control-title">
           LOW CUT
         </div>
 
 
         <button
-          type="button"
-          class="control-value-button low-cut-button"
-          data-action="lowcut"
-          data-channel="${channelIndex}"
+          class="small-button"
+          data-role="lowcut"
+          style="width:100%;"
         >
-          ${state.lowCut ? 'ON / 40 Hz' : 'OFF / 40 Hz'}
+          ${
+            state.lowCut
+              ? "ON / 40 Hz"
+              : "OFF / 40 Hz"
+          }
         </button>
 
       </div>
@@ -261,18 +804,17 @@ function createChannel(
 
       <!-- RANGE -->
 
-      <div class="channel-control range-control">
+      <div class="control-box">
 
-        <div class="control-label">
+        <div class="control-title">
           RANGE
         </div>
 
 
         <button
-          type="button"
-          class="control-value-button range-button"
-          data-action="range"
-          data-channel="${channelIndex}"
+          class="small-button"
+          data-role="range"
+          style="width:100%;"
         >
           ±${state.range} dB
         </button>
@@ -282,9 +824,9 @@ function createChannel(
 
       <!-- LEVEL METER -->
 
-      <div class="channel-control level-control">
+      <div class="control-box meter-box">
 
-        <div class="control-label">
+        <div class="control-title">
           LEVEL METER
         </div>
 
@@ -305,18 +847,14 @@ function createChannel(
 
         <div
           class="led-meter"
-          data-meter="${channelIndex}"
+          id="meter-ch${channelNumber}"
+          data-role="meter"
         >
 
           ${Array.from(
             { length: 18 },
-            (_, i) => `
-              <div
-                class="meter-segment"
-                data-segment="${i}"
-              ></div>
-            `
-          ).join('')}
+            () => "<span></span>"
+          ).join("")}
 
         </div>
 
@@ -326,15 +864,16 @@ function createChannel(
       <!-- CLIP -->
 
       <div
-        class="clip-indicator"
-        data-clip="${channelIndex}"
+        class="clip-box"
+        id="clip-ch${channelNumber}"
+        data-role="clip"
       >
 
-        <div class="clip-light"></div>
+        <div class="clip-led"></div>
 
-        <span>
+        <div class="clip-text">
           CLIP
-        </span>
+        </div>
 
       </div>
 
@@ -342,11 +881,10 @@ function createChannel(
 
 
     <!-- =================================================
-         EQUALIZER
+         31 BAND EQ
          ================================================= -->
 
     <div class="eq-wrapper">
-
 
       <div class="eq-scale">
 
@@ -361,70 +899,25 @@ function createChannel(
       </div>
 
 
-      <div class="eq-scroll">
+      <div class="eq-area">
 
-        <div
-          class="eq-bands"
-          data-eq="${channelIndex}"
-        >
+        <div class="db-scale">
 
-          ${frequencies.map(
-            (
-              frequency,
-              bandIndex
-            ) => {
-
-              const value =
-                Number(
-                  state.bands[bandIndex] || 0
-                );
-
-
-              return `
-
-                <div
-                  class="eq-band"
-                  data-channel="${channelIndex}"
-                  data-band="${bandIndex}"
-                >
-
-                  <div class="eq-fader-wrap">
-
-                    <input
-                      class="eq-slider"
-                      type="range"
-                      min="-${state.range}"
-                      max="${state.range}"
-                      step="0.5"
-                      value="${value}"
-                      orient="vertical"
-                      data-channel="${channelIndex}"
-                      data-band="${bandIndex}"
-                    />
-
-                  </div>
-
-
-                  <div class="eq-frequency">
-                    ${formatFrequency(frequency)}
-                  </div>
-
-
-                  <div
-                    class="eq-value"
-                    data-eq-value="${channelIndex}-${bandIndex}"
-                  >
-                    ${value.toFixed(1)}
-                  </div>
-
-                </div>
-
-              `;
-
-            }
-          ).join('')}
+          <span>+15</span>
+          <span>+10</span>
+          <span>+5</span>
+          <span>0</span>
+          <span>-5</span>
+          <span>-10</span>
+          <span>-15</span>
 
         </div>
+
+
+        <div
+          class="bands"
+          data-role="bands"
+        ></div>
 
       </div>
 
@@ -432,20 +925,18 @@ function createChannel(
 
 
     <!-- =================================================
-         EQ FOOTER
+         CHANNEL FOOTER
          ================================================= -->
 
-    <div class="eq-footer">
+    <div class="channel-footer">
 
       <span>
         31 BAND ISO 1/3 OCTAVE
       </span>
 
 
-      <span
-        data-range-label="${channelIndex}"
-      >
-        RANGE : ±${state.range} dB
+      <span data-role="footer-range">
+        RANGE: ±${state.range} dB
       </span>
 
     </div>
@@ -458,20 +949,16 @@ function createChannel(
     <div class="channel-buttons">
 
       <button
-        type="button"
-        class="hardware-button bypass-button"
-        data-action="bypass"
-        data-channel="${channelIndex}"
+        class="small-button"
+        data-role="bypass"
       >
         BYPASS
       </button>
 
 
       <button
-        type="button"
-        class="hardware-button test-button"
-        data-action="test"
-        data-channel="${channelIndex}"
+        class="small-button"
+        data-role="test"
       >
         TEST
       </button>
@@ -481,236 +968,919 @@ function createChannel(
   `;
 
 
-  attachChannelEvents(
-    channel,
-    channelIndex
+  /* =======================================================
+     CONTROL REFERENCES
+     ======================================================= */
+
+  const lowCutButton =
+    channel.querySelector(
+      '[data-role="lowcut"]'
+    );
+
+
+  const rangeButton =
+    channel.querySelector(
+      '[data-role="range"]'
+    );
+
+
+  const bypassButton =
+    channel.querySelector(
+      '[data-role="bypass"]'
+    );
+
+
+  const testButton =
+    channel.querySelector(
+      '[data-role="test"]'
+    );
+
+
+  /* =======================================================
+     INITIAL BUTTON STATE
+     ======================================================= */
+
+  lowCutButton.classList.toggle(
+    "active",
+    state.lowCut
   );
 
 
-  return channel;
-
-}
-
-
-/* =========================================================
-   FORMAT FREQUENCY
-   ========================================================= */
-
-function formatFrequency(
-  frequency
-) {
-
-  if (frequency >= 1000) {
-
-    const khz =
-      frequency / 1000;
+  rangeButton.classList.toggle(
+    "active",
+    state.range === 6
+  );
 
 
-    if (Number.isInteger(khz)) {
+  bypassButton.classList.toggle(
+    "active",
+    state.bypass
+  );
 
-      return `${khz}K`;
+
+  testButton.classList.toggle(
+    "active",
+    state.test
+  );
+
+
+  /* =======================================================
+     BANDS CONTAINER
+     ======================================================= */
+
+  const bandsContainer =
+    channel.querySelector(
+      '[data-role="bands"]'
+    );
+
+
+  /* =======================================================
+     CREATE 31 BANDS
+     ======================================================= */
+
+  DBX_FREQUENCIES.forEach(
+    (
+      frequency,
+      bandIndex
+    ) => {
+
+      const band =
+        document.createElement(
+          "div"
+        );
+
+
+      band.className =
+        "band";
+
+
+      band.innerHTML = `
+
+        <div class="band-track"></div>
+
+
+        <input
+          type="range"
+          min="${-state.range}"
+          max="${state.range}"
+          step="${DBX_FADER_STEP}"
+          value="${state.bands[bandIndex]}"
+          data-band-index="${bandIndex}"
+          aria-label="Channel ${channelNumber}, ${frequency} Hz"
+        />
+
+
+        <div class="band-frequency">
+          ${dbxFormatFrequency(frequency)}
+        </div>
+
+
+        <div
+          class="band-value"
+          data-value-index="${bandIndex}"
+        >
+          ${dbxFormatDb(
+            state.bands[bandIndex]
+          )}
+        </div>
+
+      `;
+
+
+      const slider =
+        band.querySelector(
+          "input"
+        );
+
+
+      const valueLabel =
+        band.querySelector(
+          `[data-value-index="${bandIndex}"]`
+        );
+
+
+      const track =
+        band.querySelector(
+          ".band-track"
+        );
+
+
+      dbxUpdateBandVisual(
+        channelIndex,
+        band,
+        Number(slider.value)
+      );
+
+
+      /* =====================================================
+         POINTER STATE
+         ===================================================== */
+
+      let pointerMode = null;
+
+      let pointerStartX = 0;
+
+      let pointerStartY = 0;
+
+      let pointerStartValue = 0;
+
+      let pointerMoved = false;
+
+      let pointerActive = false;
+
+
+      /* =====================================================
+         POINTER DOWN
+         ===================================================== */
+
+      band.addEventListener(
+        "pointerdown",
+        event => {
+
+          if (
+            event.target.closest(
+              ".band-frequency, .band-value"
+            )
+          ) {
+
+            return;
+
+          }
+
+
+          const trackRect =
+            track.getBoundingClientRect();
+
+
+          if (
+            event.clientY <
+              trackRect.top - 4 ||
+            event.clientY >
+              trackRect.bottom + 4
+          ) {
+
+            return;
+
+          }
+
+
+          pointerActive =
+            true;
+
+
+          pointerMode =
+            null;
+
+
+          pointerMoved =
+            false;
+
+
+          pointerStartX =
+            event.clientX;
+
+
+          pointerStartY =
+            event.clientY;
+
+
+          pointerStartValue =
+            Number(
+              slider.value
+            );
+
+        },
+        {
+          passive: true
+        }
+      );
+
+
+      /* =====================================================
+         POINTER MOVE
+         ===================================================== */
+
+      band.addEventListener(
+        "pointermove",
+        event => {
+
+          if (
+            !pointerActive
+          ) {
+
+            return;
+
+          }
+
+
+          const deltaX =
+            event.clientX -
+            pointerStartX;
+
+
+          const deltaY =
+            event.clientY -
+            pointerStartY;
+
+
+          const absX =
+            Math.abs(deltaX);
+
+
+          const absY =
+            Math.abs(deltaY);
+
+
+          if (
+            !pointerMode &&
+            (
+              absX > 6 ||
+              absY > 6
+            )
+          ) {
+
+            pointerMoved =
+              true;
+
+
+            /* ---------------------------------------------
+               HORIZONTAL = SCROLL
+               --------------------------------------------- */
+
+            if (
+              absX > absY
+            ) {
+
+              pointerMode =
+                "scroll";
+
+
+              pointerActive =
+                false;
+
+
+              return;
+
+            }
+
+
+            /* ---------------------------------------------
+               VERTICAL = FADER
+               --------------------------------------------- */
+
+            pointerMode =
+              "fader";
+
+
+            band.classList.add(
+              "is-dragging"
+            );
+
+
+            try {
+
+              band.setPointerCapture(
+                event.pointerId
+              );
+
+            }
+
+            catch (_) {}
+
+          }
+
+
+          if (
+            pointerMode !==
+            "fader"
+          ) {
+
+            return;
+
+          }
+
+
+          event.preventDefault();
+
+
+          const trackRect =
+            track.getBoundingClientRect();
+
+
+          const trackHeight =
+            trackRect.height;
+
+
+          if (
+            trackHeight <= 0
+          ) {
+
+            return;
+
+          }
+
+
+          const range =
+            dbxChannelState[
+              channelIndex
+            ].range;
+
+
+          const valuePerPixel =
+            (
+              range * 2
+            ) /
+            trackHeight;
+
+
+          const newValue =
+            pointerStartValue -
+            (
+              deltaY *
+              valuePerPixel
+            );
+
+
+          dbxSetBandValue(
+            channelIndex,
+            bandIndex,
+            newValue,
+            band,
+            slider,
+            valueLabel
+          );
+
+        },
+        {
+          passive: false
+        }
+      );
+
+
+      /* =====================================================
+         POINTER UP
+         ===================================================== */
+
+      band.addEventListener(
+        "pointerup",
+        event => {
+
+          if (
+            !pointerActive
+          ) {
+
+            return;
+
+          }
+
+
+          /* -----------------------------------------------
+             FADER
+             ----------------------------------------------- */
+
+          if (
+            pointerMode ===
+            "fader"
+          ) {
+
+            band.classList.remove(
+              "is-dragging"
+            );
+
+
+            try {
+
+              band.releasePointerCapture(
+                event.pointerId
+              );
+
+            }
+
+            catch (_) {}
+
+
+            pointerActive =
+              false;
+
+
+            pointerMode =
+              null;
+
+
+            pointerMoved =
+              false;
+
+
+            return;
+
+          }
+
+
+          /* -----------------------------------------------
+             SCROLL
+             ----------------------------------------------- */
+
+          if (
+            pointerMode ===
+            "scroll"
+          ) {
+
+            pointerActive =
+              false;
+
+
+            pointerMode =
+              null;
+
+
+            return;
+
+          }
+
+
+          /* -----------------------------------------------
+             TAP
+             ----------------------------------------------- */
+
+          if (
+            !pointerMoved
+          ) {
+
+            const trackRect =
+              track.getBoundingClientRect();
+
+
+            const currentValue =
+              Number(
+                slider.value
+              );
+
+
+            const range =
+              dbxChannelState[
+                channelIndex
+              ].range;
+
+
+            const trackHeight =
+              trackRect.height;
+
+
+            if (
+              trackHeight > 0
+            ) {
+
+              const currentPercent =
+                (
+                  (
+                    currentValue +
+                    range
+                  ) /
+                  (
+                    range * 2
+                  )
+                );
+
+
+              const knobY =
+                trackRect.bottom -
+                (
+                  currentPercent *
+                  trackHeight
+                );
+
+
+              const tapY =
+                event.clientY;
+
+
+              const tapThreshold =
+                5;
+
+
+              /* TAP ABOVE = +0.5 dB */
+
+              if (
+                tapY <
+                knobY -
+                tapThreshold
+              ) {
+
+                dbxSetBandValue(
+                  channelIndex,
+                  bandIndex,
+                  currentValue +
+                    DBX_FADER_STEP,
+                  band,
+                  slider,
+                  valueLabel
+                );
+
+              }
+
+
+              /* TAP BELOW = -0.5 dB */
+
+              else if (
+                tapY >
+                knobY +
+                tapThreshold
+              ) {
+
+                dbxSetBandValue(
+                  channelIndex,
+                  bandIndex,
+                  currentValue -
+                    DBX_FADER_STEP,
+                  band,
+                  slider,
+                  valueLabel
+                );
+
+              }
+
+            }
+
+          }
+
+
+          pointerActive =
+            false;
+
+
+          pointerMode =
+            null;
+
+
+          pointerMoved =
+            false;
+
+        },
+        {
+          passive: true
+        }
+      );
+
+
+      /* =====================================================
+         POINTER CANCEL
+         ===================================================== */
+
+      band.addEventListener(
+        "pointercancel",
+        event => {
+
+          band.classList.remove(
+            "is-dragging"
+          );
+
+
+          try {
+
+            if (
+              band.hasPointerCapture(
+                event.pointerId
+              )
+            ) {
+
+              band.releasePointerCapture(
+                event.pointerId
+              );
+
+            }
+
+          }
+
+          catch (_) {}
+
+
+          pointerActive =
+            false;
+
+
+          pointerMode =
+            null;
+
+
+          pointerMoved =
+            false;
+
+        }
+      );
+
+
+      /* =====================================================
+         KEYBOARD / NATIVE RANGE INPUT
+         ===================================================== */
+
+      slider.addEventListener(
+        "input",
+        () => {
+
+          dbxSetBandValue(
+            channelIndex,
+            bandIndex,
+            Number(
+              slider.value
+            ),
+            band,
+            slider,
+            valueLabel
+          );
+
+        }
+      );
+
+
+      bandsContainer.appendChild(
+        band
+      );
 
     }
-
-
-    return `${khz}K`;
-
-  }
-
-
-  return frequency.toString();
-
-}
-
-
-/* =========================================================
-   CHANNEL EVENTS
-   ========================================================= */
-
-function attachChannelEvents(
-  channel,
-  channelIndex
-) {
+  );
 
 
   /* =======================================================
      GAIN
      ======================================================= */
 
-  const gain =
+  const gainSlider =
     channel.querySelector(
-      '.channel-gain'
+      '[data-role="gain"]'
     );
 
 
   const gainValue =
     channel.querySelector(
-      `[data-gain-value="${channelIndex}"]`
+      '[data-role="gain-value"]'
     );
 
 
-  if (gain) {
+  gainSlider.addEventListener(
+    "input",
+    () => {
 
-    gain.addEventListener(
-      'input',
-      () => {
-
-        const value =
-          Number(gain.value);
-
-
-        channelState[
-          channelIndex
-        ].gain = value;
+      const value =
+        Number(
+          gainSlider.value
+        );
 
 
-        if (gainValue) {
-
-          gainValue.textContent =
-            `${value.toFixed(1)} dB`;
-
-        }
+      state.gain =
+        value;
 
 
-        updateEqualizerChannel(
+      gainValue.textContent =
+        `${dbxFormatDb(value)} dB`;
+
+
+      if (
+        typeof window.updateChannelAudio ===
+        "function"
+      ) {
+
+        window.updateChannelAudio(
           channelIndex
         );
 
       }
-    );
 
-  }
+    }
+  );
 
 
   /* =======================================================
      LOW CUT
      ======================================================= */
 
-  const lowCutButton =
-    channel.querySelector(
-      '.low-cut-button'
-    );
+  lowCutButton.addEventListener(
+    "click",
+    event => {
+
+      state.lowCut =
+        !state.lowCut;
 
 
-  if (lowCutButton) {
-
-    lowCutButton.addEventListener(
-      'click',
-      () => {
-
-        const state =
-          channelState[
-            channelIndex
-          ];
+      event.currentTarget.classList.toggle(
+        "active",
+        state.lowCut
+      );
 
 
-        state.lowCut =
-          !state.lowCut;
+      event.currentTarget.textContent =
+        state.lowCut
+          ? "ON / 40 Hz"
+          : "OFF / 40 Hz";
 
 
-        lowCutButton.textContent =
-          state.lowCut
-            ? 'ON / 40 Hz'
-            : 'OFF / 40 Hz';
+      if (
+        typeof window.updateChannelAudio ===
+        "function"
+      ) {
 
-
-        updateEqualizerChannel(
-          channelIndex
-        );
-
-
-        updateChannelStatus(
+        window.updateChannelAudio(
           channelIndex
         );
 
       }
-    );
 
-  }
+
+      if (
+        dbxReadyStatus
+      ) {
+
+        dbxReadyStatus.textContent =
+          state.lowCut
+            ? `CH${channelNumber} LOW CUT ON`
+            : `CH${channelNumber} LOW CUT OFF`;
+
+      }
+
+    }
+  );
 
 
   /* =======================================================
      RANGE
      ======================================================= */
 
-  const rangeButton =
-    channel.querySelector(
-      '.range-button'
-    );
+  rangeButton.addEventListener(
+    "click",
+    event => {
+
+      state.range =
+        state.range === 15
+          ? 6
+          : 15;
 
 
-  if (rangeButton) {
-
-    rangeButton.addEventListener(
-      'click',
-      () => {
-
-        const state =
-          channelState[
-            channelIndex
-          ];
+      const range =
+        state.range;
 
 
-        state.range =
-          state.range === 15
-            ? 6
-            : 15;
+      event.currentTarget.textContent =
+        `±${range} dB`;
 
 
-        rangeButton.textContent =
-          `±${state.range} dB`;
+      event.currentTarget.classList.toggle(
+        "active",
+        range === 6
+      );
 
 
-        const rangeLabel =
-          channel.querySelector(
-            `[data-range-label="${channelIndex}"]`
-          );
+      const footerRange =
+        channel.querySelector(
+          '[data-role="footer-range"]'
+        );
 
 
-        if (rangeLabel) {
+      if (
+        footerRange
+      ) {
 
-          rangeLabel.textContent =
-            `RANGE : ±${state.range} dB`;
+        footerRange.textContent =
+          `RANGE: ±${range} dB`;
 
-        }
-
-
-        const sliders =
-          channel.querySelectorAll(
-            '.eq-slider'
-          );
+      }
 
 
-        sliders.forEach(
-          slider => {
+      channel
+        .querySelectorAll(
+          ".band input"
+        )
+        .forEach(
+          (
+            slider,
+            index
+          ) => {
+
+            let value =
+              Number(
+                slider.value
+              );
+
+
+            value =
+              Math.max(
+                -range,
+                Math.min(
+                  range,
+                  value
+                )
+              );
+
+
+            value =
+              Math.round(
+                value /
+                DBX_FADER_STEP
+              ) *
+              DBX_FADER_STEP;
+
 
             slider.min =
-              -state.range;
+              String(
+                -range
+              );
+
 
             slider.max =
-              state.range;
+              String(
+                range
+              );
 
 
-            const current =
-              Number(slider.value);
+            slider.step =
+              String(
+                DBX_FADER_STEP
+              );
+
+
+            slider.value =
+              String(
+                value
+              );
+
+
+            state.bands[
+              index
+            ] =
+              value;
+
+
+            const valueLabel =
+              channel.querySelector(
+                `[data-value-index="${index}"]`
+              );
 
 
             if (
-              current > state.range
+              valueLabel
             ) {
 
-              slider.value =
-                state.range;
+              valueLabel.textContent =
+                dbxFormatDb(
+                  value
+                );
 
             }
 
 
+            const band =
+              slider.closest(
+                ".band"
+              );
+
+
             if (
-              current < -state.range
+              band
             ) {
 
-              slider.value =
-                -state.range;
+              dbxUpdateBandVisual(
+                channelIndex,
+                band,
+                value
+              );
 
             }
 
@@ -718,1273 +1888,378 @@ function attachChannelEvents(
         );
 
 
-        updateAllEQValues(
-          channel,
-          channelIndex
-        );
+      if (
+        typeof window.updateChannelAudio ===
+        "function"
+      ) {
 
-
-        updateEqualizerChannel(
+        window.updateChannelAudio(
           channelIndex
         );
 
       }
-    );
 
-  }
+
+      if (
+        dbxReadyStatus
+      ) {
+
+        dbxReadyStatus.textContent =
+          `CH${channelNumber} RANGE ±${range} dB`;
+
+      }
+
+    }
+  );
 
 
   /* =======================================================
-     EQ SLIDERS
+     BYPASS
      ======================================================= */
 
-  const sliders =
-    channel.querySelectorAll(
-      '.eq-slider'
-    );
+  bypassButton.addEventListener(
+    "click",
+    event => {
+
+      state.bypass =
+        !state.bypass;
 
 
-  sliders.forEach(
-    slider => {
-
-      slider.addEventListener(
-        'input',
-        () => {
-
-          const bandIndex =
-            Number(
-              slider.dataset.band
-            );
+      event.currentTarget.classList.toggle(
+        "active",
+        state.bypass
+      );
 
 
-          const value =
-            Number(
-              slider.value
-            );
+      if (
+        typeof window.updateChannelAudio ===
+        "function"
+      ) {
+
+        window.updateChannelAudio(
+          channelIndex
+        );
+
+      }
 
 
-          channelState[
-            channelIndex
-          ].bands[
-            bandIndex
-          ] = value;
+      dbxUpdateChannelStatusLights(
+        channelIndex
+      );
 
 
-          const valueElement =
-            channel.querySelector(
-              `[data-eq-value="${channelIndex}-${bandIndex}"]`
-            );
+      if (
+        dbxReadyStatus
+      ) {
+
+        dbxReadyStatus.textContent =
+          state.bypass
+            ? `CH${channelNumber} BYPASS ON`
+            : `CH${channelNumber} BYPASS OFF`;
+
+      }
+
+    }
+  );
 
 
-          if (valueElement) {
+  /* =======================================================
+     TEST
+     ======================================================= */
 
-            valueElement.textContent =
-              value.toFixed(1);
+  testButton.addEventListener(
+    "click",
+    async event => {
+
+      state.test =
+        !state.test;
+
+
+      const testing =
+        state.test;
+
+
+      if (
+        testing
+      ) {
+
+        try {
+
+          /* -----------------------------------------------
+             CREATE AUDIO CONTEXT
+             ----------------------------------------------- */
+
+          if (
+            typeof window.createAudioContext ===
+            "function"
+          ) {
+
+            window.createAudioContext();
 
           }
 
 
-          updateEqualizerChannel(
+          /* -----------------------------------------------
+             START TEST OSCILLATOR
+             ----------------------------------------------- */
+
+          if (
+            typeof window.startChannelTest ===
+            "function"
+          ) {
+
+            window.startChannelTest(
+              channelIndex
+            );
+
+          }
+
+
+          /* -----------------------------------------------
+             RESUME AUDIO
+             ----------------------------------------------- */
+
+          if (
+            window.audioContext
+          ) {
+
+            await window.audioContext.resume();
+
+          }
+
+        }
+
+        catch (error) {
+
+          console.error(
+            "DBX 2231 TEST gagal:",
+            error
+          );
+
+
+          state.test =
+            false;
+
+
+          if (
+            typeof window.stopChannelTest ===
+            "function"
+          ) {
+
+            window.stopChannelTest(
+              channelIndex
+            );
+
+          }
+
+
+          testButton.classList.remove(
+            "active"
+          );
+
+
+          dbxUpdateChannelStatusLights(
             channelIndex
           );
 
-        }
-      );
 
-
-      /*
-       * Pointer support
-       * untuk drag/touch pada browser mobile.
-       */
-
-      slider.addEventListener(
-        'pointerdown',
-        () => {
-
-          slider.focus();
+          return;
 
         }
-      );
-
-    }
-  );
-
-
-  /* =======================================================
-     BYPASS - TOP
-     ======================================================= */
-
-  const topBypass =
-    channel.querySelector(
-      '[data-status="bypass"]'
-    );
-
-
-  if (topBypass) {
-
-    topBypass.addEventListener(
-      'click',
-      () => {
-
-        toggleBypass(
-          channelIndex
-        );
-
-      }
-    );
-
-  }
-
-
-  /* =======================================================
-     BYPASS - BOTTOM
-     ======================================================= */
-
-  const bypassButton =
-    channel.querySelector(
-      '[data-action="bypass"]'
-    );
-
-
-  if (bypassButton) {
-
-    bypassButton.addEventListener(
-      'click',
-      () => {
-
-        toggleBypass(
-          channelIndex
-        );
-
-      }
-    );
-
-  }
-
-
-  /* =======================================================
-     TEST - TOP
-     ======================================================= */
-
-  const topTest =
-    channel.querySelector(
-      '[data-status="test"]'
-    );
-
-
-  if (topTest) {
-
-    topTest.addEventListener(
-      'click',
-      () => {
-
-        toggleTest(
-          channelIndex
-        );
-
-      }
-    );
-
-  }
-
-
-  /* =======================================================
-     TEST - BOTTOM
-     ======================================================= */
-
-  const testButton =
-    channel.querySelector(
-      '[data-action="test"]'
-    );
-
-
-  if (testButton) {
-
-    testButton.addEventListener(
-      'click',
-      () => {
-
-        toggleTest(
-          channelIndex
-        );
-
-      }
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   UPDATE EQ VALUE LABELS
-   ========================================================= */
-
-function updateAllEQValues(
-  channel,
-  channelIndex
-) {
-
-  const sliders =
-    channel.querySelectorAll(
-      '.eq-slider'
-    );
-
-
-  sliders.forEach(
-    slider => {
-
-      const bandIndex =
-        Number(
-          slider.dataset.band
-        );
-
-
-      const value =
-        Number(
-          slider.value
-        );
-
-
-      channelState[
-        channelIndex
-      ].bands[
-        bandIndex
-      ] = value;
-
-
-      const output =
-        channel.querySelector(
-          `[data-eq-value="${channelIndex}-${bandIndex}"]`
-        );
-
-
-      if (output) {
-
-        output.textContent =
-          value.toFixed(1);
 
       }
 
-    }
-  );
-
-}
-
-
-/* =========================================================
-   TOGGLE BYPASS
-   ========================================================= */
-
-function toggleBypass(
-  channelIndex
-) {
-
-  const state =
-    channelState[
-      channelIndex
-    ];
-
-
-  state.bypass =
-    !state.bypass;
-
-
-  updateEqualizerChannel(
-    channelIndex
-  );
-
-
-  updateChannelStatus(
-    channelIndex
-  );
-
-}
-
-
-/* =========================================================
-   TOGGLE TEST
-   ========================================================= */
-
-function toggleTest(
-  channelIndex
-) {
-
-  const state =
-    channelState[
-      channelIndex
-    ];
-
-
-  state.test =
-    !state.test;
-
-
-  if (state.test) {
-
-    startChannelTest(
-      channelIndex
-    );
-
-  }
-
-  else {
-
-    stopChannelTest(
-      channelIndex
-    );
-
-  }
-
-
-  updateChannelStatus(
-    channelIndex
-  );
-
-}
-
-
-/* =========================================================
-   UPDATE BUTTON STATES
-   ========================================================= */
-
-function updateAllChannelButtons() {
-
-  channelState.forEach(
-    (_, index) => {
-
-      updateChannelStatus(
-        index
-      );
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   UPDATE CHANNEL STATUS
-   ========================================================= */
-
-function updateChannelStatus(
-  channelIndex
-) {
-
-  const channel =
-    document.querySelector(
-      `.channel[data-channel="${channelIndex + 1}"]`
-    );
-
-
-  if (!channel) {
-
-    return;
-
-  }
-
-
-  const state =
-    channelState[
-      channelIndex
-    ];
-
-
-  const bypassButtons =
-    channel.querySelectorAll(
-      '[data-status="bypass"], [data-action="bypass"]'
-    );
-
-
-  bypassButtons.forEach(
-    button => {
-
-      button.classList.toggle(
-        'active',
-        state.bypass
-      );
-
-    }
-  );
-
-
-  const testButtons =
-    channel.querySelectorAll(
-      '[data-status="test"], [data-action="test"]'
-    );
-
-
-  testButtons.forEach(
-    button => {
-
-      button.classList.toggle(
-        'active',
-        state.test
-      );
-
-    }
-  );
-
-
-  const activeButton =
-    channel.querySelector(
-      '[data-status="active"]'
-    );
-
-
-  if (activeButton) {
-
-    const active =
-      state.test ||
-      hasActiveExternalSource();
-
-
-    activeButton.classList.toggle(
-      'active',
-      active
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   CHECK EXTERNAL SOURCE
-   ========================================================= */
-
-function hasActiveExternalSource() {
-
-  if (
-    typeof sourceNode !== 'undefined' &&
-    sourceNode
-  ) {
-
-    return true;
-
-  }
-
-
-  if (
-    typeof microphoneStream !== 'undefined' &&
-    microphoneStream
-  ) {
-
-    return true;
-
-  }
-
-
-  return false;
-
-}
-
-
-/* =========================================================
-   AUDIO ENGINE INITIALIZATION
-   ========================================================= */
-
-function initializeEqualizerEngine() {
-
-  if (
-    typeof audioContext === 'undefined' ||
-    !audioContext
-  ) {
-
-    console.warn(
-      'DBX 2231: AudioContext belum tersedia.'
-    );
-
-    return;
-
-  }
-
-
-  /*
-   * Jangan membuat graph dua kali.
-   */
-
-  if (
-    channelGraphs.length === 2
-  ) {
-
-    return;
-
-  }
-
-
-  const ch1 =
-    createEqualizerChannel(0);
-
-
-  const ch2 =
-    createEqualizerChannel(1);
-
-
-  channelGraphs = [
-    ch1,
-    ch2
-  ];
-
-
-  /*
-   * STEREO SPLITTER
-   *
-   * Output 0 → CH1 LEFT
-   * Output 1 → CH2 RIGHT
-   */
-
-  if (
-    typeof stereoSplitter !== 'undefined' &&
-    stereoSplitter
-  ) {
-
-    stereoSplitter.connect(
-      ch1.inputGain,
-      0,
-      0
-    );
-
-
-    stereoSplitter.connect(
-      ch2.inputGain,
-      1,
-      0
-    );
-
-  }
-
-
-  /*
-   * CH1 → STEREO MERGER LEFT
-   */
-
-  if (
-    typeof stereoMerger !== 'undefined' &&
-    stereoMerger
-  ) {
-
-    ch1.analyser.connect(
-      stereoMerger,
-      0,
-      0
-    );
-
-
-    /*
-     * CH2 → STEREO MERGER RIGHT
-     */
-
-    ch2.analyser.connect(
-      stereoMerger,
-      0,
-      1
-    );
-
-  }
-
-
-  updateEqualizerChannel(0);
-
-  updateEqualizerChannel(1);
-
-}
-
-
-/* =========================================================
-   CREATE AUDIO GRAPH
-   ========================================================= */
-
-function createEqualizerChannel(
-  channelIndex
-) {
-
-  const state =
-    channelState[
-      channelIndex
-    ];
-
-
-  const inputGain =
-    audioContext.createGain();
-
-
-  const lowCut =
-    audioContext.createBiquadFilter();
-
-
-  lowCut.type =
-    'highpass';
-
-
-  lowCut.frequency.value =
-    state.lowCut
-      ? 40
-      : 5;
-
-
-  /*
-   * 31 PARAMETRIC FILTERS
-   */
-
-  const filters =
-    frequencies.map(
-      (
-        frequency,
-        index
-      ) => {
-
-        const filter =
-          audioContext.createBiquadFilter();
-
-
-        filter.type =
-          'peaking';
-
-
-        filter.frequency.value =
-          frequency;
-
-
-        filter.Q.value =
-          1.4;
-
-
-        filter.gain.value =
-          state.bands[index];
-
-
-        return filter;
-
-      }
-    );
-
-
-  const analyser =
-    audioContext.createAnalyser();
-
-
-  analyser.fftSize =
-    2048;
-
-
-  analyser.smoothingTimeConstant =
-    0.75;
-
-
-  /*
-   * INPUT
-   */
-
-  let previous =
-    inputGain;
-
-
-  /*
-   * LOW CUT
-   */
-
-  previous.connect(
-    lowCut
-  );
-
-
-  previous =
-    lowCut;
-
-
-  /*
-   * 31 EQ FILTERS
-   */
-
-  filters.forEach(
-    filter => {
-
-      previous.connect(
-        filter
-      );
-
-
-      previous =
-        filter;
-
-    }
-  );
-
-
-  /*
-   * ANALYSER
-   */
-
-  previous.connect(
-    analyser
-  );
-
-
-  return {
-
-    inputGain,
-    lowCut,
-    filters,
-    analyser
-
-  };
-
-}
-
-
-/* =========================================================
-   UPDATE AUDIO CHANNEL
-   ========================================================= */
-
-function updateEqualizerChannel(
-  channelIndex
-) {
-
-  const graph =
-    channelGraphs[
-      channelIndex
-    ];
-
-
-  if (!graph) {
-
-    return;
-
-  }
-
-
-  const state =
-    channelState[
-      channelIndex
-    ];
-
-
-  /*
-   * GAIN
-   *
-   * Gain tetap bekerja ketika BYPASS.
-   */
-
-  graph.inputGain.gain.value =
-    dbToLinear(
-      state.gain
-    );
-
-
-  /*
-   * LOW CUT
-   */
-
-  graph.lowCut.frequency.value =
-    state.bypass
-      ? 5
-      : state.lowCut
-        ? 40
-        : 5;
-
-
-  /*
-   * 31 BAND EQ
-   *
-   * BYPASS hanya membypass EQ.
-   */
-
-  graph.filters.forEach(
-    (
-      filter,
-      index
-    ) => {
-
-      filter.gain.value =
-        state.bypass
-          ? 0
-          : state.bands[index];
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   DB → LINEAR
-   ========================================================= */
-
-function dbToLinear(
-  db
-) {
-
-  return Math.pow(
-    10,
-    db / 20
-  );
-
-}
-
-
-/* =========================================================
-   CHANNEL TEST
-   ========================================================= */
-
-async function startChannelTest(
-  channelIndex
-) {
-
-  if (
-    typeof audioContext === 'undefined' ||
-    !audioContext
-  ) {
-
-    return;
-
-  }
-
-
-  /*
-   * Resume AudioContext terlebih dahulu.
-   */
-
-  try {
-
-    await audioContext.resume();
-
-  }
-
-  catch (error) {
-
-    console.warn(
-      'AudioContext resume gagal:',
-      error
-    );
-
-  }
-
-
-  /*
-   * Pastikan graph sudah dibuat.
-   */
-
-  if (
-    !channelGraphs[channelIndex]
-  ) {
-
-    initializeEqualizerEngine();
-
-  }
-
-
-  /*
-   * Jangan membuat oscillator kedua.
-   */
-
-  if (
-    testOscillators[channelIndex]
-  ) {
-
-    return;
-
-  }
-
-
-  const oscillator =
-    audioContext.createOscillator();
-
-
-  const gainNode =
-    audioContext.createGain();
-
-
-  oscillator.type =
-    'sine';
-
-
-  oscillator.frequency.value =
-    1000;
-
-
-  /*
-   * Level test aman.
-   */
-
-  gainNode.gain.value =
-    0.08;
-
-
-  oscillator.connect(
-    gainNode
-  );
-
-
-  const graph =
-    channelGraphs[
-      channelIndex
-    ];
-
-
-  if (graph) {
-
-    gainNode.connect(
-      graph.inputGain
-    );
-
-  }
-
-
-  oscillator.start();
-
-
-  testOscillators[
-    channelIndex
-  ] =
-    oscillator;
-
-
-  testGains[
-    channelIndex
-  ] =
-    gainNode;
-
-}
-
-
-/* =========================================================
-   STOP CHANNEL TEST
-   ========================================================= */
-
-function stopChannelTest(
-  channelIndex
-) {
-
-  const oscillator =
-    testOscillators[
-      channelIndex
-    ];
-
-
-  if (oscillator) {
-
-    try {
-
-      oscillator.stop();
-
-    }
-
-    catch (error) {
-
-      /* oscillator sudah berhenti */
-
-    }
-
-
-    try {
-
-      oscillator.disconnect();
-
-    }
-
-    catch (error) {
-
-    }
-
-  }
-
-
-  const gainNode =
-    testGains[
-      channelIndex
-    ];
-
-
-  if (gainNode) {
-
-    try {
-
-      gainNode.disconnect();
-
-    }
-
-    catch (error) {
-
-    }
-
-  }
-
-
-  testOscillators[
-    channelIndex
-  ] =
-    null;
-
-
-  testGains[
-    channelIndex
-  ] =
-    null;
-
-}
-
-
-/* =========================================================
-   METER
-   ========================================================= */
-
-function startEqualizerMeters() {
-
-  function updateMeters() {
-
-    channelGraphs.forEach(
-      (
-        graph,
-        channelIndex
-      ) => {
-
-        updateChannelMeter(
-          graph,
-          channelIndex
-        );
-
-      }
-    );
-
-
-    requestAnimationFrame(
-      updateMeters
-    );
-
-  }
-
-
-  requestAnimationFrame(
-    updateMeters
-  );
-
-}
-
-
-/* =========================================================
-   UPDATE CHANNEL METER
-   ========================================================= */
-
-function updateChannelMeter(
-  graph,
-  channelIndex
-) {
-
-  const meter =
-    document.querySelector(
-      `[data-meter="${channelIndex}"]`
-    );
-
-
-  const clip =
-    document.querySelector(
-      `[data-clip="${channelIndex}"]`
-    );
-
-
-  if (!meter) {
-
-    return;
-
-  }
-
-
-  const segments =
-    meter.querySelectorAll(
-      '.meter-segment'
-    );
-
-
-  /*
-   * Tidak ada audio/test:
-   * meter OFF.
-   */
-
-  const state =
-    channelState[
-      channelIndex
-    ];
-
-
-  const active =
-    state.test ||
-    hasActiveExternalSource();
-
-
-  if (!active || !graph) {
-
-    segments.forEach(
-      segment => {
-
-        segment.classList.remove(
-          'active',
-          'clip'
-        );
-
-      }
-    );
-
-
-    if (clip) {
-
-      clip.classList.remove(
-        'active'
-      );
-
-    }
-
-
-    return;
-
-  }
-
-
-  const data =
-    new Float32Array(
-      graph.analyser.fftSize
-    );
-
-
-  graph.analyser.getFloatTimeDomainData(
-    data
-  );
-
-
-  let peak =
-    0;
-
-
-  for (
-    let i = 0;
-    i < data.length;
-    i++
-  ) {
-
-    const value =
-      Math.abs(
-        data[i]
-      );
-
-
-    if (
-      value > peak
-    ) {
-
-      peak =
-        value;
-
-    }
-
-  }
-
-
-  /*
-   * Convert peak → dB.
-   */
-
-  const db =
-    peak > 0
-      ? 20 * Math.log10(peak)
-      : -60;
-
-
-  const clamped =
-    Math.max(
-      -60,
-      Math.min(
-        3,
-        db
-      )
-    );
-
-
-  /*
-   * 18 LED segments.
-   */
-
-  const level =
-    Math.round(
-      (
-        clamped + 60
-      ) / 63 * 18
-    );
-
-
-  segments.forEach(
-    (
-      segment,
-      index
-    ) => {
-
-      segment.classList.toggle(
-        'active',
-        index < level
-      );
-
-
-      segment.classList.remove(
-        'clip'
-      );
-
-    }
-  );
-
-
-  /*
-   * CLIP.
-   */
-
-  const clipping =
-    peak >= 0.98;
-
-
-  if (clip) {
-
-    clip.classList.toggle(
-      'active',
-      clipping
-    );
-
-  }
-
-
-  if (clipping) {
-
-    segments.forEach(
-      segment => {
+      else {
 
         if (
-          segment.classList.contains(
-            'active'
-          )
+          typeof window.stopChannelTest ===
+          "function"
         ) {
 
-          segment.classList.add(
-            'clip'
+          window.stopChannelTest(
+            channelIndex
           );
 
         }
 
       }
-    );
 
-  }
+
+      event.currentTarget.classList.toggle(
+        "active",
+        testing
+      );
+
+
+      dbxUpdateChannelStatusLights(
+        channelIndex
+      );
+
+
+      if (
+        dbxReadyStatus
+      ) {
+
+        dbxReadyStatus.textContent =
+          testing
+            ? `CH${channelNumber} TEST 1kHz ON`
+            : `CH${channelNumber} TEST OFF`;
+
+      }
+
+    }
+  );
+
+
+  /* =======================================================
+     APPEND CHANNEL
+     ======================================================= */
+
+  dbxChannelsContainer.appendChild(
+    channel
+  );
+
+
+  /* =======================================================
+     UPDATE STATUS
+     ======================================================= */
+
+  dbxUpdateChannelStatusLights(
+    channelIndex
+  );
 
 }
 
 
 /* =========================================================
-   INITIALIZE UI
+   BUILD CHANNELS
    ========================================================= */
 
-function initializeEqualizerUI() {
+function dbxBuildChannels() {
 
-  /*
-   * #channels berasal dari index.html.
-   */
+  if (
+    !dbxChannelsContainer
+  ) {
 
-  buildChannels();
+    console.error(
+      "DBX 2231: #channels tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+
+  dbxChannelsContainer.innerHTML =
+    "";
+
+
+  /* -------------------------------------------------------
+     CH1
+     ------------------------------------------------------- */
+
+  dbxCreateChannel(0);
+
+
+  /* -------------------------------------------------------
+     CH2
+     ------------------------------------------------------- */
+
+  dbxCreateChannel(1);
+
+
+  dbxUpdateAllStatusLights();
+
+}
+
+
+/* =========================================================
+   EXPORT KE WINDOW
+   ========================================================= */
+
+window.DBX2231.frequencies =
+  DBX_FREQUENCIES;
+
+
+window.DBX2231.channelState =
+  dbxChannelState;
+
+
+window.DBX2231.buildChannels =
+  dbxBuildChannels;
+
+
+window.DBX2231.createChannel =
+  dbxCreateChannel;
+
+
+window.DBX2231.updateChannelStatusLights =
+  dbxUpdateChannelStatusLights;
+
+
+window.DBX2231.updateAllStatusLights =
+  dbxUpdateAllStatusLights;
+
+
+window.DBX2231.updateBandVisual =
+  dbxUpdateBandVisual;
+
+
+window.DBX2231.setBandValue =
+  dbxSetBandValue;
+
+
+/* ---------------------------------------------------------
+   BACKWARD COMPATIBILITY
+
+   Supaya file audio-engine.js lama yang masih memanggil:
+
+       window.channelState
+       window.frequencies
+       window.buildChannels
+
+   tetap bisa bekerja.
+   --------------------------------------------------------- */
+
+window.frequencies =
+  DBX_FREQUENCIES;
+
+
+window.channelState =
+  dbxChannelState;
+
+
+window.buildChannels =
+  dbxBuildChannels;
+
+
+window.createChannel =
+  dbxCreateChannel;
+
+
+window.updateChannelStatusLights =
+  dbxUpdateChannelStatusLights;
+
+
+window.updateAllStatusLights =
+  dbxUpdateAllStatusLights;
+
+
+window.updateBandVisual =
+  dbxUpdateBandVisual;
+
+
+window.setBandValue =
+  dbxSetBandValue;
+
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+function dbxInitializeChannels() {
+
+  dbxBuildChannels();
 
 }
 
@@ -1993,51 +2268,28 @@ function initializeEqualizerUI() {
    DOM READY
    ========================================================= */
 
-document.addEventListener(
-  'DOMContentLoaded',
-  () => {
+if (
+  document.readyState ===
+  "loading"
+) {
 
-    initializeEqualizerUI();
+  document.addEventListener(
+    "DOMContentLoaded",
+    dbxInitializeChannels,
+    {
+      once: true
+    }
+  );
 
-  }
-);
+}
+
+else {
+
+  dbxInitializeChannels();
+
+}
 
 
 /* =========================================================
-   PUBLIC API
+   END
    ========================================================= */
-
-window.buildChannels =
-  buildChannels;
-
-
-window.createChannel =
-  createChannel;
-
-
-window.channelState =
-  channelState;
-
-
-window.channelGraphs =
-  channelGraphs;
-
-
-window.initializeEqualizerEngine =
-  initializeEqualizerEngine;
-
-
-window.updateEqualizerChannel =
-  updateEqualizerChannel;
-
-
-window.startChannelTest =
-  startChannelTest;
-
-
-window.stopChannelTest =
-  stopChannelTest;
-
-
-window.updateChannelStatus =
-  updateChannelStatus;
