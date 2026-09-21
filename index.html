@@ -3719,102 +3719,118 @@ function createChannel(
   );
 
 
-  /* =======================================================
-     TEST
-     ======================================================= */
+/* =======================================================
+   TEST
+   ======================================================= */
 
-  testButton.addEventListener(
-    "click",
-    event => {
+testButton.addEventListener(
+  "click",
+  event => {
 
-      const state =
-        channelState[channelIndex];
+    const state =
+      channelState[channelIndex];
 
+    state.test =
+      !state.test;
 
-      state.test =
-        !state.test;
-
-
-      const testing =
-        state.test;
+    const testing =
+      state.test;
 
 
-      event.currentTarget.classList.toggle(
-        "active",
-        testing
+    event.currentTarget.classList.toggle(
+      "active",
+      testing
+    );
+
+
+    const meter =
+      channel.querySelector(
+        '[data-role="meter"]'
       );
 
 
-      const meter =
-        channel.querySelector(
-          '[data-role="meter"]'
-        );
+    const clip =
+      channel.querySelector(
+        '[data-role="clip"]'
+      );
 
 
-      const clip =
-        channel.querySelector(
-          '[data-role="clip"]'
-        );
+    /*
+     * TEST MODE
+     *
+     * Meter TEST dibuat dari kanan
+     * ke kiri, sama seperti meter audio.
+     */
 
+    if (meter) {
 
       const segments =
-        const segments =
- meter.querySelectorAll("span");
+        meter.querySelectorAll("span");
 
 
-segments.forEach(
-(segment,index)=>{
-
- const reverseIndex =
-   segments.length - 1 - index;
-
-
- segment.classList.toggle(
-   "on",
-   reverseIndex < level
- );
-
-});
+      const testLevel =
+        testing
+          ? 10
+          : 0;
 
 
-      /*
-       * TEST clip.
-       */
+      segments.forEach(
+        (
+          segment,
+          index
+        ) => {
 
-      if (clip) {
-
-        const clipLed =
-          clip.querySelector(
-            ".clip-led"
-          );
+          const reverseIndex =
+            segments.length - 1 - index;
 
 
-        if (clipLed) {
-
-          clipLed.classList.toggle(
+          segment.classList.toggle(
             "on",
-            testing
+            reverseIndex < testLevel
           );
 
         }
+      );
+
+    }
+
+
+    /*
+     * TEST CLIP
+     */
+
+    if (clip) {
+
+      const clipLed =
+        clip.querySelector(
+          ".clip-led"
+        );
+
+
+      if (clipLed) {
+
+        clipLed.classList.toggle(
+          "on",
+          testing
+        );
 
       }
 
-
-      updateChannelStatusLights(
-        channelIndex
-      );
-
-
-      readyStatus.textContent =
-        testing
-          ? `CH${channelNumber} TEST ON`
-          : `CH${channelNumber} TEST OFF`;
-
     }
-  );
 
 
+    updateChannelStatusLights(
+      channelIndex
+    );
+
+
+    readyStatus.textContent =
+      testing
+        ? `CH${channelNumber} TEST ON`
+        : `CH${channelNumber} TEST OFF`;
+
+  }
+);
   channelsContainer.appendChild(
     channel
   );
@@ -4579,8 +4595,6 @@ function stopAudio() {
   updateAllStatusLights();
 
 }
-
-
 /* =========================================================
    REAL TIME METER
    ========================================================= */
@@ -4588,7 +4602,7 @@ function stopAudio() {
 function startMeterAnimation() {
 
   /*
-   * Jangan membuat loop kedua.
+   * Jangan membuat animation loop kedua.
    */
 
   if (
@@ -4636,47 +4650,13 @@ function startMeterAnimation() {
         channelIndex
       ) => {
 
-        if(!sourceNode){
-
- const meter =
- channel.querySelector(
- '[data-role="meter"]'
- );
-
- if(meter){
-
-   meter
-   .querySelectorAll("span")
-   .forEach(
-    led=>{
-      led.classList.remove("on");
-    }
-   );
-
- }
-
-
- const clip =
- channel.querySelector(
- '[data-role="clip"]'
- );
-
- if(clip){
-
-   const clipLed =
-   clip.querySelector(
-    ".clip-led"
-   );
-
-   if(clipLed){
-     clipLed.classList.remove("on");
-   }
-
- }
-
- return;
-
-}
+        /*
+         * Ambil CHANNEL terlebih dahulu.
+         *
+         * Penting:
+         * jangan menggunakan channel sebelum
+         * deklarasi ini.
+         */
 
         const channel =
           document.querySelector(
@@ -4713,6 +4693,57 @@ function startMeterAnimation() {
         }
 
 
+        const segments =
+          meter.querySelectorAll(
+            "span"
+          );
+
+
+        /*
+         * =====================================================
+         * TIDAK ADA INPUT
+         * =====================================================
+         *
+         * Meter harus benar-benar mati.
+         *
+         * Jangan membaca analyser karena analyser
+         * bisa mempunyai noise / nilai kecil walaupun
+         * belum ada source.
+         */
+
+        if (!sourceNode) {
+
+          segments.forEach(
+            segment => {
+
+              segment.classList.remove(
+                "on"
+              );
+
+            }
+          );
+
+
+          const clipLed =
+            clip.querySelector(
+              ".clip-led"
+            );
+
+
+          if (clipLed) {
+
+            clipLed.classList.remove(
+              "on"
+            );
+
+          }
+
+
+          return;
+
+        }
+
+
         const state =
           channelState[
             channelIndex
@@ -4720,20 +4751,56 @@ function startMeterAnimation() {
 
 
         /*
-         * TEST mode:
+         * =====================================================
+         * TEST MODE
+         * =====================================================
          *
-         * Jangan timpa meter TEST
-         * dengan meter audio.
+         * TEST tidak boleh ditimpa oleh
+         * analyser audio.
          */
 
         if (
           state.test
         ) {
 
+          /*
+           * Meter TEST tetap berasal dari
+           * kanan ke kiri.
+           */
+
+          const testLevel =
+            10;
+
+
+          segments.forEach(
+            (
+              segment,
+              index
+            ) => {
+
+              const reverseIndex =
+                segments.length - 1 - index;
+
+
+              segment.classList.toggle(
+                "on",
+                reverseIndex < testLevel
+              );
+
+            }
+          );
+
+
           return;
 
         }
 
+
+        /*
+         * =====================================================
+         * BACA AUDIO
+         * =====================================================
+         */
 
         analyser.getByteTimeDomainData(
           dataArrays[
@@ -4779,7 +4846,9 @@ function startMeterAnimation() {
 
 
         /*
-         * Peak dBFS.
+         * =====================================================
+         * PEAK dBFS
+         * =====================================================
          */
 
         const db =
@@ -4801,47 +4870,81 @@ function startMeterAnimation() {
           );
 
 
-        const level =
-          Math.max(
-            0,
-            Math.min(
-              18,
-              Math.round(
-                (
-                  (
-                    clampedDb +
-                    60
-                  ) /
-                  60
-                ) *
-                18
-              )
-            )
-          );
+        /*
+         * =====================================================
+         * LEVEL
+         * =====================================================
+         */
 
-
-        meter
-          .querySelectorAll(
-            "span"
-          )
-          .forEach(
-            (
-              segment,
-              index
-            ) => {
-
-              segment.classList.toggle(
-                "on",
-                index <
-                  level
-              );
-
-            }
-          );
+        let level =
+          0;
 
 
         /*
-         * Clip.
+         * Noise di bawah -55 dB
+         * dianggap tidak ada sinyal.
+         */
+
+        if (
+          clampedDb >
+          -55
+        ) {
+
+          level =
+            Math.max(
+              0,
+              Math.min(
+                18,
+                Math.round(
+                  (
+                    (
+                      clampedDb +
+                      60
+                    ) /
+                    60
+                  ) *
+                  18
+                )
+              )
+            );
+
+        }
+
+
+        /*
+         * =====================================================
+         * METER KANAN → KIRI
+         * =====================================================
+         *
+         * index 17 = LED paling kanan
+         * index 0  = LED paling kiri
+         *
+         * Jadi sinyal masuk dari kanan.
+         */
+
+        segments.forEach(
+          (
+            segment,
+            index
+          ) => {
+
+            const reverseIndex =
+              segments.length - 1 - index;
+
+
+            segment.classList.toggle(
+              "on",
+              reverseIndex < level
+            );
+
+          }
+        );
+
+
+        /*
+         * =====================================================
+         * CLIP
+         * =====================================================
          */
 
         const clipLed =
@@ -4864,8 +4967,7 @@ function startMeterAnimation() {
 
 
     /*
-     * ACTIVE lamp mengikuti
-     * keadaan audio.
+     * ACTIVE / BYPASS / TEST
      */
 
     updateAllStatusLights();
@@ -4876,7 +4978,6 @@ function startMeterAnimation() {
   drawMeters();
 
 }
-
 
 /* =========================================================
    RESET
