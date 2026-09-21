@@ -2188,7 +2188,8 @@ let sourceNode = null;
  *   ↓    ↓
  * stereoMerger
  */
-
+let audioInputActive = false;
+  
 let stereoInputNode = null;
 
 let stereoSplitter = null;
@@ -4397,12 +4398,12 @@ function connectSourceToChannels(
    * Routing splitter sudah dilakukan
    * sekali di createAudioContext().
    */
-
+audioInputActive = false;
   sourceNode.connect(
     stereoInputNode
   );
 
-
+audioInputActive = true;
   updateAllStatusLights();
 
 }
@@ -4711,7 +4712,10 @@ function startMeterAnimation() {
          * belum ada source.
          */
 
-        if (!sourceNode) {
+      if (
+           !audioInputActive ||
+           !sourceNode
+        ) {
 
           segments.forEach(
             segment => {
@@ -4778,14 +4782,10 @@ function startMeterAnimation() {
               index
             ) => {
 
-              const reverseIndex =
-                segments.length - 1 - index;
-
-
               segment.classList.toggle(
-                "on",
-                reverseIndex < testLevel
-              );
+                 "on",
+             index < level
+             );
 
             }
           );
@@ -4911,35 +4911,31 @@ function startMeterAnimation() {
         }
 
 
-        /*
-         * =====================================================
-         * METER KANAN → KIRI
-         * =====================================================
-         *
-         * index 17 = LED paling kanan
-         * index 0  = LED paling kiri
-         *
-         * Jadi sinyal masuk dari kanan.
-         */
+        
+        /* =====================================================
+ * METER KIRI → KANAN
+ * =====================================================
+ *
+ * index 0  = LED paling kiri
+ * index 17 = LED paling kanan
+ *
+ * Sinyal dimulai dari kiri
+ * dan bertambah ke kanan.
+ */
 
-        segments.forEach(
-          (
-            segment,
-            index
-          ) => {
+segments.forEach(
+  (
+    segment,
+    index
+  ) => {
 
-            const reverseIndex =
-              segments.length - 1 - index;
+    segment.classList.toggle(
+      "on",
+      index < level
+    );
 
-
-            segment.classList.toggle(
-              "on",
-              reverseIndex < level
-            );
-
-          }
-        );
-
+  }
+); 
 
         /*
          * =====================================================
