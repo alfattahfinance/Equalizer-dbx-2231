@@ -1,10 +1,6 @@
 /* =========================================================
-   ECHO ALESIS ENGINE & UI
-   SOURCE
-      ↓
-   ECHO
-      ↓
-   EQUALIZER
+   ECHO ALESIS / QUADRAVERB ENGINE & UI
+   SOURCE → ECHO ALESIS → EQUALIZER
    ========================================================= */
 
 let echoInputNode = null;
@@ -13,21 +9,21 @@ let echoDelayNode = null;
 let echoFeedbackNode = null;
 let echoWetNode = null;
 let echoOutputNode = null;
-let echoEnabled = false;
+let echoEnabled = false; // Status aktif efek
 
 /* =========================================================
    ECHO PARAMETERS
    ========================================================= */
 
 let echoState = {
-  time: 350,
-  feedback: 35,
-  mix: 30,
-  level: 0
+  time: 300,      // ms
+  feedback: 0.4,  // 0 - 0.9
+  mix: 0.5,       // 0 - 1 (Dry/Wet)
+  level: 0        // dB
 };
 
 /* =========================================================
-   INITIALIZE
+   INITIALIZE ENGINE
    ========================================================= */
 
 function initializeEchoEngine() {
@@ -47,20 +43,20 @@ function initializeEchoEngine() {
   echoOutputNode = audioContext.createGain();
 
   /*
-   * INPUT
+   * INPUT ROUTING
    */
   echoInputNode.connect(echoDryNode);
   echoInputNode.connect(echoDelayNode);
 
   /*
-   * DELAY
+   * DELAY & FEEDBACK LOOP
    */
   echoDelayNode.connect(echoFeedbackNode);
   echoFeedbackNode.connect(echoDelayNode);
   echoDelayNode.connect(echoWetNode);
 
   /*
-   * OUTPUT
+   * OUTPUT MIXING
    */
   echoDryNode.connect(echoOutputNode);
   echoWetNode.connect(echoOutputNode);
@@ -70,6 +66,8 @@ function initializeEchoEngine() {
    */
   if (typeof stereoInputNode !== "undefined" && stereoInputNode) {
     echoOutputNode.connect(stereoInputNode);
+  } else {
+    echoOutputNode.connect(audioContext.destination);
   }
 
   updateEchoAudio();
@@ -92,7 +90,7 @@ function connectEchoInput(source) {
 }
 
 /* =========================================================
-   UPDATE ECHO
+   UPDATE ECHO AUDIO PARAMETERS
    ========================================================= */
 
 function updateEchoAudio() {
@@ -101,10 +99,10 @@ function updateEchoAudio() {
   }
 
   /*
-   * TIME
+   * TIME (ms ke detik)
    */
   echoDelayNode.delayTime.value = Math.max(
-    0,
+    0.05,
     Math.min(
       5,
       Number(echoState.time) / 1000
@@ -112,206 +110,38 @@ function updateEchoAudio() {
   );
 
   /*
-   * FEEDBACK
+   * FEEDBACK (Jika echoEnabled true, gunakan nilai feedback; jika false/bypass, set 0)
    */
   echoFeedbackNode.gain.value = echoEnabled
     ? Math.max(
         0,
         Math.min(
           0.95,
-          Number(echoState.feedback) / 100
+          Number(echoState.feedback)
         )
       )
     : 0;
 
   /*
-   * MIX
+   * MIX (Dry / Wet Balance)
    */
-  const mix = Math.max(
-    0,
-    Math.min(
-      100,
-      Number(echoState.mix)
-    )
-  ) / 100;
+  const mix = echoEnabled
+    ? Math.max(0, Math.min(1, Number(echoState.mix)))
+    : 0; // Jika nonaktif, 100% dry (suara asli)
 
-  echoDryNode.gain.value = echoEnabled ? 1 - mix : 1;
-  echoWetNode.gain.value = echoEnabled ? mix : 0;
+  echoDryNode.gain.value = 1 - mix;
+  echoWetNode.gain.value = mix;
 
   /*
    * LEVEL
    */
-  echoOutputNode.gain.value = dbToGain(
-    Number(echoState.level)
-  );
+  if (typeof dbToGain === "function") {
+    echoOutputNode.gain.value = dbToGain(Number(echoState.level));
+  }
 }
 
 /* =========================================================
-   ECHO UI
-   ========================================================= */
-
-function renderEchoPage() {
-  const page = document.createElement("section");
-  page.className = "app-page echo-page";
-  page.id = "echoPage";
-
-  page.innerHTML = `
-    <div class="echo-header">
-      <div>
-        <div class="echo-title">
-          ECHO ALESIS
-        </div>
-        <div class="echo-subtitle">
-          DIGITAL ECHO / DELAY PROCESSOR
-        </div>
-      </div>
-      <button
-        class="hardware-button"
-        id="echoPower"
-        type="button"
-      >
-        ECHO OFF
-      </button>
-    </div>
-
-    <div class="echo-controls">
-      <div class="echo-control">
-        <div class="echo-control-title">
-          TIME
-        </div>
-        <input
-          id="echoTime"
-          type="range"
-          min="1"
-          max="2000"
-          step="1"
-          value="${echoState.time}"
-        >
-        <div
-          class="echo-control-value"
-          id="echoTimeValue"
-        >
-          ${echoState.time} ms
-        </div>
-      </div>
-
-      <div class="echo-control">
-        <div class="echo-control-title">
-          FEEDBACK
-        </div>
-        <input
-          id="echoFeedback"
-          type="range"
-          min="0"
-          max="90"
-          step="1"
-          value="${echoState.feedback}"
-        >
-        <div
-          class="echo-control-value"
-          id="echoFeedbackValue"
-        >
-          ${echoState.feedback} %
-        </div>
-      </div>
-
-      <div class="echo-control">
-        <div class="echo-control-title">
-          MIX / WET
-        </div>
-        <input
-          id="echoMix"
-          type="range"
-          min="0"
-          max="100"
-          step="1"
-          value="${echoState.mix}"
-        >
-        <div
-          class="echo-control-value"
-          id="echoMixValue"
-        >
-          ${echoState.mix} %
-        </div>
-      </div>
-
-      <div class="echo-control">
-        <div class="echo-control-title">
-          LEVEL
-        </div>
-        <input
-          id="echoLevel"
-          type="range"
-          min="-30"
-          max="6"
-          step="0.5"
-          value="${echoState.level}"
-        >
-        <div
-          class="echo-control-value"
-          id="echoLevelValue"
-        >
-          ${echoState.level} dB
-        </div>
-      </div>
-    </div>
-  `;
-
-  initializeEchoControls(page);
-  return page;
-}
-
-/* =========================================================
-   CONTROLS
-   ========================================================= */
-
-function initializeEchoControls(page) {
-  const power = page.querySelector("#echoPower");
-  const time = page.querySelector("#echoTime");
-  const feedback = page.querySelector("#echoFeedback");
-  const mix = page.querySelector("#echoMix");
-  const level = page.querySelector("#echoLevel");
-
-  if (!power || !time || !feedback || !mix || !level) return;
-
-  power.addEventListener("click", () => {
-    echoEnabled = !echoEnabled;
-    power.classList.toggle("active", echoEnabled);
-    power.textContent = echoEnabled ? "ECHO ON" : "ECHO OFF";
-    updateEchoAudio();
-  });
-
-  time.addEventListener("input", () => {
-    echoState.time = Number(time.value);
-    const valEl = page.querySelector("#echoTimeValue");
-    if (valEl) valEl.textContent = `${echoState.time} ms`;
-    updateEchoAudio();
-  });
-
-  feedback.addEventListener("input", () => {
-    echoState.feedback = Number(feedback.value);
-    const valEl = page.querySelector("#echoFeedbackValue");
-    if (valEl) valEl.textContent = `${echoState.feedback} %`;
-    updateEchoAudio();
-  });
-
-  mix.addEventListener("input", () => {
-    echoState.mix = Number(mix.value);
-    const valEl = page.querySelector("#echoMixValue");
-    if (valEl) valEl.textContent = `${echoState.mix} %`;
-    updateEchoAudio();
-  });
-
-  level.addEventListener("input", () => {
-    echoState.level = Number(level.value);
-    const valEl = page.querySelector("#echoLevelValue");
-    if (valEl) valEl.textContent = `${echoState.level} dB`;
-    updateEchoAudio();
-  });
-}
-
-/* =========================================================
-   TAMBAHKAN DI BAGIAN BAWAH echo-alesis.js AGAR OTOMATIS AKTIF
+   UI CONTROLS BINDING (DISESUAIKAN DENGAN INDEX.HTML)
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -325,5 +155,92 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof initializeEchoEngine === "function") {
     initializeEchoEngine();
   }
-});
 
+  // Elemen HTML dari Bar Alesis di index.html
+  const timeInput = document.getElementById("delayTime");
+  const timeValue = document.getElementById("delayTimeValue");
+
+  const feedbackInput = document.getElementById("delayFeedback");
+  const feedbackValue = document.getElementById("feedbackValue");
+
+  const mixInput = document.getElementById("effectMix");
+  const mixValue = document.getElementById("mixValue");
+
+  const bypassButton = document.getElementById("bypassAlesis");
+  const presetSelect = document.getElementById("alesisPresetSelect");
+  const applyPresetBtn = document.getElementById("applyAlesisPreset");
+  const readyStatus = document.getElementById("readyStatus");
+
+  // Status awal diatur aktif (echoEnabled = true) agar efek langsung terasa
+  echoEnabled = true;
+
+  if (timeInput) {
+    timeInput.addEventListener("input", (e) => {
+      echoState.time = Number(e.target.value);
+      if (timeValue) timeValue.textContent = `${echoState.time} ms`;
+      updateEchoAudio();
+    });
+  }
+
+  if (feedbackInput) {
+    feedbackInput.addEventListener("input", (e) => {
+      echoState.feedback = Number(e.target.value);
+      if (feedbackValue) feedbackValue.textContent = `${Math.round(echoState.feedback * 100)}%`;
+      updateEchoAudio();
+    });
+  }
+
+  if (mixInput) {
+    mixInput.addEventListener("input", (e) => {
+      echoState.mix = Number(e.target.value);
+      if (mixValue) mixValue.textContent = `${Math.round(echoState.mix * 100)}%`;
+      updateEchoAudio();
+    });
+  }
+
+  if (bypassButton) {
+    bypassButton.addEventListener("click", () => {
+      echoEnabled = !echoEnabled; // Toggle status
+      bypassButton.classList.toggle("active", !echoEnabled);
+      bypassButton.textContent = echoEnabled ? "BYPASS EFFECT" : "EFFECT BYPASSED";
+      if (readyStatus) {
+        readyStatus.textContent = echoEnabled ? "ALESIS ECHO ACTIVE" : "ALESIS BYPASSED";
+      }
+      updateEchoAudio();
+    });
+  }
+
+  if (applyPresetBtn && presetSelect) {
+    applyPresetBtn.addEventListener("click", () => {
+      const preset = presetSelect.value;
+      if (preset === "vocal-delay") {
+        echoState.time = 250;
+        echoState.feedback = 0.3;
+        echoState.mix = 0.35;
+      } else if (preset === "long-echo") {
+        echoState.time = 600;
+        echoState.feedback = echoEnabled = 0.6;
+        echoState.mix = 0.5;
+      } else if (preset === "reverb-hall") {
+        echoState.time = 400;
+        echoState.feedback = 0.75;
+        echoState.mix = 0.6;
+      }
+
+      // Update tampilan slider UI
+      if (timeInput) timeInput.value = echoState.time;
+      if (timeValue) timeValue.textContent = `${echoState.time} ms`;
+
+      if (feedbackInput) feedbackInput.value = echoState.feedback;
+      if (feedbackValue) feedbackValue.textContent = `${Math.round(echoState.feedback * 100)}%`;
+
+      if (mixInput) mixInput.value = echoState.mix;
+      if (mixValue) mixValue.textContent = `${Math.round(echoState.mix * 100)}%`;
+
+      if (readyStatus) {
+        readyStatus.textContent = `ALESIS PRESET: ${preset.toUpperCase()}`;
+      }
+      updateEchoAudio();
+    });
+  }
+});
