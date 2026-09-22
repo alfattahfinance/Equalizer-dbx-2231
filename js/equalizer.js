@@ -1,6 +1,6 @@
 /* =========================================================
    DBX 2231 GRAPHIC EQUALIZER
-   COMPLETE AUDIO ENGINE
+   COMPLETE AUDIO ENGINE & UI RENDERER
    ========================================================= */
 
 const frequencies = [
@@ -143,6 +143,7 @@ function updateAllStatusLights() {
 }
 
 function createChannel(channelIndex) {
+  if (!channelsContainer) return;
   const channelNumber = channelIndex + 1;
   const channel = document.createElement("article");
   channel.className = "channel";
@@ -437,6 +438,7 @@ function createChannel(channelIndex) {
 }
 
 function buildChannels() {
+  if (!channelsContainer) return;
   channelsContainer.innerHTML = "";
   createChannel(0);
   createChannel(1);
@@ -566,7 +568,7 @@ async function startMicrophone() {
   }
 
   audioPlayer.pause();
-  const deviceId = inputDevice.value;
+  const deviceId = inputDevice ? inputDevice.value : "";
   const constraints = { audio: deviceId ? { deviceId: { exact: deviceId } } : true };
 
   microphoneStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -574,13 +576,13 @@ async function startMicrophone() {
   connectSourceToChannels(micSource);
   await audioContext.resume();
 
-  readyStatus.textContent = "MICROPHONE ACTIVE";
+  if (readyStatus) readyStatus.textContent = "MICROPHONE ACTIVE";
   updateAllStatusLights();
 }
 
 async function startAudioFile() {
   createAudioContext();
-  if (!audioPlayer.src) {
+  if (!audioPlayer || !audioPlayer.src) {
     alert("Pilih file audio terlebih dahulu.");
     return;
   }
@@ -598,7 +600,9 @@ async function startAudioFile() {
   await audioContext.resume();
   await audioPlayer.play();
 
-  readyStatus.textContent = `PLAYING: ${audioFiles[currentAudioIndex] ? audioFiles[currentAudioIndex].name : "AUDIO"}`;
+  if (readyStatus) {
+    readyStatus.textContent = `PLAYING: ${audioFiles[currentAudioIndex] ? audioFiles[currentAudioIndex].name : "AUDIO"}`;
+  }
   updateAllStatusLights();
 }
 
@@ -607,10 +611,12 @@ function stopAudio() {
     microphoneStream.getTracks().forEach(track => track.stop());
     microphoneStream = null;
   }
-  audioPlayer.pause();
-  try { audioPlayer.currentTime = 0; } catch (_) {}
+  if (audioPlayer) {
+    audioPlayer.pause();
+    try { audioPlayer.currentTime = 0; } catch (_) {}
+  }
   disconnectCurrentSource();
-  readyStatus.textContent = "AUDIO STOPPED";
+  if (readyStatus) readyStatus.textContent = "AUDIO STOPPED";
   updateAllStatusLights();
 }
 
@@ -722,7 +728,7 @@ function resetAll() {
 
   buildChannels();
   updateAllAudioGraphs();
-  readyStatus.textContent = "RESET COMPLETE";
+  if (readyStatus) readyStatus.textContent = "RESET COMPLETE";
   updateAllStatusLights();
 }
 
@@ -759,11 +765,11 @@ function applyPreset(name) {
   });
 
   updateAllAudioGraphs();
-  readyStatus.textContent = `PRESET ${name.toUpperCase()} APPLIED`;
+  if (readyStatus) readyStatus.textContent = `PRESET ${name.toUpperCase()} APPLIED`;
 }
 
 async function loadDevices() {
-  if (!navigator.mediaDevices?.enumerateDevices) return;
+  if (!navigator.mediaDevices?.enumerateDevices || !inputDevice) return;
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
     inputDevice.innerHTML = "";
@@ -830,7 +836,7 @@ function renderAudioPlaylist() {
 }
 
 function selectAudioFile(index) {
-  if (index < 0 || index >= audioFiles.length) return;
+  if (index < 0 || index >= audioFiles.length || !audioPlayer) return;
   currentAudioIndex = index;
   const file = audioFiles[index];
   audioPlayer.pause();
@@ -846,21 +852,23 @@ function selectAudioFile(index) {
 
   updatePlaylistInfo();
   renderAudioPlaylist();
-  readyStatus.textContent = `FILE READY: ${file.name}`;
+  if (readyStatus) readyStatus.textContent = `FILE READY: ${file.name}`;
 }
 
-audioFile.addEventListener("change", event => {
-  const selectedFiles = Array.from(event.target.files || []);
-  if (selectedFiles.length === 0) return;
+if (audioFile) {
+  audioFile.addEventListener("change", event => {
+    const selectedFiles = Array.from(event.target.files || []);
+    if (selectedFiles.length === 0) return;
 
-  audioPlayer.pause();
-  revokeAudioObjectUrls();
-  audioFiles = selectedFiles;
-  currentAudioIndex = 0;
-  selectAudioFile(0);
-  renderAudioPlaylist();
-  readyStatus.textContent = `${selectedFiles.length} FILE AUDIO DIPILIH`;
-});
+    if (audioPlayer) audioPlayer.pause();
+    revokeAudioObjectUrls();
+    audioFiles = selectedFiles;
+    currentAudioIndex = 0;
+    selectAudioFile(0);
+    renderAudioPlaylist();
+    if (readyStatus) readyStatus.textContent = `${selectedFiles.length} FILE AUDIO DIPILIH`;
+  });
+}
 
 async function playSelectedAudio() {
   if (audioFiles.length === 0) {
@@ -869,7 +877,7 @@ async function playSelectedAudio() {
   }
   if (currentAudioIndex < 0) currentAudioIndex = 0;
   selectAudioFile(currentAudioIndex);
-  try { await startAudioFile(); } catch (error) { readyStatus.textContent = "AUDIO PLAY ERROR"; }
+  try { await startAudioFile(); } catch (error) { if (readyStatus) readyStatus.textContent = "AUDIO PLAY ERROR"; }
 }
 
 async function previousAudio() {
@@ -894,117 +902,158 @@ async function nextAudio() {
   try { await startAudioFile(); } catch (_) {}
 }
 
-audioPlayer.addEventListener("ended", async () => {
-  if (audioFiles.length === 0) {
-    readyStatus.textContent = "PLAYLIST SELESAI";
+if (audioPlayer) {
+  audioPlayer.addEventListener("ended", async () => {
+    if (audioFiles.length === 0) {
+      if (readyStatus) readyStatus.textContent = "PLAYLIST SELESAI";
+      disconnectCurrentSource();
+      return;
+    }
+    if (currentAudioIndex < audioFiles.length - 1) {
+      currentAudioIndex++;
+      selectAudioFile(currentAudioIndex);
+      try { await startAudioFile(); } catch (_) {}
+      return;
+    }
+    if (readyStatus) readyStatus.textContent = "PLAYLIST SELESAI";
     disconnectCurrentSource();
-    return;
-  }
-  if (currentAudioIndex < audioFiles.length - 1) {
-    currentAudioIndex++;
-    selectAudioFile(currentAudioIndex);
-    try { await startAudioFile(); } catch (_) {}
-    return;
-  }
-  readyStatus.textContent = "PLAYLIST SELESAI";
-  disconnectCurrentSource();
-  updateAllStatusLights();
-});
+    updateAllStatusLights();
+  });
+}
 
 function clearPlaylist() {
-  audioPlayer.pause();
-  try { audioPlayer.currentTime = 0; } catch (_) {}
+  if (audioPlayer) {
+    audioPlayer.pause();
+    try { audioPlayer.currentTime = 0; } catch (_) {}
+  }
   disconnectCurrentSource();
   revokeAudioObjectUrls();
   audioFiles = [];
   currentAudioIndex = -1;
-  audioPlayer.removeAttribute("src");
-  audioPlayer.load();
-  delete audioPlayer.dataset.objectUrl;
+  if (audioPlayer) {
+    audioPlayer.removeAttribute("src");
+    audioPlayer.load();
+    delete audioPlayer.dataset.objectUrl;
+  }
   renderAudioPlaylist();
-  readyStatus.textContent = "PLAYLIST CLEARED";
+  if (readyStatus) readyStatus.textContent = "PLAYLIST CLEARED";
   updateAllStatusLights();
 }
 
-document.getElementById("masterGain").addEventListener("input", event => {
-  const value = Number(event.target.value);
-  document.getElementById("masterValue").textContent = `${value} dB`;
-  if (masterGainNode) {
-    masterGainNode.gain.value = isMuted ? 0 : dbToGain(value);
-  }
-});
+const masterGainEl = document.getElementById("masterGain");
+if (masterGainEl) {
+  masterGainEl.addEventListener("input", event => {
+    const value = Number(event.target.value);
+    const masterValEl = document.getElementById("masterValue");
+    if (masterValEl) masterValEl.textContent = `${value} dB`;
+    if (masterGainNode) {
+      masterGainNode.gain.value = isMuted ? 0 : dbToGain(value);
+    }
+  });
+}
 
-document.getElementById("muteOutput").addEventListener("click", event => {
-  isMuted = !isMuted;
-  event.currentTarget.classList.toggle("active", isMuted);
-  if (masterGainNode) {
-    const value = Number(document.getElementById("masterGain").value);
-    masterGainNode.gain.value = isMuted ? 0 : dbToGain(value);
-  }
-  event.currentTarget.textContent = isMuted ? "UNMUTE OUTPUT" : "MUTE OUTPUT";
-  readyStatus.textContent = isMuted ? "OUTPUT MUTED" : "OUTPUT ACTIVE";
-});
+const muteOutputEl = document.getElementById("muteOutput");
+if (muteOutputEl) {
+  muteOutputEl.addEventListener("click", event => {
+    isMuted = !isMuted;
+    event.currentTarget.classList.toggle("active", isMuted);
+    if (masterGainNode) {
+      const masterGainInput = document.getElementById("masterGain");
+      const value = masterGainInput ? Number(masterGainInput.value) : -12;
+      masterGainNode.gain.value = isMuted ? 0 : dbToGain(value);
+    }
+    event.currentTarget.textContent = isMuted ? "UNMUTE OUTPUT" : "MUTE OUTPUT";
+    if (readyStatus) readyStatus.textContent = isMuted ? "OUTPUT MUTED" : "OUTPUT ACTIVE";
+  });
+}
 
-document.getElementById("micButton").addEventListener("click", async () => {
-  try { await startMicrophone(); } catch (error) { alert("Mikrofon tidak dapat digunakan."); }
-});
+const micButtonEl = document.getElementById("micButton");
+if (micButtonEl) {
+  micButtonEl.addEventListener("click", async () => {
+    try { await startMicrophone(); } catch (error) { alert("Mikrofon tidak dapat digunakan."); }
+  });
+}
 
-document.getElementById("startButton").addEventListener("click", async () => {
-  try { await startAudioFile(); } catch (error) { alert("Audio tidak dapat diputar."); }
-});
+const startButtonEl = document.getElementById("startButton");
+if (startButtonEl) {
+  startButtonEl.addEventListener("click", async () => {
+    try { await startAudioFile(); } catch (error) { alert("Audio tidak dapat diputar."); }
+  });
+}
 
-document.getElementById("stopButton").addEventListener("click", stopAudio);
-document.getElementById("refreshDevices").addEventListener("click", async () => {
-  await loadDevices();
-  readyStatus.textContent = "DEVICES REFRESHED";
-});
+const stopButtonEl = document.getElementById("stopButton");
+if (stopButtonEl) {
+  stopButtonEl.addEventListener("click", stopAudio);
+}
 
-document.getElementById("resetButton").addEventListener("click", resetAll);
-document.getElementById("applyPresetButton").addEventListener("click", () => {
-  applyPreset(document.getElementById("presetSelect").value);
-});
+const refreshDevicesEl = document.getElementById("refreshDevices");
+if (refreshDevicesEl) {
+  refreshDevicesEl.addEventListener("click", async () => {
+    await loadDevices();
+    if (readyStatus) readyStatus.textContent = "DEVICES REFRESHED";
+  });
+}
 
-document.getElementById("saveButton").addEventListener("click", () => {
-  const saved = JSON.stringify(channelState);
-  localStorage.setItem("dbx2231Preset", saved);
-  readyStatus.textContent = "PRESET SAVED";
-});
+const resetButtonEl = document.getElementById("resetButton");
+if (resetButtonEl) {
+  resetButtonEl.addEventListener("click", resetAll);
+}
 
-document.getElementById("recallButton").addEventListener("click", () => {
-  const saved = localStorage.getItem("dbx2231Preset");
-  if (!saved) {
-    alert("Belum ada preset yang disimpan.");
-    return;
-  }
-  try {
-    const data = JSON.parse(saved);
-    if (!Array.isArray(data) || data.length !== 2) throw new Error("Format tidak valid.");
+const applyPresetButtonEl = document.getElementById("applyPresetButton");
+if (applyPresetButtonEl) {
+  applyPresetButtonEl.addEventListener("click", () => {
+    const presetSelect = document.getElementById("presetSelect");
+    if (presetSelect) applyPreset(presetSelect.value);
+  });
+}
 
-    data.forEach((savedState, index) => {
-      const range = Number(savedState.range) === 6 ? 6 : 15;
-      channelState[index] = {
-        gain: Number.isFinite(Number(savedState.gain)) ? Number(savedState.gain) : 0,
-        lowCut: Boolean(savedState.lowCut),
-        range,
-        bypass: Boolean(savedState.bypass),
-        test: false,
-        bands: Array.from({ length: 31 }, (_, bandIndex) => {
-          const rawValue = Number(savedState.bands?.[bandIndex]);
-          const value = Number.isFinite(rawValue) ? rawValue : 0;
-          return Math.max(-range, Math.min(range, Math.round(value / FADER_STEP) * FADER_STEP));
-        })
-      };
-    });
+const saveButtonEl = document.getElementById("saveButton");
+if (saveButtonEl) {
+  saveButtonEl.addEventListener("click", () => {
+    const saved = JSON.stringify(channelState);
+    localStorage.setItem("dbx2231Preset", saved);
+    if (readyStatus) readyStatus.textContent = "PRESET SAVED";
+  });
+}
 
-    stopChannelTest(0);
-    stopChannelTest(1);
-    buildChannels();
-    updateAllAudioGraphs();
-    readyStatus.textContent = "PRESET RECALLED";
-  } catch (error) {
-    alert("Preset tersimpan rusak atau tidak valid.");
-  }
-});
+const recallButtonEl = document.getElementById("recallButton");
+if (recallButtonEl) {
+  recallButtonEl.addEventListener("click", () => {
+    const saved = localStorage.getItem("dbx2231Preset");
+    if (!saved) {
+      alert("Belum ada preset yang disimpan.");
+      return;
+    }
+    try {
+      const data = JSON.parse(saved);
+      if (!Array.isArray(data) || data.length !== 2) throw new Error("Format tidak valid.");
+
+      data.forEach((savedState, index) => {
+        const range = Number(savedState.range) === 6 ? 6 : 15;
+        channelState[index] = {
+          gain: Number.isFinite(Number(savedState.gain)) ? Number(savedState.gain) : 0,
+          lowCut: Boolean(savedState.lowCut),
+          range,
+          bypass: Boolean(savedState.bypass),
+          test: false,
+          bands: Array.from({ length: 31 }, (_, bandIndex) => {
+            const rawValue = Number(savedState.bands?.[bandIndex]);
+            const value = Number.isFinite(rawValue) ? rawValue : 0;
+            return Math.max(-range, Math.min(range, Math.round(value / FADER_STEP) * FADER_STEP));
+          })
+        };
+      });
+
+      stopChannelTest(0);
+      stopChannelTest(1);
+      buildChannels();
+      updateAllAudioGraphs();
+      if (readyStatus) readyStatus.textContent = "PRESET RECALLED";
+    } catch (error) {
+      alert("Preset tersimpan rusak atau tidak valid.");
+    }
+  });
+}
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && audioContext && audioContext.state === "suspended") {
@@ -1027,5 +1076,5 @@ renderAudioPlaylist();
 updateAllStatusLights();
 
 if (!navigator.mediaDevices?.getUserMedia) {
-  readyStatus.textContent = "MICROPHONE NOT SUPPORTED";
+  if (readyStatus) readyStatus.textContent = "MICROPHONE NOT SUPPORTED";
 }
