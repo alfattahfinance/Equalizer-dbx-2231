@@ -31,6 +31,10 @@ let isMuted = false;
 
 let audioInputActive = false;
 
+let audioFiles = [];
+let currentAudioIndex = -1;
+let audioObjectUrls = [];
+
 
 /* =========================================================
    INITIALIZE AUDIO CONTEXT
@@ -234,6 +238,39 @@ function disconnectCurrentSource() {
 
 
 /* =========================================================
+   PLAYLIST & FILE MANAGEMENT
+   ========================================================= */
+
+function revokeAudioObjectUrls() {
+  audioObjectUrls.forEach(url => {
+    try { URL.revokeObjectURL(url); } catch (_) {}
+  });
+  audioObjectUrls = [];
+}
+
+function selectAudioFile(index) {
+  const audioPlayer = document.getElementById("audioPlayer");
+  if (!audioPlayer) return;
+  if (index < 0 || index >= audioFiles.length) return;
+  
+  currentAudioIndex = index;
+  const file = audioFiles[index];
+  audioPlayer.pause();
+
+  if (audioPlayer.dataset.objectUrl) {
+    try { URL.revokeObjectURL(audioPlayer.dataset.objectUrl); } catch (_) {}
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  audioObjectUrls.push(objectUrl);
+  audioPlayer.src = objectUrl;
+  audioPlayer.dataset.objectUrl = objectUrl;
+
+  setReadyStatus(`FILE READY: ${file.name}`);
+}
+
+
+/* =========================================================
    MICROPHONE
    ========================================================= */
 
@@ -241,7 +278,9 @@ async function startMicrophone() {
 
   createAudioContext();
 
-  await audioContext.resume();
+  if (audioContext.state === "suspended") {
+    await audioContext.resume();
+  }
 
 
   if (microphoneStream) {
@@ -266,7 +305,7 @@ async function startMicrophone() {
 
   }
 
-
+  const audioPlayer = document.getElementById("audioPlayer");
   if (audioPlayer) {
     audioPlayer.pause();
   }
@@ -324,15 +363,18 @@ async function startMicrophone() {
 
 
 /* =========================================================
-   AUDIO FILE
+   AUDIO FILE (START)
    ========================================================= */
 
 async function startAudioFile() {
 
   createAudioContext();
 
-  await audioContext.resume();
+  if (audioContext.state === "suspended") {
+    await audioContext.resume();
+  }
 
+  const audioPlayer = document.getElementById("audioPlayer");
 
   if (
     !audioPlayer ||
@@ -366,26 +408,34 @@ async function startAudioFile() {
    */
 
   if (!audioFileSourceNode) {
-
-    audioFileSourceNode =
-      audioContext.createMediaElementSource(
-        audioPlayer
-      );
-
+    try {
+      audioFileSourceNode =
+        audioContext.createMediaElementSource(
+          audioPlayer
+        );
+    } catch (e) {
+      console.warn("MediaElementSource sudah dibuat:", e);
+    }
   }
 
 
-  connectSourceToChannels(
-    audioFileSourceNode
-  );
+  if (audioFileSourceNode) {
+    connectSourceToChannels(
+      audioFileSourceNode
+    );
+  }
 
 
-  await audioPlayer.play();
-
-
-  setReadyStatus(
-    "AUDIO PLAYING"
-  );
+  try {
+    await audioPlayer.play();
+    setReadyStatus(
+      `PLAYING: ${audioFiles[currentAudioIndex] ? audioFiles[currentAudioIndex].name : "AUDIO"}`
+    );
+  } catch (err) {
+    console.error("Gagal memutar audio:", err);
+    alert("Silakan klik tombol START AUDIO sekali lagi untuk mengizinkan pemutaran.");
+    setReadyStatus("AUDIO PLAY ERROR");
+  }
 
 }
 
@@ -408,7 +458,7 @@ function stopAudio() {
 
   }
 
-
+  const audioPlayer = document.getElementById("audioPlayer");
   if (audioPlayer) {
 
     audioPlayer.pause();
@@ -643,6 +693,46 @@ function initializeAudioEngineUI() {
       stopAudio
     );
 
+  }
+
+
+  /* Listener untuk Input File Audio */
+  const audioFileInput = document.getElementById("audioFile");
+  if (audioFileInput) {
+    audioFileInput.addEventListener("change", event => {
+      const selectedFiles = Array.from(event.target.files || []);
+      if (selectedFiles.length === 0) return;
+
+      const audioPlayer = document.getElementById("audioPlayer");
+      if (audioPlayer) audioPlayer.pause();
+      
+      revokeAudioObjectUrls();
+      audioFiles = selectedFiles;
+      currentAudioIndex = 0;
+      selectAudioFile(0);
+      setReadyStatus(`${selectedFiles.length} FILE AUDIO DIPILIH`);
+    });
+  }
+
+
+  /* Listener ketika audio selesai diputar */
+  const audioPlayer = document.getElementById("audioPlayer");
+  if (audioPlayer) {
+    audioPlayer.addEventListener("ended", async () => {
+      if (audioFiles.length === 0) {
+        setReadyStatus("PLAYLIST SELESAI");
+        disconnectCurrentSource();
+        return;
+      }
+      if (currentAudioIndex < audioFiles.length - 1) {
+        currentAudioIndex++;
+        selectAudioFile(currentAudioIndex);
+        try { await startAudioFile(); } catch (_) {}
+        return;
+      }
+      setReadyStatus("PLAYLIST SELESAI");
+      disconnectCurrentSource();
+    });
   }
 
 }
