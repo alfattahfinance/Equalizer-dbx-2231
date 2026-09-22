@@ -1139,3 +1139,118 @@ input[type="range"] {
     transition-duration: .01ms !important;
   }
 }
+/* =========================================================
+   ECHO ALESIS HARDWARE UI STYLING
+   ========================================================= */
+
+.echo-page {
+  width: 100%;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 16px;
+
+  border: 1px solid #687782;
+  border-radius: 7px;
+
+  background: linear-gradient(
+    145deg,
+    #263842 0%,
+    #111c24 35%,
+    #0a1117 70%,
+    #1b2932 100%
+  );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -15px 25px rgba(0,0,0,.45),
+    0 5px 15px rgba(0,0,0,.75);
+}
+
+.echo-header {
+  min-height: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  margin-bottom: 15px;
+  padding: 8px 12px;
+
+  background: linear-gradient(
+    180deg,
+    #1e2d37,
+    #0a1218
+  );
+
+  border: 1px solid #435966;
+  border-radius: 5px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    inset 0 -5px 10px rgba(0,0,0,.35);
+}
+
+.echo-title {
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 2px #000;
+}
+
+.echo-subtitle {
+  margin-top: 2px;
+  color: #ffb62a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+
+.echo-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.echo-control {
+  padding: 12px;
+  border: 1px solid #506674;
+  border-radius: 6px;
+
+  background: linear-gradient(
+    145deg,
+    #1b2a34,
+    #091117
+  );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.09),
+    inset 0 -8px 15px rgba(0,0,0,.4),
+    0 2px 4px rgba(0,0,0,.45);
+}
+
+.echo-control-title {
+  margin-bottom: 10px;
+  color: #e7edf1;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .3px;
+  text-shadow: 0 1px 2px #000;
+}
+
+.echo-control input[type="range"] {
+  width: 100%;
+  accent-color: var(--orange);
+  cursor: pointer;
+  margin: 8px 0;
+}
+
+.echo-control-value {
+  text-align: right;
+  color: #ffc12a;
+  font-size: 13px;
+  font-weight: 900;
+  text-shadow: 0 0 4px rgba(255,170,0,.35);
+}
+
