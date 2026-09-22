@@ -1,323 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="id">
 <head>
-
-  <meta charset="UTF-8">
-
+  <meta charset="UTF-8" />
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <meta
-    name="theme-color"
-    content="#111"
-  >
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
 
   <title>DBX 2231 Graphic Equalizer</title>
-
 </head>
-
 
 <body>
 
+  <main class="app">
 
-  <div class="app">
+    <!-- TOP HEADER -->
+    <header class="top-rack">
 
-
-    <!-- ===================================================
-         TOP RACK
-         =================================================== -->
-
-    <div class="top-rack">
-
-      <button
-        id="saveButton"
-        type="button"
-      >
-        SAVE
-      </button>
-
-
-      <button
-        id="recallButton"
-        type="button"
-      >
-        RECALL
-      </button>
-
-
-      <button
-        id="resetButton"
-        type="button"
-      >
-        RESET
-      </button>
-
-    </div>
-
-
-    <!-- ===================================================
-         DEVICE TITLE
-         =================================================== -->
-
-    <div class="device-title">
-
-      <h1>
-        DBX 2231 GRAPHIC EQUALIZER
-      </h1>
-
-
-      <select id="presetSelect">
-
-        <option value="">
-          SELECT PRESET
-        </option>
-
-        <option value="flat">
-          FLAT
-        </option>
-
-        <option value="vocal">
-          VOCAL
-        </option>
-
-        <option value="speech">
-          SPEECH
-        </option>
-
-        <option value="music">
-          MUSIC
-        </option>
-
-        <option value="bass">
-          BASS
-        </option>
-
-      </select>
-
-
-      <button
-        id="applyPresetButton"
-        type="button"
-      >
-        APPLY
-      </button>
-
-    </div>
-
-
-    <!-- ===================================================
-         CHANNELS
-         
-         PENTING:
-         CH1 dan CH2 dibuat oleh equalizer.js
-         
-         JANGAN memasukkan CH1 / CH2 manual di sini.
-         =================================================== -->
-
-    <div class="channels-scroll">
-
-      <section
-        class="channels"
-        id="channels"
-      ></section>
-
-    </div>
-
-
-    <!-- ===================================================
-         AUDIO ENGINE
-         =================================================== -->
-
-    <section class="audio-engine">
-
-
-      <div class="audio-engine-title">
-        AUDIO ENGINE
+      <div class="brand">
+        <h1>GRAPHIC EQUALIZER</h1>
+        <p>DUAL CHANNEL • 31 BAND • DIGITAL HARDWARE EMULATION</p>
       </div>
 
+      <div class="top-actions">
+        <button class="hardware-button" id="saveButton">SAVE</button>
+        <button class="hardware-button" id="recallButton">RECALL</button>
+        <button class="hardware-button" id="resetButton">RESET</button>
+      </div>
 
-      <div class="audio-controls">
+    </header>
 
+    <!-- DEVICE -->
+    <section class="device-title">
 
-        <!-- INPUT DEVICE -->
+      <div>
+        <div class="device-name">DBX 2231</div>
+        <div class="device-subtitle">DUAL CHANNEL GRAPHIC EQUALIZER</div>
+      </div>
 
-        <select id="inputDevice">
-
-          <option value="">
-            SELECT INPUT DEVICE
-          </option>
-
+      <div class="preset-area">
+        <select id="presetSelect">
+          <option value="flat">FLAT</option>
+          <option value="vocal">VOKAL CLEAR</option>
+          <option value="live">LIVE BAND</option>
+          <option value="feedback">ANTI-FEEDBACK</option>
         </select>
-
-
-        <!-- REFRESH DEVICE -->
-
-        <button
-          id="refreshDevices"
-          type="button"
-        >
-          REFRESH
-        </button>
-
-
-        <!-- AUDIO FILE -->
-
-        <input
-          id="audioFile"
-          type="file"
-          accept="audio/*"
-          multiple
-        />
-
-
-        <!-- MICROPHONE -->
-
-        <button
-          id="micButton"
-          type="button"
-        >
-          MICROPHONE
-        </button>
-
-
-        <!-- START -->
-
-        <button
-          id="startButton"
-          type="button"
-        >
-          START
-        </button>
-
-
-        <!-- STOP -->
-
-        <button
-          id="stopButton"
-          type="button"
-        >
-          STOP
-        </button>
-
-      </div>
-
-
-      <!-- =================================================
-           AUDIO PLAYER
-           ================================================= -->
-
-      <audio
-        id="audioPlayer"
-        controls
-        preload="none"
-      ></audio>
-
-
-      <!-- =================================================
-           MASTER
-           ================================================= -->
-
-      <div class="master-control">
-
-        <div class="master-control-title">
-
-          <span>
-            MASTER OUTPUT
-          </span>
-
-          <strong id="masterValue">
-            0.0 dB
-          </strong>
-
-        </div>
-
-
-        <input
-          id="masterGain"
-          type="range"
-          min="-60"
-          max="12"
-          step="0.5"
-          value="0"
-        />
-
-
-        <label
-          style="
-            display:flex;
-            align-items:center;
-            gap:6px;
-            margin-top:7px;
-            font-size:9px;
-            color:#aaa;
-          "
-        >
-
-          <input
-            id="muteOutput"
-            type="checkbox"
-          >
-
-          MUTE OUTPUT
-
-        </label>
-
-      </div>
-
-
-      <!-- =================================================
-           STATUS
-           ================================================= -->
-
-      <div
-        class="ready-status"
-        id="readyStatus"
-      >
-        READY
+        <button class="hardware-button" id="applyPresetButton">APPLY PRESET</button>
       </div>
 
     </section>
 
+    <!-- CHANNELS -->
+    <div class="channels-scroll">
+      <section class="channels" id="channels"></section>
+    </div>
 
-    <!-- ===================================================
-         FOOTER
-         =================================================== -->
+    <!-- AUDIO ENGINE -->
+    <section class="audio-engine">
 
-    <footer class="app-footer">
+      <div class="section-title">AUDIO ENGINE</div>
 
-      DBX 2231 GRAPHIC EQUALIZER —
-      31 BAND STEREO
+      <div class="engine-grid">
 
+        <!-- INPUT -->
+        <div class="engine-box">
+          <div class="engine-label">INPUT DEVICE / AUDIO FILE</div>
+          <div class="engine-controls">
+            <select class="hardware-select" id="inputDevice">
+              <option value="">DEFAULT MICROPHONE</option>
+            </select>
+            <button class="hardware-button" id="refreshDevices">REFRESH</button>
+          </div>
+          <br />
+          <input class="file-input" id="audioFile" type="file" accept="audio/*" multiple>
+        </div>
+
+        <!-- AUDIO CONTROL -->
+        <div class="engine-box">
+          <div class="engine-label">AUDIO CONTROL</div>
+          <div class="engine-controls">
+            <button class="hardware-button" id="micButton">MIC INPUT</button>
+            <button class="hardware-button" id="startButton">START AUDIO</button>
+            <button class="hardware-button" id="stopButton">STOP AUDIO</button>
+          </div>
+          <audio id="audioPlayer" controls style="width:100%; margin-top:10px;"></audio>
+        </div>
+
+        <!-- MASTER -->
+        <div class="engine-box">
+          <div class="engine-label">MASTER OUTPUT</div>
+          <div class="master-row">
+            <input id="masterGain" type="range" min="-30" max="0" step="0.5" value="-12" />
+            <div class="master-value" id="masterValue">-12 dB</div>
+          </div>
+          <br />
+          <button class="hardware-button" id="muteOutput">MUTE OUTPUT</button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div>DBX 2231 WEB EMULATOR • Web Audio API</div>
+      <div class="ready" id="readyStatus">READY</div>
     </footer>
 
-
-  </div>
-
-
-  <!-- =====================================================
-       JAVASCRIPT
-
-       URUTAN PENTING:
-
-       1. audio-engine.js
-       2. equalizer.js
-
-       audio-engine.js menyediakan:
-         updateChannelAudio()
-         createAudioContext()
-         startChannelTest()
-         stopChannelTest()
-
-       equalizer.js membuat:
-         CH1
-         CH2
-         31 band
-         controls
-       ===================================================== -->
-
+  </main>
 
   <script src="js/audio-engine.js"></script>
 
