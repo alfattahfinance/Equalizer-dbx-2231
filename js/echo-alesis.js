@@ -141,7 +141,7 @@ function updateEchoAudio() {
 }
 
 /* =========================================================
-   UI CONTROLS BINDING (DISESUAIKAN DENGAN INDEX.HTML)
+   CONTROLS (DISESUAIKAN DENGAN alesis.html)
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -156,56 +156,58 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeEchoEngine();
   }
 
-  // Elemen HTML dari Bar Alesis di index.html
-  const timeInput = document.getElementById("delayTime");
-  const timeValue = document.getElementById("delayTimeValue");
+  // Menyesuaikan dengan ID di alesis.html Anda
+  const power = document.getElementById("bypassAlesis");
+  const time = document.getElementById("delayTime");
+  const timeVal = document.getElementById("delayTimeValue");
 
-  const feedbackInput = document.getElementById("delayFeedback");
-  const feedbackValue = document.getElementById("feedbackValue");
+  const feedback = document.getElementById("delayFeedback");
+  const feedbackVal = document.getElementById("feedbackValue");
 
-  const mixInput = document.getElementById("effectMix");
-  const mixValue = document.getElementById("mixValue");
+  const mix = document.getElementById("effectMix");
+  const mixVal = document.getElementById("mixValue");
 
-  const bypassButton = document.getElementById("bypassAlesis");
+  const readyStatus = document.getElementById("readyStatusAlesis");
   const presetSelect = document.getElementById("alesisPresetSelect");
   const applyPresetBtn = document.getElementById("applyAlesisPreset");
-  const readyStatus = document.getElementById("readyStatus");
 
-  // Status awal diatur aktif (echoEnabled = true) agar efek langsung terasa
+  // Status awal diaktifkan agar efek langsung terdengar
   echoEnabled = true;
 
-  if (timeInput) {
-    timeInput.addEventListener("input", (e) => {
-      echoState.time = Number(e.target.value);
-      if (timeValue) timeValue.textContent = `${echoState.time} ms`;
-      updateEchoAudio();
-    });
-  }
-
-  if (feedbackInput) {
-    feedbackInput.addEventListener("input", (e) => {
-      echoState.feedback = Number(e.target.value);
-      if (feedbackValue) feedbackValue.textContent = `${Math.round(echoState.feedback * 100)}%`;
-      updateEchoAudio();
-    });
-  }
-
-  if (mixInput) {
-    mixInput.addEventListener("input", (e) => {
-      echoState.mix = Number(e.target.value);
-      if (mixValue) mixValue.textContent = `${Math.round(echoState.mix * 100)}%`;
-      updateEchoAudio();
-    });
-  }
-
-  if (bypassButton) {
-    bypassButton.addEventListener("click", () => {
-      echoEnabled = !echoEnabled; // Toggle status
-      bypassButton.classList.toggle("active", !echoEnabled);
-      bypassButton.textContent = echoEnabled ? "BYPASS EFFECT" : "EFFECT BYPASSED";
+  if (power) {
+    power.addEventListener("click", () => {
+      echoEnabled = !echoEnabled;
+      power.classList.toggle("active", !echoEnabled);
+      power.textContent = echoEnabled ? "BYPASS EFFECT" : "EFFECT BYPASSED";
       if (readyStatus) {
-        readyStatus.textContent = echoEnabled ? "ALESIS ECHO ACTIVE" : "ALESIS BYPASSED";
+        readyStatus.textContent = echoEnabled ? "ALESIS ACTIVE" : "ALESIS BYPASSED";
       }
+      updateEchoAudio();
+    });
+  }
+
+  if (time) {
+    time.addEventListener("input", () => {
+      echoState.time = Number(time.value);
+      if (timeVal) timeVal.textContent = `${echoState.time} ms`;
+      updateEchoAudio();
+    });
+  }
+
+  if (feedback) {
+    feedback.addEventListener("input", () => {
+      // Nilai slider alesis.html max 0.9 (artinya 90%)
+      echoState.feedback = Number(feedback.value) * 100;
+      if (feedbackVal) feedbackVal.textContent = `${Math.round(Number(feedback.value) * 100)}%`;
+      updateEchoAudio();
+    });
+  }
+
+  if (mix) {
+    mix.addEventListener("input", () => {
+      // Nilai slider alesis.html max 1.0 (artinya 100%)
+      echoState.mix = Number(mix.value) * 100;
+      if (mixVal) mixVal.textContent = `${Math.round(Number(mix.value) * 100)}%`;
       updateEchoAudio();
     });
   }
@@ -215,30 +217,30 @@ document.addEventListener("DOMContentLoaded", () => {
       const preset = presetSelect.value;
       if (preset === "vocal-delay") {
         echoState.time = 250;
-        echoState.feedback = 0.3;
-        echoState.mix = 0.35;
+        echoState.feedback = 30;
+        echoState.mix = 35;
       } else if (preset === "long-echo") {
         echoState.time = 600;
-        echoState.feedback = echoEnabled = 0.6;
-        echoState.mix = 0.5;
+        echoState.feedback = 60;
+        echoState.mix = 50;
       } else if (preset === "reverb-hall") {
         echoState.time = 400;
-        echoState.feedback = 0.75;
-        echoState.mix = 0.6;
+        echoState.feedback = 75;
+        echoState.mix = 60;
       }
 
-      // Update tampilan slider UI
-      if (timeInput) timeInput.value = echoState.time;
-      if (timeValue) timeValue.textContent = `${echoState.time} ms`;
+      // Sinkronisasi ke elemen UI HTML
+      if (time) time.value = echoState.time;
+      if (timeVal) timeVal.textContent = `${echoState.time} ms`;
 
-      if (feedbackInput) feedbackInput.value = echoState.feedback;
-      if (feedbackValue) feedbackValue.textContent = `${Math.round(echoState.feedback * 100)}%`;
+      if (feedback) feedback.value = echoState.feedback / 100;
+      if (feedbackVal) feedbackVal.textContent = `${echoState.feedback}%`;
 
-      if (mixInput) mixInput.value = echoState.mix;
-      if (mixValue) mixValue.textContent = `${Math.round(echoState.mix * 100)}%`;
+      if (mix) mix.value = echoState.mix / 100;
+      if (mixVal) mixVal.textContent = `${echoState.mix}%`;
 
       if (readyStatus) {
-        readyStatus.textContent = `ALESIS PRESET: ${preset.toUpperCase()}`;
+        readyStatus.textContent = `PRESET: ${preset.toUpperCase()}`;
       }
       updateEchoAudio();
     });
