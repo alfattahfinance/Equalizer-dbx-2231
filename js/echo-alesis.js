@@ -309,3 +309,21 @@ function initializeEchoControls(page) {
     updateEchoAudio();
   });
 }
+
+/* =========================================================
+   TAMBAHKAN DI BAGIAN BAWAH echo-alesis.js AGAR OTOMATIS AKTIF
+   ========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof createAudioContext === "function") {
+    try {
+      createAudioContext();
+    } catch (e) {
+      console.warn("Audio context waiting for user interaction");
+    }
+  }
+  if (typeof initializeEchoEngine === "function") {
+    initializeEchoEngine();
+  }
+});
+
