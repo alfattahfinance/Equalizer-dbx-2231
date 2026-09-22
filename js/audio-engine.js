@@ -174,11 +174,8 @@ function connectSourceToChannels(
 
 
   /*
-   * SOURCE
-   *   ↓
-   * ECHO ALESIS
-   *   ↓
-   * EQUALIZER
+   * ALUR AUDIO:
+   * SOURCE → ECHO ALESIS → EQUALIZER
    */
 
   if (
