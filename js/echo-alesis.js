@@ -9,7 +9,7 @@ let echoDelayNode = null;
 let echoFeedbackNode = null;
 let echoWetNode = null;
 let echoOutputNode = null;
-let echoEnabled = false; // Status aktif efek
+let echoEnabled = true; // Status aktif efek (default ON)
 
 /* =========================================================
    ECHO PARAMETERS
@@ -110,7 +110,7 @@ function updateEchoAudio() {
   );
 
   /*
-   * FEEDBACK (Jika echoEnabled true, gunakan nilai feedback; jika false/bypass, set 0)
+   * FEEDBACK (Jika echoEnabled true, gunakan nilai feedback; jika false, set 0)
    */
   echoFeedbackNode.gain.value = echoEnabled
     ? Math.max(
@@ -157,7 +157,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Menyesuaikan dengan ID di alesis.html Anda
-  const power = document.getElementById("bypassAlesis");
+  const powerBtn = document.getElementById("echoPowerBtn");
+  const bypassButton = document.getElementById("bypassAlesis");
   const time = document.getElementById("delayTime");
   const timeVal = document.getElementById("delayTimeValue");
 
@@ -174,15 +175,35 @@ document.addEventListener("DOMContentLoaded", () => {
   // Status awal diaktifkan agar efek langsung terdengar
   echoEnabled = true;
 
-  if (power) {
-    power.addEventListener("click", () => {
+  // Tombol Power On / Off Utama
+  if (powerBtn) {
+    powerBtn.addEventListener("click", () => {
       echoEnabled = !echoEnabled;
-      power.classList.toggle("active", !echoEnabled);
-      power.textContent = echoEnabled ? "BYPASS EFFECT" : "EFFECT BYPASSED";
+      powerBtn.classList.toggle("active", echoEnabled);
+      powerBtn.textContent = echoEnabled ? "POWER: ON" : "POWER: OFF";
       if (readyStatus) {
-        readyStatus.textContent = echoEnabled ? "ALESIS ACTIVE" : "ALESIS BYPASSED";
+        readyStatus.textContent = echoEnabled ? "ALESIS ACTIVE" : "ALESIS POWER OFF";
       }
       updateEchoAudio();
+    });
+  }
+
+  // Tombol Bypass Effect
+  if (bypassButton) {
+    let isBypassed = false;
+    bypassButton.addEventListener("click", () => {
+      isBypassed = !isBypassed;
+      bypassButton.classList.toggle("active", isBypassed);
+      bypassButton.textContent = isBypassed ? "EFFECT BYPASSED" : "BYPASS EFFECT";
+      
+      // Jika dibypass, set wet jadi 0 (suara murni dry)
+      if (isBypassed) {
+        echoDryNode.gain.value = 1;
+        echoWetNode.gain.value = 0;
+        echoFeedbackNode.gain.value = 0;
+      } else {
+        updateEchoAudio();
+      }
     });
   }
 
@@ -196,8 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (feedback) {
     feedback.addEventListener("input", () => {
-      // Nilai slider alesis.html max 0.9 (artinya 90%)
-      echoState.feedback = Number(feedback.value) * 100;
+      echoState.feedback = Number(feedback.value);
       if (feedbackVal) feedbackVal.textContent = `${Math.round(Number(feedback.value) * 100)}%`;
       updateEchoAudio();
     });
@@ -205,8 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (mix) {
     mix.addEventListener("input", () => {
-      // Nilai slider alesis.html max 1.0 (artinya 100%)
-      echoState.mix = Number(mix.value) * 100;
+      echoState.mix = Number(mix.value);
       if (mixVal) mixVal.textContent = `${Math.round(Number(mix.value) * 100)}%`;
       updateEchoAudio();
     });
@@ -217,27 +236,27 @@ document.addEventListener("DOMContentLoaded", () => {
       const preset = presetSelect.value;
       if (preset === "vocal-delay") {
         echoState.time = 250;
-        echoState.feedback = 30;
-        echoState.mix = 35;
+        echoState.feedback = 0.3;
+        echoState.mix = 0.35;
       } else if (preset === "long-echo") {
         echoState.time = 600;
-        echoState.feedback = 60;
-        echoState.mix = 50;
+        echoState.feedback = 0.6;
+        echoState.mix = 0.5;
       } else if (preset === "reverb-hall") {
         echoState.time = 400;
-        echoState.feedback = 75;
-        echoState.mix = 60;
+        echoState.feedback = 0.75;
+        echoState.mix = 0.6;
       }
 
       // Sinkronisasi ke elemen UI HTML
       if (time) time.value = echoState.time;
       if (timeVal) timeVal.textContent = `${echoState.time} ms`;
 
-      if (feedback) feedback.value = echoState.feedback / 100;
-      if (feedbackVal) feedbackVal.textContent = `${echoState.feedback}%`;
+      if (feedback) feedback.value = echoState.feedback;
+      if (feedbackVal) feedbackVal.textContent = `${Math.round(echoState.feedback * 100)}%`;
 
-      if (mix) mix.value = echoState.mix / 100;
-      if (mixVal) mixVal.textContent = `${echoState.mix}%`;
+      if (mix) mix.value = echoState.mix;
+      if (mixVal) mixVal.textContent = `${Math.round(echoState.mix * 100)}%`;
 
       if (readyStatus) {
         readyStatus.textContent = `PRESET: ${preset.toUpperCase()}`;
