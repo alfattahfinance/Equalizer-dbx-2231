@@ -1,5 +1,9 @@
 /* =========================================================
    AUDIO ENGINE
+   =========================================================
+
+   AUDIO PATH
+
    SOURCE
       ↓
    ALESIS ECHO
@@ -9,6 +13,15 @@
    MASTER
       ↓
    OUTPUT
+
+   IMPORTANT
+   ---------------------------------------------------------
+   1. AudioContext hanya dibuat satu kali.
+   2. MediaElementSource hanya dibuat satu kali.
+   3. AudioNode tidak dibuat ulang saat START ditekan.
+   4. Source hanya diputus dari Alesis ketika memang
+      mengganti / menghentikan source.
+   5. Audio graph utama tidak dihancurkan oleh STOP.
    ========================================================= */
 
 
@@ -24,7 +37,7 @@ let sourceNode = null;
 
 
 /* =========================================================
-   DBX EQUALIZER INPUT
+   DBX INPUT
    ========================================================= */
 
 let stereoInputNode = null;
@@ -51,6 +64,8 @@ let isMuted = false;
 
 let audioInputActive = false;
 
+let audioGraphInitialized = false;
+
 
 /* =========================================================
    PLAYLIST
@@ -64,14 +79,23 @@ let audioObjectUrls = [];
 
 
 /* =========================================================
-   INITIALIZE AUDIO CONTEXT
+   AUDIO CONTEXT
    ========================================================= */
 
 function createAudioContext() {
 
+  /*
+   * =======================================================
+   * JIKA SUDAH ADA, JANGAN BUAT LAGI
+   * =======================================================
+   */
+
   if (audioContext) {
 
-    return;
+    window.audioContext =
+      audioContext;
+
+    return audioContext;
 
   }
 
@@ -90,8 +114,22 @@ function createAudioContext() {
   }
 
 
+  /*
+   * =======================================================
+   * BUAT AUDIO CONTEXT
+   * =======================================================
+   */
+
   audioContext =
     new AudioContextClass();
+
+
+  /*
+   * Export langsung.
+   */
+
+  window.audioContext =
+    audioContext;
 
 
   /* =======================================================
@@ -152,7 +190,7 @@ function createAudioContext() {
 
 
   /* =======================================================
-     MASTER LEVEL
+     MASTER INITIAL VALUE
      ======================================================= */
 
   const masterSlider =
@@ -178,7 +216,7 @@ function createAudioContext() {
 
 
   /* =======================================================
-     MERGER → MASTER
+     DBX / MASTER
      ======================================================= */
 
   stereoMerger.connect(
@@ -196,8 +234,30 @@ function createAudioContext() {
 
 
   /* =======================================================
-     INITIALIZE ALESIS
+     EXPORT NODES
      ======================================================= */
+
+  window.masterGainNode =
+    masterGainNode;
+
+
+  window.stereoInputNode =
+    stereoInputNode;
+
+
+  window.stereoSplitter =
+    stereoSplitter;
+
+
+  window.stereoMerger =
+    stereoMerger;
+
+
+  /*
+   * =======================================================
+   * INITIALIZE ALESIS
+   * =======================================================
+   */
 
   if (
     typeof window.initializeEchoEngine ===
@@ -209,9 +269,11 @@ function createAudioContext() {
   }
 
 
-  /* =======================================================
-     INITIALIZE EQUALIZER
-     ======================================================= */
+  /*
+   * =======================================================
+   * INITIALIZE DBX
+   * =======================================================
+   */
 
   if (
     typeof window.initializeEqualizerEngine ===
@@ -222,11 +284,52 @@ function createAudioContext() {
 
   }
 
+
+  /*
+   * =======================================================
+   * ALESIS → DBX
+   * =======================================================
+   */
+
+  connectEchoToEqualizer();
+
+
+  audioGraphInitialized =
+    true;
+
+
+  return audioContext;
+
 }
 
 
 /* =========================================================
-   DB → LINEAR GAIN
+   RESUME AUDIO CONTEXT
+   ========================================================= */
+
+async function resumeAudioContext() {
+
+  const context =
+    createAudioContext();
+
+
+  if (
+    context.state ===
+    "suspended"
+  ) {
+
+    await context.resume();
+
+  }
+
+
+  return context;
+
+}
+
+
+/* =========================================================
+   DB → LINEAR
    ========================================================= */
 
 function dbToGain(
@@ -242,7 +345,7 @@ function dbToGain(
 
 
 /* =========================================================
-   SOURCE → ECHO
+   SOURCE → ALESIS
    ========================================================= */
 
 function connectSourceToChannels(
@@ -257,7 +360,26 @@ function connectSourceToChannels(
 
 
   /*
-   * Hentikan source sebelumnya
+   * Jika source sama, jangan membuat
+   * koneksi kedua.
+   */
+
+  if (
+    sourceNode ===
+    newSource
+  ) {
+
+    audioInputActive =
+      true;
+
+    return;
+
+  }
+
+
+  /*
+   * Source baru memang menggantikan
+   * source sebelumnya.
    */
 
   disconnectCurrentSource();
@@ -267,9 +389,15 @@ function connectSourceToChannels(
     newSource;
 
 
-  /* =======================================================
-     SOURCE → ALESIS
-     ======================================================= */
+  window.sourceNode =
+    sourceNode;
+
+
+  /*
+   * =======================================================
+   * SOURCE → ALESIS
+   * =======================================================
+   */
 
   if (
     typeof window.connectEchoInput ===
@@ -282,15 +410,23 @@ function connectSourceToChannels(
 
   }
 
-  else {
+  else if (
+    stereoInputNode
+  ) {
 
     /*
-     * Fallback apabila Echo belum tersedia
+     * Fallback jika Alesis belum tersedia.
      */
 
-    sourceNode.connect(
-      stereoInputNode
-    );
+    try {
+
+      sourceNode.connect(
+        stereoInputNode
+      );
+
+    }
+
+    catch (_) {}
 
   }
 
@@ -298,10 +434,6 @@ function connectSourceToChannels(
   audioInputActive =
     true;
 
-
-  /* =======================================================
-     STATUS CHANNEL
-     ======================================================= */
 
   if (
     typeof window.updateAllStatusLights ===
@@ -316,13 +448,13 @@ function connectSourceToChannels(
 
 
 /* =========================================================
-   ECHO → DBX
+   ALESIS → DBX
    ========================================================= */
 
 function connectEchoToEqualizer() {
 
   if (
-    !window.stereoInputNode
+    !audioContext
   ) {
 
     return;
@@ -331,15 +463,33 @@ function connectEchoToEqualizer() {
 
 
   if (
-    typeof window.connectEchoOutput ===
+    !stereoInputNode
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    typeof window.connectEchoOutput !==
     "function"
   ) {
 
-    window.connectEchoOutput(
-      stereoInputNode
-    );
+    return;
 
   }
+
+
+  /*
+   * ALESIS OUTPUT
+   *      ↓
+   * DBX INPUT
+   */
+
+  window.connectEchoOutput(
+    stereoInputNode
+  );
 
 }
 
@@ -351,16 +501,22 @@ function connectEchoToEqualizer() {
 function disconnectCurrentSource() {
 
   /*
-   * Jangan memutus semua koneksi node dengan
-   * source.disconnect() secara membabi buta.
+   * =======================================================
+   * HANYA PUTUSKAN:
    *
-   * Hanya putuskan koneksi menuju Echo.
+   * SOURCE → ALESIS INPUT
+   *
+   * Jangan menggunakan:
+   *
+   * sourceNode.disconnect()
+   *
+   * karena bisa memutus koneksi lain.
+   * =======================================================
    */
 
   if (
     sourceNode &&
-    typeof window.echoInputNode !==
-    "undefined"
+    window.echoInputNode
   ) {
 
     try {
@@ -377,6 +533,10 @@ function disconnectCurrentSource() {
 
 
   sourceNode =
+    null;
+
+
+  window.sourceNode =
     null;
 
 
@@ -397,7 +557,7 @@ function disconnectCurrentSource() {
 
 
 /* =========================================================
-   PLAYLIST
+   OBJECT URL
    ========================================================= */
 
 function revokeAudioObjectUrls() {
@@ -463,24 +623,21 @@ function selectAudioFile(
     audioFiles[index];
 
 
+  /*
+   * Hentikan playback sebelumnya.
+   */
+
   audioPlayer.pause();
 
 
-  if (
-    audioPlayer.dataset.objectUrl
-  ) {
+  /*
+   * Jangan revoke URL yang sedang dipakai
+   * sampai source baru sudah disiapkan.
+   */
 
-    try {
-
-      URL.revokeObjectURL(
-        audioPlayer.dataset.objectUrl
-      );
-
-    }
-
-    catch (_) {}
-
-  }
+  const oldUrl =
+    audioPlayer.dataset.objectUrl ||
+    "";
 
 
   const objectUrl =
@@ -502,6 +659,29 @@ function selectAudioFile(
     objectUrl;
 
 
+  /*
+   * Revoke URL lama setelah source baru
+   * dipasang.
+   */
+
+  if (
+    oldUrl &&
+    oldUrl !== objectUrl
+  ) {
+
+    try {
+
+      URL.revokeObjectURL(
+        oldUrl
+      );
+
+    }
+
+    catch (_) {}
+
+  }
+
+
   setReadyStatus(
     `FILE READY: ${file.name}`
   );
@@ -515,18 +695,30 @@ function selectAudioFile(
 
 async function startMicrophone() {
 
-  createAudioContext();
+  await resumeAudioContext();
 
 
-  if (
-    audioContext.state ===
-    "suspended"
-  ) {
+  /*
+   * Jika audio file sedang berjalan,
+   * hentikan playback-nya.
+   */
 
-    await audioContext.resume();
+  const audioPlayer =
+    document.getElementById(
+      "audioPlayer"
+    );
+
+
+  if (audioPlayer) {
+
+    audioPlayer.pause();
 
   }
 
+
+  /*
+   * Stop microphone lama.
+   */
 
   if (
     microphoneStream
@@ -542,6 +734,10 @@ async function startMicrophone() {
   }
 
 
+  microphoneStream =
+    null;
+
+
   if (
     !navigator.mediaDevices ||
     !navigator.mediaDevices.getUserMedia
@@ -550,19 +746,6 @@ async function startMicrophone() {
     throw new Error(
       "Microphone tidak didukung."
     );
-
-  }
-
-
-  const audioPlayer =
-    document.getElementById(
-      "audioPlayer"
-    );
-
-
-  if (audioPlayer) {
-
-    audioPlayer.pause();
 
   }
 
@@ -624,17 +807,7 @@ async function startMicrophone() {
 
 async function startAudioFile() {
 
-  createAudioContext();
-
-
-  if (
-    audioContext.state ===
-    "suspended"
-  ) {
-
-    await audioContext.resume();
-
-  }
+  await resumeAudioContext();
 
 
   const audioPlayer =
@@ -644,7 +817,19 @@ async function startAudioFile() {
 
 
   if (
-    !audioPlayer ||
+    !audioPlayer
+  ) {
+
+    alert(
+      "Audio player tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+
+  if (
     !audioPlayer.src
   ) {
 
@@ -656,6 +841,11 @@ async function startAudioFile() {
 
   }
 
+
+  /*
+   * Jika microphone aktif,
+   * hentikan hanya microphone.
+   */
 
   if (
     microphoneStream
@@ -676,7 +866,11 @@ async function startAudioFile() {
 
 
   /*
-   * MediaElementSource hanya dibuat sekali.
+   * =======================================================
+   * MEDIA ELEMENT SOURCE
+   *
+   * Dibuat SATU KALI untuk audioPlayer.
+   * =======================================================
    */
 
   if (
@@ -694,8 +888,8 @@ async function startAudioFile() {
 
     catch (error) {
 
-      console.warn(
-        "MediaElementSource sudah dibuat:",
+      console.error(
+        "Gagal membuat MediaElementSource:",
         error
       );
 
@@ -703,6 +897,10 @@ async function startAudioFile() {
 
   }
 
+
+  /*
+   * Hubungkan source ke Alesis.
+   */
 
   if (
     audioFileSourceNode
@@ -713,6 +911,19 @@ async function startAudioFile() {
     );
 
   }
+
+
+  /*
+   * Pastikan audio player tidak muted
+   * dan volumenya aktif.
+   */
+
+  audioPlayer.muted =
+    false;
+
+
+  audioPlayer.volume =
+    1;
 
 
   try {
@@ -744,13 +955,18 @@ async function startAudioFile() {
     );
 
 
-    alert(
-      "Silakan klik START AUDIO sekali lagi."
+    setReadyStatus(
+      "AUDIO PLAY ERROR"
     );
 
 
-    setReadyStatus(
-      "AUDIO PLAY ERROR"
+    /*
+     * Browser dapat menolak playback
+     * apabila belum ada gesture user.
+     */
+
+    alert(
+      "Audio belum dapat diputar. Tekan START AUDIO sekali lagi."
     );
 
   }
@@ -763,24 +979,6 @@ async function startAudioFile() {
    ========================================================= */
 
 function stopAudio() {
-
-  if (
-    microphoneStream
-  ) {
-
-    microphoneStream
-      .getTracks()
-      .forEach(
-        track =>
-          track.stop()
-      );
-
-
-    microphoneStream =
-      null;
-
-  }
-
 
   const audioPlayer =
     document.getElementById(
@@ -804,6 +1002,37 @@ function stopAudio() {
 
   }
 
+
+  /*
+   * Stop microphone jika aktif.
+   */
+
+  if (
+    microphoneStream
+  ) {
+
+    microphoneStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+
+    microphoneStream =
+      null;
+
+  }
+
+
+  /*
+   * Putus hanya SOURCE → ALESIS.
+   *
+   * AudioContext tetap hidup.
+   * Alesis tetap hidup.
+   * DBX tetap hidup.
+   * Master tetap hidup.
+   */
 
   disconnectCurrentSource();
 
@@ -862,15 +1091,33 @@ function setReadyStatus(
   message
 ) {
 
-  const element =
+  const equalizerStatus =
     document.getElementById(
       "readyStatus"
     );
 
 
-  if (element) {
+  if (
+    equalizerStatus
+  ) {
 
-    element.textContent =
+    equalizerStatus.textContent =
+      message;
+
+  }
+
+
+  const alesisStatus =
+    document.getElementById(
+      "readyStatusAlesis"
+    );
+
+
+  if (
+    alesisStatus
+  ) {
+
+    alesisStatus.textContent =
       message;
 
   }
@@ -879,10 +1126,16 @@ function setReadyStatus(
 
 
 /* =========================================================
-   MASTER / AUDIO UI
+   AUDIO UI
    ========================================================= */
 
 function initializeAudioEngineUI() {
+
+  /*
+   * =======================================================
+   * MASTER
+   * =======================================================
+   */
 
   const masterSlider =
     document.getElementById(
@@ -928,9 +1181,11 @@ function initializeAudioEngineUI() {
   }
 
 
-  /* =======================================================
-     MUTE
-     ======================================================= */
+  /*
+   * =======================================================
+   * MUTE
+   * =======================================================
+   */
 
   const muteButton =
     document.getElementById(
@@ -977,9 +1232,11 @@ function initializeAudioEngineUI() {
   }
 
 
-  /* =======================================================
-     MICROPHONE
-     ======================================================= */
+  /*
+   * =======================================================
+   * MICROPHONE
+   * =======================================================
+   */
 
   const micButton =
     document.getElementById(
@@ -1020,9 +1277,11 @@ function initializeAudioEngineUI() {
   }
 
 
-  /* =======================================================
-     START AUDIO
-     ======================================================= */
+  /*
+   * =======================================================
+   * START AUDIO
+   * =======================================================
+   */
 
   const startButton =
     document.getElementById(
@@ -1063,9 +1322,11 @@ function initializeAudioEngineUI() {
   }
 
 
-  /* =======================================================
-     STOP
-     ======================================================= */
+  /*
+   * =======================================================
+   * STOP
+   * =======================================================
+   */
 
   const stopButton =
     document.getElementById(
@@ -1085,9 +1346,11 @@ function initializeAudioEngineUI() {
   }
 
 
-  /* =======================================================
-     FILE INPUT
-     ======================================================= */
+  /*
+   * =======================================================
+   * FILE INPUT
+   * =======================================================
+   */
 
   const audioFileInput =
     document.getElementById(
@@ -1133,6 +1396,11 @@ function initializeAudioEngineUI() {
         }
 
 
+        /*
+         * Source lama akan tetap sama.
+         * Hanya URL file yang berubah.
+         */
+
         revokeAudioObjectUrls();
 
 
@@ -1159,9 +1427,11 @@ function initializeAudioEngineUI() {
   }
 
 
-  /* =======================================================
-     AUDIO END
-     ======================================================= */
+  /*
+   * =======================================================
+   * AUDIO END / PLAYLIST
+   * =======================================================
+   */
 
   const audioPlayer =
     document.getElementById(
@@ -1176,6 +1446,10 @@ function initializeAudioEngineUI() {
     audioPlayer.addEventListener(
       "ended",
       async () => {
+
+        /*
+         * Tidak ada playlist.
+         */
 
         if (
           audioFiles.length === 0
@@ -1193,6 +1467,10 @@ function initializeAudioEngineUI() {
 
         }
 
+
+        /*
+         * Masih ada file berikutnya.
+         */
 
         if (
           currentAudioIndex <
@@ -1213,13 +1491,23 @@ function initializeAudioEngineUI() {
 
           }
 
-          catch (_) {}
+          catch (error) {
+
+            console.error(
+              error
+            );
+
+          }
 
 
           return;
 
         }
 
+
+        /*
+         * Playlist benar-benar selesai.
+         */
 
         setReadyStatus(
           "PLAYLIST SELESAI"
@@ -1305,6 +1593,7 @@ async function loadAudioDevices() {
   catch (error) {
 
     console.warn(
+      "Gagal membaca audio device:",
       error
     );
 
@@ -1330,32 +1619,68 @@ document.addEventListener(
 
 
 /* =========================================================
-   EXPORT
+   GLOBAL EXPORT
    ========================================================= */
 
 window.audioContext =
   audioContext;
 
+
+window.masterGainNode =
+  masterGainNode;
+
+
+window.stereoInputNode =
+  stereoInputNode;
+
+
+window.stereoSplitter =
+  stereoSplitter;
+
+
+window.stereoMerger =
+  stereoMerger;
+
+
+window.sourceNode =
+  sourceNode;
+
+
 window.createAudioContext =
   createAudioContext;
+
+
+window.resumeAudioContext =
+  resumeAudioContext;
+
 
 window.connectSourceToChannels =
   connectSourceToChannels;
 
+
+window.connectEchoToEqualizer =
+  connectEchoToEqualizer;
+
+
 window.disconnectCurrentSource =
   disconnectCurrentSource;
+
 
 window.startMicrophone =
   startMicrophone;
 
+
 window.startAudioFile =
   startAudioFile;
+
 
 window.stopAudio =
   stopAudio;
 
+
 window.updateMasterGain =
   updateMasterGain;
+
 
 window.setReadyStatus =
   setReadyStatus;
