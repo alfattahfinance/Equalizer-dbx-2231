@@ -1,45 +1,52 @@
 /* =========================================================
-   ALESIS ECHO DSP ENGINE
+   ALESIS ECHO DSP ENGINE — FIXED AUDIO
    =========================================================
-   AUDIO HOST:
-      index.html
-   REMOTE UI:
-      alesis.html
-   AUDIO PATH:
+   AUDIO PATH
       SOURCE
          ↓
-      ALESIS ECHO
+      ALESIS INPUT
          ↓
-      DBX 2231
-         ↓
-      MASTER
-         ↓
-      OUTPUT
+      ┌───────────────┐
+      │ DRY           │
+      │               │
+      │ DELAY         │
+      │   ↓           │
+      │ FEEDBACK      │
+      │   ↓           │
+      │ DELAY         │
+      │   ↓           │
+      │ WET           │
+      └───────┬───────┘
+              ↓
+        ALESIS OUTPUT
+              ↓
+          DBX 2231
+              ↓
+           MASTER
+              ↓
+           OUTPUT
    IMPORTANT
    ---------------------------------------------------------
-   index.html:
-      - membuat AudioNode Alesis
-      - menjalankan processing
-      - menjadi audio host
-   alesis.html:
-      - hanya mengontrol parameter
-      - tidak membuat AudioNode
-      - tidak mengambil alih audio engine
-   COMMUNICATION:
-      BroadcastChannel
-      +
-      localStorage
+   - Tidak boleh ada double connection.
+   - Alesis output hanya boleh tersambung sekali ke DBX.
+   - Feedback dibatasi untuk mencegah runaway.
+   - Dry/Wet menggunakan constant-power style mixing.
+   - Parameter menggunakan smoothing.
+   - Bypass benar-benar melewatkan sinyal dry.
+   - POWER OFF juga melewatkan sinyal dry.
    ========================================================= */
 /* =========================================================
-   GLOBAL NAMESPACE
+   GLOBAL
    ========================================================= */
 window.DBX2231 =
   window.DBX2231 || {};
 /* =========================================================
-   CHANNEL KOMUNIKASI
+   REMOTE COMMUNICATION
    ========================================================= */
 const ALESIS_CHANNEL_NAME =
   "dbx-2231-alesis-control";
+const ALESIS_STORAGE_KEY =
+  "dbx2231_alesis_state";
 let alesisChannel =
   null;
 try {
@@ -60,12 +67,7 @@ catch (error) {
   );
 }
 /* =========================================================
-   LOCAL STORAGE
-   ========================================================= */
-const ALESIS_STORAGE_KEY =
-  "dbx2231_alesis_state";
-/* =========================================================
-   AUDIO NODE
+   AUDIO NODES
    ========================================================= */
 let echoInputNode = null;
 let echoDryNode = null;
@@ -74,43 +76,51 @@ let echoFeedbackNode = null;
 let echoWetNode = null;
 let echoOutputNode = null;
 /* =========================================================
+   OUTPUT CONNECTION STATE
+   ========================================================= */
+let echoConnectedToEqualizer =
+  false;
+let echoConnectedDestination =
+  null;
+/* =========================================================
    STATE
    ========================================================= */
-let echoEnabled = true;
-let echoBypassed = false;
+let echoEnabled =
+  true;
+let echoBypassed =
+  false;
 const echoState = {
   time: 300,
-  feedback: 0.40,
-  mix: 0.50,
+  /*
+   * Lebih aman daripada 40%.
+   */
+  feedback: 0.25,
+  /*
+   * Wet 30%.
+   */
+  mix: 0.30,
+  /*
+   * 0 dB
+   */
   level: 0
 };
 /* =========================================================
    HOST DETECTION
-   =========================================================
-   index.html:
-      Audio host
-   alesis.html:
-      Remote controller
    ========================================================= */
 function isAudioHost() {
   /*
-   * index.html adalah satu-satunya halaman
-   * yang boleh membuat AudioNode Alesis.
+   * index.html memiliki #channels.
+   *
+   * alesis.html tidak.
    */
-  return (
-    document.body &&
-    !(
-      document.getElementById(
-        "readyStatusAlesis"
-      ) &&
-      !document.getElementById(
-        "channels"
-      )
+  return Boolean(
+    document.getElementById(
+      "channels"
     )
   );
 }
 /* =========================================================
-   GET AUDIO CONTEXT
+   AUDIO CONTEXT
    ========================================================= */
 function getAudioContext() {
   if (
@@ -127,7 +137,7 @@ function getAudioContext() {
   return null;
 }
 /* =========================================================
-   BROADCAST STATE
+   STATE BROADCAST
    ========================================================= */
 function broadcastEchoState() {
   const state = {
@@ -150,9 +160,6 @@ function broadcastEchoState() {
     level:
       echoState.level
   };
-  /*
-   * BroadcastChannel
-   */
   if (
     alesisChannel
   ) {
@@ -161,19 +168,8 @@ function broadcastEchoState() {
         state
       );
     }
-    catch (error) {
-      console.warn(
-        "Broadcast Alesis gagal:",
-        error
-      );
-    }
+    catch (_) {}
   }
-  /*
-   * localStorage
-   *
-   * Digunakan sebagai fallback dan
-   * penyimpanan state terakhir.
-   */
   try {
     localStorage.setItem(
       ALESIS_STORAGE_KEY,
@@ -185,7 +181,7 @@ function broadcastEchoState() {
   catch (_) {}
 }
 /* =========================================================
-   LOAD SAVED STATE
+   LOAD STATE
    ========================================================= */
 function loadSavedEchoState() {
   try {
@@ -214,13 +210,13 @@ function loadSavedEchoState() {
   }
   catch (error) {
     console.warn(
-      "State Alesis tidak dapat dibaca:",
+      "Gagal membaca state Alesis:",
       error
     );
   }
 }
 /* =========================================================
-   APPLY REMOTE STATE
+   APPLY STATE
    ========================================================= */
 function applyRemoteEchoState(
   state,
@@ -229,9 +225,6 @@ function applyRemoteEchoState(
   if (!state) {
     return;
   }
-  /*
-   * POWER
-   */
   if (
     typeof state.enabled ===
     "boolean"
@@ -239,9 +232,6 @@ function applyRemoteEchoState(
     echoEnabled =
       state.enabled;
   }
-  /*
-   * BYPASS
-   */
   if (
     typeof state.bypass ===
     "boolean"
@@ -249,74 +239,76 @@ function applyRemoteEchoState(
     echoBypassed =
       state.bypass;
   }
-  /*
-   * DELAY
-   */
   if (
     Number.isFinite(
       Number(state.time)
     )
   ) {
     echoState.time =
-      Number(
-        state.time
+      Math.max(
+        50,
+        Math.min(
+          1000,
+          Number(
+            state.time
+          )
+        )
       );
   }
-  /*
-   * FEEDBACK
-   */
   if (
     Number.isFinite(
       Number(state.feedback)
     )
   ) {
     echoState.feedback =
-      Number(
-        state.feedback
+      Math.max(
+        0,
+        Math.min(
+          0.85,
+          Number(
+            state.feedback
+          )
+        )
       );
   }
-  /*
-   * MIX
-   */
   if (
     Number.isFinite(
       Number(state.mix)
     )
   ) {
     echoState.mix =
-      Number(
-        state.mix
+      Math.max(
+        0,
+        Math.min(
+          1,
+          Number(
+            state.mix
+          )
+        )
       );
   }
-  /*
-   * LEVEL
-   */
   if (
     Number.isFinite(
       Number(state.level)
     )
   ) {
     echoState.level =
-      Number(
-        state.level
+      Math.max(
+        -24,
+        Math.min(
+          6,
+          Number(
+            state.level
+          )
+        )
       );
   }
-  /*
-   * Update audio hanya jika
-   * halaman ini adalah HOST.
-   */
   if (
     isAudioHost()
   ) {
     updateEchoAudio();
   }
-  /*
-   * Update UI halaman.
-   */
   updateEchoUI();
-  /*
-   * Kirim ulang jika diperlukan.
-   */
   if (
     broadcastBack
   ) {
@@ -329,34 +321,48 @@ function applyRemoteEchoState(
 if (
   alesisChannel
 ) {
-  alesisChannel.onmessage =
+  alesisChannel.addEventListener(
+    "message",
     event => {
-      const state =
+      const data =
         event.data;
-      if (
-        !state ||
-        state.type !==
-          "ALESIS_STATE"
-      ) {
+      if (!data) {
         return;
       }
-      /*
-       * Jangan proses pesan HOST
-       * menjadi loop tak berujung.
-       */
-      applyRemoteEchoState(
-        state,
-        false
-      );
-    };
+      if (
+        data.type ===
+        "ALESIS_STATE"
+      ) {
+        /*
+         * Remote mengubah parameter.
+         */
+        applyRemoteEchoState(
+          data,
+          false
+        );
+      }
+      if (
+        data.type ===
+        "ALESIS_REQUEST_STATE"
+      ) {
+        /*
+         * Hanya HOST yang menjawab.
+         */
+        if (
+          isAudioHost()
+        ) {
+          broadcastEchoState();
+        }
+      }
+    }
+  );
 }
 /* =========================================================
-   INITIALIZE ALESIS ENGINE
+   INITIALIZE ALESIS
    ========================================================= */
 function initializeEchoEngine() {
   /*
-   * Jika bukan audio host,
-   * jangan membuat node audio.
+   * Remote UI tidak membuat AudioNode.
    */
   if (
     !isAudioHost()
@@ -366,13 +372,13 @@ function initializeEchoEngine() {
     return;
   }
   /*
-   * Jika node sudah ada,
-   * jangan buat ulang.
+   * Sudah dibuat.
    */
   if (
     echoInputNode &&
     echoOutputNode
   ) {
+    connectEchoToNextStage();
     updateEchoAudio();
     return;
   }
@@ -380,14 +386,7 @@ function initializeEchoEngine() {
     getAudioContext();
   if (!context) {
     /*
-     * AudioContext memang belum dibuat.
-     *
-     * Jangan membuat AudioContext sendiri
-     * ketika halaman baru dibuka.
-     *
-     * createAudioContext() akan memanggil
-     * initializeEchoEngine() setelah user
-     * melakukan gesture audio.
+     * Jangan membuat AudioContext otomatis.
      */
     return;
   }
@@ -423,20 +422,11 @@ function initializeEchoEngine() {
      ======================================================= */
   echoOutputNode =
     context.createGain();
-  /* =======================================================
-     ROUTING
-     =======================================================
-     INPUT
-       ├── DRY ────────────────┐
-       │                       │
-       └── DELAY → FEEDBACK ──┤
-                    ↑          │
-                    └──────────┘
-                  WET
-                    │
-                    ▼
-                  OUTPUT
-   ======================================================= */
+  /*
+   * =======================================================
+   * ROUTING
+   * =======================================================
+   */
   echoInputNode.connect(
     echoDryNode
   );
@@ -459,7 +449,7 @@ function initializeEchoEngine() {
     echoOutputNode
   );
   /*
-   * Export nodes.
+   * Export.
    */
   window.echoInputNode =
     echoInputNode;
@@ -474,20 +464,20 @@ function initializeEchoEngine() {
   window.echoOutputNode =
     echoOutputNode;
   /*
-   * Terapkan parameter.
+   * Terapkan audio.
    */
   updateEchoAudio();
   /*
-   * Hubungkan ke DBX.
+   * Sambungkan Alesis → DBX.
    */
   connectEchoToNextStage();
   /*
-   * Broadcast state awal.
+   * Kirim state.
    */
   broadcastEchoState();
 }
 /* =========================================================
-   CONNECT ECHO INPUT
+   SOURCE → ALESIS
    ========================================================= */
 function connectEchoInput(
   source
@@ -496,20 +486,7 @@ function connectEchoInput(
     return;
   }
   /*
-   * AudioContext harus ada.
-   */
-  if (
-    typeof window.createAudioContext ===
-    "function"
-  ) {
-    try {
-      window.createAudioContext();
-    }
-    catch (_) {}
-  }
-  /*
-   * Hanya HOST yang membuat
-   * koneksi audio.
+   * Hanya HOST yang melakukan audio routing.
    */
   if (
     !isAudioHost()
@@ -517,7 +494,16 @@ function connectEchoInput(
     return;
   }
   /*
-   * Pastikan engine tersedia.
+   * Pastikan AudioContext sudah ada.
+   */
+  if (
+    typeof window.createAudioContext ===
+    "function"
+  ) {
+    window.createAudioContext();
+  }
+  /*
+   * Pastikan Alesis sudah dibuat.
    */
   if (
     !echoInputNode
@@ -530,7 +516,13 @@ function connectEchoInput(
     return;
   }
   /*
-   * Hindari koneksi ganda.
+   * =======================================================
+   * HINDARI DOUBLE CONNECTION
+   *
+   * audio-engine.js sudah memastikan source lama
+   * diputus dari echoInputNode sebelum source baru
+   * masuk.
+   * =======================================================
    */
   try {
     source.connect(
@@ -539,13 +531,13 @@ function connectEchoInput(
   }
   catch (error) {
     console.warn(
-      "SOURCE → ALESIS gagal:",
+      "SOURCE → ALESIS:",
       error
     );
   }
 }
 /* =========================================================
-   CONNECT ECHO OUTPUT
+   ALESIS → DBX
    ========================================================= */
 function connectEchoToNextStage() {
   if (
@@ -558,31 +550,61 @@ function connectEchoToNextStage() {
   ) {
     return;
   }
-  const nextStage =
+  const destination =
     window.stereoInputNode;
   if (
-    !nextStage
+    !destination
   ) {
     return;
   }
   /*
-   * Coba koneksi.
+   * =======================================================
+   * PENTING:
    *
-   * Browser Web Audio tidak menyediakan
-   * API standar untuk memeriksa koneksi
-   * tertentu, sehingga kita menjaga agar
-   * fungsi ini hanya dipanggil saat graph
-   * dibuat / diperlukan.
+   * Jangan connect lagi kalau destination sama.
+   * =======================================================
    */
+  if (
+    echoConnectedToEqualizer &&
+    echoConnectedDestination ===
+      destination
+  ) {
+    return;
+  }
+  /*
+   * Jika sebelumnya terhubung ke destination
+   * lain, lepaskan koneksi lama terlebih dahulu.
+   */
+  if (
+    echoConnectedDestination &&
+    echoConnectedDestination !==
+      destination
+  ) {
+    try {
+      echoOutputNode.disconnect(
+        echoConnectedDestination
+      );
+    }
+    catch (_) {}
+  }
   try {
     echoOutputNode.connect(
-      nextStage
+      destination
+    );
+    echoConnectedDestination =
+      destination;
+    echoConnectedToEqualizer =
+      true;
+  }
+  catch (error) {
+    console.warn(
+      "ALESIS → DBX gagal:",
+      error
     );
   }
-  catch (_) {}
 }
 /* =========================================================
-   ALIAS
+   PUBLIC OUTPUT CONNECT
    ========================================================= */
 function connectEchoOutput(
   destination
@@ -598,20 +620,37 @@ function connectEchoOutput(
   ) {
     return;
   }
+  /*
+   * Kalau sudah tersambung ke destination
+   * yang sama, jangan connect lagi.
+   */
+  if (
+    echoConnectedToEqualizer &&
+    echoConnectedDestination ===
+      destination
+  ) {
+    return;
+  }
   try {
     echoOutputNode.connect(
       destination
     );
+    echoConnectedDestination =
+      destination;
+    echoConnectedToEqualizer =
+      true;
   }
-  catch (_) {}
+  catch (error) {
+    console.warn(
+      "connectEchoOutput:",
+      error
+    );
+  }
 }
 /* =========================================================
    UPDATE AUDIO
    ========================================================= */
 function updateEchoAudio() {
-  /*
-   * Hanya HOST yang mengontrol AudioNode.
-   */
   if (
     !isAudioHost()
   ) {
@@ -619,7 +658,11 @@ function updateEchoAudio() {
   }
   if (
     !echoInputNode ||
-    !echoOutputNode
+    !echoOutputNode ||
+    !echoDelayNode ||
+    !echoFeedbackNode ||
+    !echoDryNode ||
+    !echoWetNode
   ) {
     return;
   }
@@ -630,51 +673,51 @@ function updateEchoAudio() {
   }
   const now =
     context.currentTime;
-  /*
-   * =======================================================
-   * DELAY TIME
-   * =======================================================
-   */
+  /* =======================================================
+     DELAY
+     ======================================================= */
   const delaySeconds =
     Math.max(
-      0.001,
+      0.05,
       Math.min(
-        5,
+        1.0,
         Number(
           echoState.time
         ) / 1000
       )
     );
+  echoDelayNode.delayTime.cancelScheduledValues(
+    now
+  );
   echoDelayNode.delayTime.setTargetAtTime(
     delaySeconds,
     now,
-    0.01
+    0.015
   );
-  /*
-   * =======================================================
-   * FEEDBACK
-   * =======================================================
-   */
+  /* =======================================================
+     FEEDBACK
+     ======================================================= */
   const feedback =
     Math.max(
       0,
       Math.min(
-        0.90,
+        0.85,
         Number(
           echoState.feedback
         )
       )
     );
+  echoFeedbackNode.gain.cancelScheduledValues(
+    now
+  );
   echoFeedbackNode.gain.setTargetAtTime(
     feedback,
     now,
-    0.01
+    0.02
   );
-  /*
-   * =======================================================
-   * MIX
-   * =======================================================
-   */
+  /* =======================================================
+     MIX
+     ======================================================= */
   const mix =
     Math.max(
       0,
@@ -685,38 +728,60 @@ function updateEchoAudio() {
         )
       )
     );
-  const dryGain =
-    1 - mix;
-  const wetGain =
-    mix;
   /*
-   * =======================================================
-   * BYPASS / POWER
-   * =======================================================
+   * Constant-power style mix.
+   *
+   * Ini mengurangi perubahan level ketika
+   * Wet/Dry digeser.
    */
-  const effectActive =
-    echoEnabled &&
-    !echoBypassed;
+  const dryGain =
+    Math.cos(
+      mix *
+      Math.PI /
+      2
+    );
+  const wetGain =
+    Math.sin(
+      mix *
+      Math.PI /
+      2
+    );
+  /* =======================================================
+     BYPASS / POWER
+     ======================================================= */
   if (
-    effectActive
+    echoEnabled &&
+    !echoBypassed
   ) {
+    echoDryNode.gain.cancelScheduledValues(
+      now
+    );
+    echoWetNode.gain.cancelScheduledValues(
+      now
+    );
     echoDryNode.gain.setTargetAtTime(
       dryGain,
       now,
-      0.01
+      0.015
     );
     echoWetNode.gain.setTargetAtTime(
       wetGain,
       now,
-      0.01
+      0.015
     );
   }
   else {
     /*
-     * Bypass:
+     * BYPASS:
      *
-     * INPUT → OUTPUT
+     * 100% dry
      */
+    echoDryNode.gain.cancelScheduledValues(
+      now
+    );
+    echoWetNode.gain.cancelScheduledValues(
+      now
+    );
     echoDryNode.gain.setTargetAtTime(
       1,
       now,
@@ -728,20 +793,35 @@ function updateEchoAudio() {
       0.01
     );
   }
-  /*
-   * LEVEL
-   */
-  const levelGain =
-    dbToGain(
-      Number(
-        echoState.level
+  /* =======================================================
+     OUTPUT LEVEL
+     ======================================================= */
+  const level =
+    Math.max(
+      -24,
+      Math.min(
+        6,
+        Number(
+          echoState.level
+        )
       )
     );
-  echoOutputNode.gain.setTargetAtTime(
-    levelGain,
-    now,
-    0.01
+  const outputGain =
+    dbToGain(
+      level
+    );
+  echoOutputNode.gain.cancelScheduledValues(
+    now
   );
+  echoOutputNode.gain.setTargetAtTime(
+    outputGain,
+    now,
+    0.015
+  );
+  /*
+   * Pastikan koneksi output tetap satu.
+   */
+  connectEchoToNextStage();
   updateEchoUI();
 }
 /* =========================================================
@@ -792,7 +872,7 @@ function setEchoBypass(
   broadcastEchoState();
 }
 /* =========================================================
-   DELAY
+   DELAY TIME
    ========================================================= */
 function setEchoTime(
   milliseconds
@@ -825,7 +905,7 @@ function setEchoFeedback(
     Math.max(
       0,
       Math.min(
-        0.90,
+        0.85,
         Number(
           percent
         ) / 100
@@ -864,7 +944,7 @@ function setEchoMix(
   broadcastEchoState();
 }
 /* =========================================================
-   UI UPDATE
+   UI
    ========================================================= */
 function updateEchoUI() {
   /*
@@ -989,29 +1069,29 @@ function updateEchoUI() {
       )}%`;
   }
   /*
-   * READY STATUS ALESIS
+   * STATUS
    */
-  const ready =
+  const readyStatus =
     document.getElementById(
       "readyStatusAlesis"
     );
   if (
-    ready
+    readyStatus
   ) {
     if (
       !echoEnabled
     ) {
-      ready.textContent =
+      readyStatus.textContent =
         "ALESIS POWER OFF";
     }
     else if (
       echoBypassed
     ) {
-      ready.textContent =
+      readyStatus.textContent =
         "ALESIS BYPASS";
     }
     else {
-      ready.textContent =
+      readyStatus.textContent =
         "ALESIS DSP READY";
     }
   }
@@ -1029,33 +1109,33 @@ function applyAlesisPreset(
       echoState.time =
         300;
       echoState.feedback =
-        0.40;
+        0.25;
       echoState.mix =
-        0.50;
+        0.30;
       break;
     case "long-echo":
       echoState.time =
         750;
       echoState.feedback =
-        0.65;
+        0.45;
       echoState.mix =
-        0.55;
+        0.35;
       break;
     case "reverb-hall":
       echoState.time =
         600;
       echoState.feedback =
-        0.72;
+        0.50;
       echoState.mix =
-        0.45;
+        0.30;
       break;
     default:
       return;
   }
-  echoBypassed =
-    false;
   echoEnabled =
     true;
+  echoBypassed =
+    false;
   if (
     isAudioHost()
   ) {
@@ -1065,36 +1145,28 @@ function applyAlesisPreset(
   broadcastEchoState();
 }
 /* =========================================================
-   DOM EVENTS
+   DOM INITIALIZATION
    ========================================================= */
 document.addEventListener(
   "DOMContentLoaded",
   () => {
     /*
-     * =====================================================
-     * HOST INITIALIZATION
-     * =====================================================
+     * HOST
      */
     if (
       isAudioHost()
     ) {
-      /*
-       * Jangan membuat AudioContext otomatis.
-       *
-       * AudioContext akan dibuat ketika user
-       * menekan START AUDIO / MIC.
-       */
       updateEchoUI();
     }
+    /*
+     * REMOTE
+     */
     else {
-      /*
-       * Remote Alesis page.
-       */
       loadSavedEchoState();
       updateEchoUI();
     }
     /* =====================================================
-       POWER
+       POWER BUTTON
        ===================================================== */
     const powerButton =
       document.getElementById(
@@ -1213,8 +1285,7 @@ document.addEventListener(
       );
     }
     /*
-     * Kirim request state saat halaman
-     * Alesis remote dibuka.
+     * Remote meminta state terbaru.
      */
     if (
       !isAudioHost() &&
@@ -1231,39 +1302,7 @@ document.addEventListener(
   }
 );
 /* =========================================================
-   REQUEST STATE
-   ========================================================= */
-if (
-  alesisChannel
-) {
-  alesisChannel.addEventListener(
-    "message",
-    event => {
-      const data =
-        event.data;
-      if (
-        !data
-      ) {
-        return;
-      }
-      /*
-       * Halaman remote meminta state terbaru.
-       */
-      if (
-        data.type ===
-        "ALESIS_REQUEST_STATE"
-      ) {
-        if (
-          isAudioHost()
-        ) {
-          broadcastEchoState();
-        }
-      }
-    }
-  );
-}
-/* =========================================================
-   EXPORT GLOBAL
+   EXPORT
    ========================================================= */
 window.echoInputNode =
   echoInputNode;
