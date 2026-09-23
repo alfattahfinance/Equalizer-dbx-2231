@@ -12,9 +12,11 @@
     const P = window.MixerProtocol;
 
     if (!P) {
+
         console.error(
             "[ESP32 CONNECTION] MixerProtocol belum dimuat."
         );
+
         return;
     }
 
@@ -23,41 +25,60 @@
         constructor() {
 
             this.port = null;
+
             this.reader = null;
             this.writer = null;
 
             this.connected = false;
 
-            this.decoder = new TextDecoder();
-            this.encoder = new TextEncoder();
+            this.decoder =
+                new TextDecoder();
+
+            this.encoder =
+                new TextEncoder();
 
             this.receiveBuffer = "";
 
-            this.listeners = new Set();
+            this.listeners =
+                new Set();
 
             this.baudRate = 115200;
         }
 
         subscribe(callback) {
 
-            if (typeof callback !== "function") {
+            if (
+                typeof callback !==
+                "function"
+            ) {
                 return () => {};
             }
 
-            this.listeners.add(callback);
+            this.listeners.add(
+                callback
+            );
 
             return () => {
-                this.listeners.delete(callback);
+
+                this.listeners.delete(
+                    callback
+                );
             };
         }
 
         emit(event) {
 
-            for (const callback of this.listeners) {
+            for (
+                const callback
+                of this.listeners
+            ) {
 
                 try {
+
                     callback(event);
+
                 } catch (error) {
+
                     console.error(
                         "[ESP32 CONNECTION]",
                         error
@@ -87,13 +108,18 @@
             }
 
             this.port =
-                await navigator.serial.requestPort();
+                await navigator
+                    .serial
+                    .requestPort();
 
             await this.port.open({
-                baudRate: this.baudRate
+                baudRate:
+                    this.baudRate
             });
 
             this.connected = true;
+
+            this.receiveBuffer = "";
 
             this.emit({
                 type: "CONNECTED"
@@ -105,7 +131,8 @@
                 P.createMessage(
                     P.TYPES.CONNECT,
                     {
-                        source: P.SOURCES.WEB
+                        source:
+                            P.SOURCES.WEB
                     }
                 )
             );
@@ -120,6 +147,7 @@
             try {
 
                 if (this.reader) {
+
                     await this.reader.cancel();
                 }
 
@@ -128,7 +156,9 @@
             try {
 
                 if (this.writer) {
+
                     this.writer.releaseLock();
+
                     this.writer = null;
                 }
 
@@ -137,6 +167,7 @@
             try {
 
                 if (this.port) {
+
                     await this.port.close();
                 }
 
@@ -144,6 +175,8 @@
 
             this.reader = null;
             this.port = null;
+
+            this.receiveBuffer = "";
 
             this.emit({
                 type: "DISCONNECTED"
@@ -162,11 +195,14 @@
             ) {
 
                 this.reader =
-                    this.port.readable.getReader();
+                    this.port.readable
+                        .getReader();
 
                 try {
 
-                    while (true) {
+                    while (
+                        this.connected
+                    ) {
 
                         const {
                             value,
@@ -190,39 +226,40 @@
                                 }
                             );
 
-                        const packets =
-                            P.decode(
-                                this.receiveBuffer
-                            );
+                        const lines =
+                            this.receiveBuffer
+                                .split(/\r?\n/);
 
-                        if (
-                            this.receiveBuffer.includes("\n")
+                        this.receiveBuffer =
+                            lines.pop() || "";
+
+                        for (
+                            const line
+                            of lines
                         ) {
 
-                            const lines =
-                                this.receiveBuffer
-                                    .split(/\r?\n/);
+                            const clean =
+                                line.trim();
 
-                            this.receiveBuffer =
-                                lines.pop() || "";
+                            if (!clean) {
+                                continue;
+                            }
 
-                            for (const line of lines) {
+                            const packets =
+                                P.decode(clean);
 
-                                const decoded =
-                                    P.decode(
-                                        line
-                                    );
+                            for (
+                                const packet
+                                of packets
+                            ) {
 
-                                for (
-                                    const packet
-                                    of decoded
-                                ) {
+                                this.emit({
 
-                                    this.emit({
-                                        type: "MESSAGE",
-                                        packet
-                                    });
-                                }
+                                    type:
+                                        "MESSAGE",
+
+                                    packet
+                                });
                             }
                         }
                     }
@@ -232,7 +269,10 @@
                     if (this.connected) {
 
                         this.emit({
-                            type: "ERROR",
+
+                            type:
+                                "ERROR",
+
                             error
                         });
                     }
@@ -240,7 +280,10 @@
                 } finally {
 
                     try {
-                        this.reader.releaseLock();
+
+                        this.reader
+                            .releaseLock();
+
                     } catch (_) {}
 
                     this.reader = null;
@@ -250,7 +293,10 @@
 
         async send(message) {
 
-            if (!this.connected || !this.port) {
+            if (
+                !this.connected ||
+                !this.port
+            ) {
 
                 throw new Error(
                     "ESP32 belum terhubung."
@@ -267,7 +313,8 @@
             if (!this.writer) {
 
                 this.writer =
-                    this.port.writable.getWriter();
+                    this.port.writable
+                        .getWriter();
             }
 
             const data =
@@ -278,7 +325,9 @@
             );
 
             this.emit({
+
                 type: "TX",
+
                 packet: message
             });
 
