@@ -5,13 +5,13 @@
    WEB <-> ESP32
    WEB <-> ESP32 SIMULATOR
 
-   Version: 1.0
+   Version: 1.1
 ========================================================= */
 
 (function () {
     "use strict";
 
-    const PROTOCOL_VERSION = "1.0";
+    const PROTOCOL_VERSION = "1.1";
 
     const TYPES = Object.freeze({
         CONTROL: "CONTROL",
@@ -37,12 +37,19 @@
     const PARAMETERS = Object.freeze({
         FADER: "FADER",
         GAIN: "GAIN",
+
         EQ_LOW: "EQ_LOW",
         EQ_MID: "EQ_MID",
         EQ_HIGH: "EQ_HIGH",
+
+        // DBX 2231 individual 31-band control
+        EQ_BAND: "EQ_BAND",
+
         MUTE: "MUTE",
         SOLO: "SOLO",
+
         MASTER: "MASTER",
+
         AUX: "AUX",
         BUS: "BUS",
         FX: "FX",
@@ -50,7 +57,16 @@
         LEVEL: "LEVEL"
     });
 
+    function createId() {
+        return (
+            Date.now().toString(36) +
+            "-" +
+            Math.random().toString(36).slice(2, 10)
+        );
+    }
+
     function createMessage(type, payload = {}) {
+
         return {
             protocol: "MIXER",
             version: PROTOCOL_VERSION,
@@ -62,69 +78,129 @@
         };
     }
 
-    function createId() {
-        return (
-            Date.now().toString(36) +
-            "-" +
-            Math.random().toString(36).slice(2, 10)
+    function createControl(
+        channel,
+        parameter,
+        value,
+        extra = {}
+    ) {
+
+        return createMessage(
+            TYPES.CONTROL,
+            {
+                channel: Number(channel) || 0,
+
+                parameter:
+                    String(parameter || "")
+                        .toUpperCase(),
+
+                value,
+
+                ...extra
+            }
         );
     }
 
-    function createControl(channel, parameter, value, extra = {}) {
-        return createMessage(TYPES.CONTROL, {
-            channel: Number(channel) || 0,
-            parameter: String(parameter || "").toUpperCase(),
-            value,
-            ...extra
-        });
-    }
+    function createAck(
+        original,
+        extra = {}
+    ) {
 
-    function createAck(original, extra = {}) {
+        const source =
+            extra.source ||
+            original?.source ||
+            SOURCES.SIMULATOR;
+
         return {
             protocol: "MIXER",
             version: PROTOCOL_VERSION,
             id: createId(),
-            replyTo: original?.id || null,
+
+            replyTo:
+                original?.id || null,
+
             timestamp: Date.now(),
+
             type: TYPES.ACK,
-            source: SOURCES.SIMULATOR,
-            channel: original?.channel ?? null,
-            parameter: original?.parameter ?? null,
-            value: original?.value ?? null,
+
+            source,
+
+            channel:
+                original?.channel ?? null,
+
+            parameter:
+                original?.parameter ?? null,
+
+            value:
+                original?.value ?? null,
+
             ...extra
         };
     }
 
-    function createFeedback(channel, parameter, value, extra = {}) {
-        return createMessage(TYPES.FEEDBACK, {
-            channel: Number(channel) || 0,
-            parameter: String(parameter || "").toUpperCase(),
-            value,
-            ...extra
-        });
+    function createFeedback(
+        channel,
+        parameter,
+        value,
+        extra = {}
+    ) {
+
+        return createMessage(
+            TYPES.FEEDBACK,
+            {
+                channel:
+                    Number(channel) || 0,
+
+                parameter:
+                    String(parameter || "")
+                        .toUpperCase(),
+
+                value,
+
+                ...extra
+            }
+        );
     }
 
-    function createError(message, code = "UNKNOWN", extra = {}) {
-        return createMessage(TYPES.ERROR, {
-            error: String(message),
-            code,
-            ...extra
-        });
+    function createError(
+        message,
+        code = "UNKNOWN",
+        extra = {}
+    ) {
+
+        return createMessage(
+            TYPES.ERROR,
+            {
+                error: String(message),
+                code,
+                ...extra
+            }
+        );
     }
 
     function createPing() {
         return createMessage(TYPES.PING);
     }
 
-    function createPong(message) {
+    function createPong(
+        message,
+        source = SOURCES.SIMULATOR
+    ) {
+
         return {
             protocol: "MIXER",
             version: PROTOCOL_VERSION,
+
             id: createId(),
-            replyTo: message?.id || null,
+
+            replyTo:
+                message?.id || null,
+
             timestamp: Date.now(),
+
             type: TYPES.PONG,
-            source: SOURCES.SIMULATOR
+
+            source
         };
     }
 
@@ -133,18 +209,25 @@
     }
 
     function decode(text) {
-        if (!text) return [];
 
-        const lines = String(text)
-            .split(/\r?\n/)
-            .map(line => line.trim())
-            .filter(Boolean);
+        if (!text) {
+            return [];
+        }
+
+        const lines =
+            String(text)
+                .split(/\r?\n/)
+                .map(line => line.trim())
+                .filter(Boolean);
 
         const result = [];
 
         for (const line of lines) {
+
             try {
-                const parsed = JSON.parse(line);
+
+                const parsed =
+                    JSON.parse(line);
 
                 if (
                     parsed &&
@@ -152,7 +235,9 @@
                 ) {
                     result.push(parsed);
                 }
+
             } catch (error) {
+
                 console.warn(
                     "[MIXER PROTOCOL] Invalid packet:",
                     line,
@@ -164,20 +249,35 @@
         return result;
     }
 
-    function clamp(value, min, max) {
-        const number = Number(value);
+    function clamp(
+        value,
+        min,
+        max
+    ) {
+
+        const number =
+            Number(value);
 
         if (!Number.isFinite(number)) {
             return min;
         }
 
-        return Math.min(max, Math.max(min, number));
+        return Math.min(
+            max,
+            Math.max(min, number)
+        );
     }
 
-    function normalizeValue(parameter, value) {
+    function normalizeValue(
+        parameter,
+        value
+    ) {
+
         switch (parameter) {
+
             case PARAMETERS.MUTE:
             case PARAMETERS.SOLO:
+
                 return Boolean(value);
 
             case PARAMETERS.FADER:
@@ -185,23 +285,30 @@
             case PARAMETERS.EQ_LOW:
             case PARAMETERS.EQ_MID:
             case PARAMETERS.EQ_HIGH:
+            case PARAMETERS.EQ_BAND:
             case PARAMETERS.MASTER:
             case PARAMETERS.AUX:
             case PARAMETERS.BUS:
             case PARAMETERS.FX:
             case PARAMETERS.PAN:
             case PARAMETERS.LEVEL:
+
                 return Number(value);
 
             default:
+
                 return value;
         }
     }
 
     window.MixerProtocol = {
+
         PROTOCOL_VERSION,
+
         TYPES,
+
         SOURCES,
+
         PARAMETERS,
 
         createMessage,
@@ -211,10 +318,14 @@
         createError,
         createPing,
         createPong,
+
         encode,
         decode,
+
         clamp,
         normalizeValue,
+
         createId
     };
+
 })();
