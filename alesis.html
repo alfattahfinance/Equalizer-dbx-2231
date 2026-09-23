@@ -9,135 +9,278 @@
   <title>Alesis Echo & DSP Effect Unit</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
-
   <main class="app">
-
-    <!-- TOP HEADER -->
+    <!-- =====================================================
+         TOP HEADER
+         ===================================================== -->
     <header class="top-rack">
-
       <div class="brand">
         <h1>ALESIS ECHO DSP</h1>
-        <p>DIGITAL DELAY & REVERB HARDWARE EMULATION</p>
+        <p>
+          DIGITAL DELAY & REVERB HARDWARE EMULATION
+        </p>
       </div>
-
       <div class="top-actions">
-        <!-- TOMBOL KEMBALI KE HALAMAN EQUALIZER -->
-        <a href="index.html" class="hardware-button" style="text-decoration: none; display: inline-flex; align-items: center; background: linear-gradient(180deg, #176a8d, #073246); border-color: #1abaff;">
+        <!--
+          KEMBALI KE INDEX
+          Jangan gunakan href="index.html".
+          index.html adalah AUDIO HOST yang sudah terbuka.
+          Tombol ini hanya kembali ke window tersebut
+          lalu menutup window Alesis.
+        -->
+        <button
+          class="hardware-button"
+          id="backToEqualizer"
+          type="button"
+          style="
+            text-decoration:none;
+            display:inline-flex;
+            align-items:center;
+            background:linear-gradient(
+              180deg,
+              #176a8d,
+              #073246
+            );
+            border-color:#1abaff;
+          "
+        >
           ← KEMBALI KE EQUALIZER
-        </a>
+        </button>
       </div>
-
     </header>
-
-    <!-- DEVICE TITLE -->
+    <!-- =====================================================
+         DEVICE TITLE
+         ===================================================== -->
     <section class="device-title">
       <div>
-        <div class="device-name">ALESIS QUADRAVERB / MICROVERB</div>
-        <div class="device-subtitle">PROFESSIONAL DIGITAL EFFECTS PROCESSOR (ROUTING TO EQUALIZER)</div>
+        <div class="device-name">
+          ALESIS QUADRAVERB / MICROVERB
+        </div>
+        <div class="device-subtitle">
+          PROFESSIONAL DIGITAL EFFECTS PROCESSOR
+          (ROUTING TO EQUALIZER)
+        </div>
       </div>
-
       <div class="preset-area">
-        <!-- TOMBOL POWER ON / OFF EFEK ALESIS -->
-        <button class="hardware-button active" id="echoPowerBtn" style="background: linear-gradient(180deg, #176a8d, #073246); border-color: #1abaff;">
+        <!-- =================================================
+             POWER
+             ================================================= -->
+        <button
+          class="hardware-button active"
+          id="echoPowerBtn"
+          type="button"
+          style="
+            background:linear-gradient(
+              180deg,
+              #176a8d,
+              #073246
+            );
+            border-color:#1abaff;
+          "
+        >
           POWER: ON
         </button>
-
-        <select id="alesisPresetSelect" class="hardware-select">
-          <option value="vocal-delay">Vocal Slapback Delay</option>
-          <option value="long-echo">Long Echo / Stadium</option>
-          <option value="reverb-hall">Large Hall Reverb</option>
+        <!-- =================================================
+             PRESET
+             ================================================= -->
+        <select
+          id="alesisPresetSelect"
+          class="hardware-select"
+        >
+          <option value="vocal-delay">
+            Vocal Slapback Delay
+          </option>
+          <option value="long-echo">
+            Long Echo / Stadium
+          </option>
+          <option value="reverb-hall">
+            Large Hall Reverb
+          </option>
         </select>
-        <button class="hardware-button" id="applyAlesisPreset">LOAD PRESET</button>
+        <button
+          class="hardware-button"
+          id="applyAlesisPreset"
+          type="button"
+        >
+          LOAD PRESET
+        </button>
       </div>
     </section>
-
-<section class="dsp-rack">
-
-<div class="dsp-title">
-🎛 ALESIS QUADRAVERB DIGITAL ECHO
-</div>
-
-<div class="dsp-controls">
-
-
-<div class="dsp-control">
-<label>DELAY TIME</label>
-<input type="range"
-id="delayTime"
-min="50"
-max="1000"
-value="300">
-
-<strong id="delayTimeValue">
-300 ms
-</strong>
-
-</div>
-
-
-<div class="dsp-control">
-<label>FEEDBACK</label>
-
-<input type="range"
-id="delayFeedback"
-min="0"
-max="90"
-value="40">
-
-<strong id="feedbackValue">
-40%
-</strong>
-
-</div>
-
-
-<div class="dsp-control">
-<label>WET / DRY</label>
-
-<input type="range"
-id="effectMix"
-min="0"
-max="100"
-value="50">
-
-<strong id="mixValue">
-50%
-</strong>
-
-</div>
-
-
-<div class="dsp-control">
-
-<label>MODE</label>
-
-<button
-class="hardware-button"
-id="bypassAlesis">
-
-BYPASS
-
-</button>
-
-</div>
-
-
-</div>
-
-</section>
-
-    <!-- FOOTER -->
+    <!-- =====================================================
+         ALESIS DSP RACK
+         ===================================================== -->
+    <section class="dsp-rack">
+      <div class="dsp-title">
+        🎛 ALESIS QUADRAVERB DIGITAL ECHO
+      </div>
+      <div class="dsp-controls">
+        <!-- =================================================
+             DELAY TIME
+             ================================================= -->
+        <div class="dsp-control">
+          <label>
+            DELAY TIME
+          </label>
+          <input
+            type="range"
+            id="delayTime"
+            min="50"
+            max="1000"
+            value="300"
+          >
+          <strong id="delayTimeValue">
+            300 ms
+          </strong>
+        </div>
+        <!-- =================================================
+             FEEDBACK
+             ================================================= -->
+        <div class="dsp-control">
+          <label>
+            FEEDBACK
+          </label>
+          <input
+            type="range"
+            id="delayFeedback"
+            min="0"
+            max="90"
+            value="40"
+          >
+          <strong id="feedbackValue">
+            40%
+          </strong>
+        </div>
+        <!-- =================================================
+             WET / DRY
+             ================================================= -->
+        <div class="dsp-control">
+          <label>
+            WET / DRY
+          </label>
+          <input
+            type="range"
+            id="effectMix"
+            min="0"
+            max="100"
+            value="50"
+          >
+          <strong id="mixValue">
+            50%
+          </strong>
+        </div>
+        <!-- =================================================
+             BYPASS
+             ================================================= -->
+        <div class="dsp-control">
+          <label>
+            MODE
+          </label>
+          <button
+            class="hardware-button"
+            id="bypassAlesis"
+            type="button"
+          >
+            BYPASS
+          </button>
+        </div>
+      </div>
+    </section>
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
     <footer class="footer">
-      <div>ALESIS EFFECT PROCESSOR • Web Audio API</div>
-      <div class="ready" id="readyStatusAlesis">READY</div>
+      <div>
+        ALESIS EFFECT PROCESSOR • Web Audio API
+      </div>
+      <div
+        class="ready"
+        id="readyStatusAlesis"
+      >
+        READY
+      </div>
     </footer>
-
   </main>
-
-  <!-- SCRIPT HALAMAN ALESIS -->
+  <!-- =====================================================
+       SCRIPT AUDIO
+       ===================================================== -->
   <script src="js/audio-engine.js"></script>
   <script src="js/echo-alesis.js"></script>
+  <!-- =====================================================
+       NAVIGATION
+       ===================================================== -->
+  <script>
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
+        /* =================================================
+           KEMBALI KE EQUALIZER
+           =================================================
+           index.html tetap menjadi AUDIO HOST.
+           Jadi:
+           
+           ALESIS TAB
+                ↓
+           focus index.html
+                ↓
+           close Alesis tab
+           Audio di index.html tidak disentuh.
+        */
+        const backButton =
+          document.getElementById(
+            "backToEqualizer"
+          );
+        if (
+          backButton
+        ) {
+          backButton.addEventListener(
+            "click",
+            function () {
+              /*
+               * =================================================
+               * JIKA ALESIS DIBUKA DARI INDEX.HTML
+               * =================================================
+               */
+              if (
+                window.opener &&
+                !window.opener.closed
+              ) {
+                try {
+                  /*
+                   * Fokus kembali ke index.html.
+                   */
+                  window.opener.focus();
+                }
+                catch (_) {}
+                /*
+                 * Tutup window Alesis.
+                 *
+                 * Audio yang berjalan berada di
+                 * index.html sehingga tidak ikut mati.
+                 */
+                try {
+                  window.close();
+                }
+                catch (_) {}
+                return;
+              }
+              /*
+               * =================================================
+               * FALLBACK
+               * =================================================
+               *
+               * Jika alesis.html dibuka langsung,
+               * tidak memiliki opener.
+               *
+               * Dalam kondisi ini baru kembali ke index.html.
+               */
+              window.location.href =
+                "index.html";
+            }
+          );
+        }
+      }
+    );
+  </script>
 </body>
 </html>
