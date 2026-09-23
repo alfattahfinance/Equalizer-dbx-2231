@@ -1,6 +1,38 @@
 /* =========================================================
-   ECHO ALESIS / QUADRAVERB ENGINE & UI
-   SOURCE → ECHO ALESIS → EQUALIZER
+   ALESIS ECHO / QUADRAVERB ENGINE
+   =========================================================
+
+   SIGNAL FLOW:
+
+   SOURCE
+      ↓
+   ALESIS INPUT
+      ├────────────── DRY ──────────────┐
+      │                                  │
+      └── DELAY → FEEDBACK → DELAY ── WET
+                                         │
+                                         ↓
+                                   ECHO OUTPUT
+                                         │
+                                         ↓
+                              DBX 2231 / NEXT STAGE
+                                         │
+                                         ↓
+                                   MASTER OUTPUT
+
+   ========================================================= */
+
+
+/* =========================================================
+   NAMESPACE
+   ========================================================= */
+
+window.DBX2231 =
+  window.DBX2231 || {};
+
+
+/* =========================================================
+   ECHO NODES
    ========================================================= */
 
 let echoInputNode = null;
@@ -9,259 +41,1149 @@ let echoDelayNode = null;
 let echoFeedbackNode = null;
 let echoWetNode = null;
 let echoOutputNode = null;
-let echoEnabled = true; // Status aktif efek (default ON)
+
 
 /* =========================================================
-   ECHO PARAMETERS
+   ECHO STATE
    ========================================================= */
 
-let echoState = {
-  time: 300,      // ms
-  feedback: 0.4,  // 0 - 0.9
-  mix: 0.5,       // 0 - 1 (Dry/Wet)
-  level: 0        // dB
+let echoEnabled = true;
+let echoBypassed = false;
+
+const echoState = {
+
+  time: 300,
+
+  feedback: 0.40,
+
+  mix: 0.50,
+
+  level: 0
+
 };
 
+
 /* =========================================================
-   INITIALIZE ENGINE
+   INITIALIZE ECHO ENGINE
    ========================================================= */
 
 function initializeEchoEngine() {
-  if (!audioContext) {
-    return;
+
+  if (
+    !window.audioContext
+  ) {
+
+    return false;
+
   }
 
-  if (echoDelayNode) {
-    return;
+
+  /*
+   * Jangan membuat node dua kali
+   */
+
+  if (
+    echoDelayNode
+  ) {
+
+    return true;
+
   }
 
-  echoInputNode = audioContext.createGain();
-  echoDryNode = audioContext.createGain();
-  echoDelayNode = audioContext.createDelay(5);
-  echoFeedbackNode = audioContext.createGain();
-  echoWetNode = audioContext.createGain();
-  echoOutputNode = audioContext.createGain();
+
+  const ctx =
+    window.audioContext;
+
+
+  /* -------------------------------------------------------
+     CREATE NODES
+     ------------------------------------------------------- */
+
+  echoInputNode =
+    ctx.createGain();
+
+
+  echoDryNode =
+    ctx.createGain();
+
+
+  echoDelayNode =
+    ctx.createDelay(5);
+
+
+  echoFeedbackNode =
+    ctx.createGain();
+
+
+  echoWetNode =
+    ctx.createGain();
+
+
+  echoOutputNode =
+    ctx.createGain();
+
+
+  /* -------------------------------------------------------
+     INPUT
+     ------------------------------------------------------- */
+
+  echoInputNode.connect(
+    echoDryNode
+  );
+
+
+  echoInputNode.connect(
+    echoDelayNode
+  );
+
+
+  /* -------------------------------------------------------
+     DELAY
+     ------------------------------------------------------- */
+
+  echoDelayNode.connect(
+    echoFeedbackNode
+  );
+
+
+  echoFeedbackNode.connect(
+    echoDelayNode
+  );
+
+
+  echoDelayNode.connect(
+    echoWetNode
+  );
+
+
+  /* -------------------------------------------------------
+     OUTPUT MIX
+     ------------------------------------------------------- */
+
+  echoDryNode.connect(
+    echoOutputNode
+  );
+
+
+  echoWetNode.connect(
+    echoOutputNode
+  );
+
 
   /*
-   * INPUT ROUTING
+   * Default values
    */
-  echoInputNode.connect(echoDryNode);
-  echoInputNode.connect(echoDelayNode);
+
+  echoDelayNode.delayTime.value =
+    echoState.time / 1000;
+
+
+  echoFeedbackNode.gain.value =
+    echoState.feedback;
+
+
+  echoDryNode.gain.value =
+    1 - echoState.mix;
+
+
+  echoWetNode.gain.value =
+    echoState.mix;
+
+
+  echoOutputNode.gain.value =
+    1;
+
 
   /*
-   * DELAY & FEEDBACK LOOP
+   * Jangan langsung connect ke destination.
+   *
+   * Jalur ke tahap berikutnya dilakukan melalui
+   * connectEchoOutput().
    */
-  echoDelayNode.connect(echoFeedbackNode);
-  echoFeedbackNode.connect(echoDelayNode);
-  echoDelayNode.connect(echoWetNode);
 
-  /*
-   * OUTPUT MIXING
-   */
-  echoDryNode.connect(echoOutputNode);
-  echoWetNode.connect(echoOutputNode);
-
-  /*
-   * ECHO → EQUALIZER (Terhubung ke stereoInputNode milik DBX 2231)
-   */
-  if (typeof stereoInputNode !== "undefined" && stereoInputNode) {
-    echoOutputNode.connect(stereoInputNode);
-  } else {
-    echoOutputNode.connect(audioContext.destination);
-  }
 
   updateEchoAudio();
+
+
+  return true;
+
 }
 
+
 /* =========================================================
-   SOURCE → ECHO
+   CONNECT ECHO OUTPUT
+   ========================================================= */
+
+function connectEchoOutput(destination) {
+
+  if (
+    !echoOutputNode
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    !destination
+  ) {
+
+    return false;
+
+  }
+
+
+  try {
+
+    echoOutputNode.disconnect();
+
+  }
+
+  catch (_) {}
+
+
+  echoOutputNode.connect(
+    destination
+  );
+
+
+  return true;
+
+}
+
+
+/* =========================================================
+   CONNECT SOURCE → ECHO
    ========================================================= */
 
 function connectEchoInput(source) {
-  createAudioContext();
-  initializeEchoEngine();
+
+  if (
+    !source
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    typeof window.createAudioContext ===
+    "function"
+  ) {
+
+    window.createAudioContext();
+
+  }
+
+
+  if (
+    !initializeEchoEngine()
+  ) {
+
+    return false;
+
+  }
+
+
+  /*
+   * Hanya putuskan koneksi source ke ECHO
+   * jika memang sebelumnya pernah terhubung.
+   *
+   * Jangan menggunakan:
+   *
+   * source.disconnect()
+   *
+   * karena dapat memutus routing lain.
+   */
+
 
   try {
-    source.disconnect();
-  } catch (_) {}
 
-  source.connect(echoInputNode);
+    source.connect(
+      echoInputNode
+    );
+
+  }
+
+  catch (error) {
+
+    console.warn(
+      "ALESIS: source sudah terhubung atau gagal connect.",
+      error
+    );
+
+  }
+
+
   updateEchoAudio();
+
+
+  return true;
+
 }
 
+
 /* =========================================================
-   UPDATE ECHO AUDIO PARAMETERS
+   UPDATE ECHO AUDIO
    ========================================================= */
 
 function updateEchoAudio() {
-  if (!echoDelayNode) {
+
+  if (
+    !echoDelayNode
+  ) {
+
     return;
+
   }
 
-  /*
-   * TIME (ms ke detik)
-   */
-  echoDelayNode.delayTime.value = Math.max(
-    0.05,
-    Math.min(
-      5,
-      Number(echoState.time) / 1000
-    )
-  );
 
-  /*
-   * FEEDBACK (Jika echoEnabled true, gunakan nilai feedback; jika false, set 0)
-   */
-  echoFeedbackNode.gain.value = echoEnabled
-    ? Math.max(
-        0,
-        Math.min(
-          0.95,
-          Number(echoState.feedback)
+  /* -------------------------------------------------------
+     EFFECT ACTIVE
+     ------------------------------------------------------- */
+
+  const active =
+    echoEnabled &&
+    !echoBypassed;
+
+
+  /* -------------------------------------------------------
+     DELAY TIME
+     ------------------------------------------------------- */
+
+  const delayTime =
+    Math.max(
+      50,
+      Math.min(
+        1000,
+        Number(
+          echoState.time
         )
       )
-    : 0;
+    );
 
-  /*
-   * MIX (Dry / Wet Balance)
-   */
-  const mix = echoEnabled
-    ? Math.max(0, Math.min(1, Number(echoState.mix)))
-    : 0; // Jika nonaktif, 100% dry (suara asli)
 
-  echoDryNode.gain.value = 1 - mix;
-  echoWetNode.gain.value = mix;
+  echoDelayNode.delayTime.value =
+    delayTime / 1000;
 
-  /*
-   * LEVEL
-   */
-  if (typeof dbToGain === "function") {
-    echoOutputNode.gain.value = dbToGain(Number(echoState.level));
-  }
+
+  /* -------------------------------------------------------
+     FEEDBACK
+     ------------------------------------------------------- */
+
+  const feedback =
+    active
+      ? Math.max(
+          0,
+          Math.min(
+            0.90,
+            Number(
+              echoState.feedback
+            )
+          )
+        )
+      : 0;
+
+
+  echoFeedbackNode.gain.value =
+    feedback;
+
+
+  /* -------------------------------------------------------
+     MIX
+     ------------------------------------------------------- */
+
+  const mix =
+    active
+      ? Math.max(
+          0,
+          Math.min(
+            1,
+            Number(
+              echoState.mix
+            )
+          )
+        )
+      : 0;
+
+
+  echoDryNode.gain.value =
+    1 - mix;
+
+
+  echoWetNode.gain.value =
+    mix;
+
+
+  /* -------------------------------------------------------
+     OUTPUT LEVEL
+     ------------------------------------------------------- */
+
+  const level =
+    Number(
+      echoState.level
+    );
+
+
+  const outputGain =
+    Number.isFinite(level)
+      ? Math.pow(
+          10,
+          level / 20
+        )
+      : 1;
+
+
+  echoOutputNode.gain.value =
+    outputGain;
+
 }
 
+
 /* =========================================================
-   CONTROLS (DISESUAIKAN DENGAN alesis.html)
+   POWER
    ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (typeof createAudioContext === "function") {
-    try {
-      createAudioContext();
-    } catch (e) {
-      console.warn("Audio context waiting for user interaction");
+function setEchoPower(enabled) {
+
+  echoEnabled =
+    !!enabled;
+
+
+  updateEchoAudio();
+
+
+  updateEchoUI();
+
+}
+
+
+/* =========================================================
+   BYPASS
+   ========================================================= */
+
+function setEchoBypass(bypassed) {
+
+  echoBypassed =
+    !!bypassed;
+
+
+  updateEchoAudio();
+
+
+  updateEchoUI();
+
+}
+
+
+/* =========================================================
+   UI UPDATE
+   ========================================================= */
+
+function updateEchoUI() {
+
+  const powerBtn =
+    document.getElementById(
+      "echoPowerBtn"
+    );
+
+
+  const bypassButton =
+    document.getElementById(
+      "bypassAlesis"
+    );
+
+
+  const readyStatus =
+    document.getElementById(
+      "readyStatusAlesis"
+    );
+
+
+  /* -------------------------------------------------------
+     POWER
+     ------------------------------------------------------- */
+
+  if (
+    powerBtn
+  ) {
+
+    powerBtn.classList.toggle(
+      "active",
+      echoEnabled
+    );
+
+
+    powerBtn.textContent =
+      echoEnabled
+        ? "POWER: ON"
+        : "POWER: OFF";
+
+  }
+
+
+  /* -------------------------------------------------------
+     BYPASS
+     ------------------------------------------------------- */
+
+  if (
+    bypassButton
+  ) {
+
+    bypassButton.classList.toggle(
+      "active",
+      echoBypassed
+    );
+
+
+    bypassButton.textContent =
+      echoBypassed
+        ? "EFFECT BYPASSED"
+        : "BYPASS EFFECT";
+
+  }
+
+
+  /* -------------------------------------------------------
+     STATUS
+     ------------------------------------------------------- */
+
+  if (
+    readyStatus
+  ) {
+
+    if (
+      !echoEnabled
+    ) {
+
+      readyStatus.textContent =
+        "ALESIS POWER OFF";
+
     }
+
+    else if (
+      echoBypassed
+    ) {
+
+      readyStatus.textContent =
+        "ALESIS BYPASS";
+
+    }
+
+    else {
+
+      readyStatus.textContent =
+        "ALESIS ACTIVE";
+
+    }
+
   }
-  if (typeof initializeEchoEngine === "function") {
-    initializeEchoEngine();
+
+}
+
+
+/* =========================================================
+   UPDATE TIME UI
+   ========================================================= */
+
+function updateEchoTimeUI() {
+
+  const slider =
+    document.getElementById(
+      "delayTime"
+    );
+
+
+  const value =
+    document.getElementById(
+      "delayTimeValue"
+    );
+
+
+  if (
+    slider
+  ) {
+
+    slider.value =
+      String(
+        echoState.time
+      );
+
   }
 
-  // Menyesuaikan dengan ID di alesis.html Anda
-  const powerBtn = document.getElementById("echoPowerBtn");
-  const bypassButton = document.getElementById("bypassAlesis");
-  const time = document.getElementById("delayTime");
-  const timeVal = document.getElementById("delayTimeValue");
 
-  const feedback = document.getElementById("delayFeedback");
-  const feedbackVal = document.getElementById("feedbackValue");
+  if (
+    value
+  ) {
 
-  const mix = document.getElementById("effectMix");
-  const mixVal = document.getElementById("mixValue");
+    value.textContent =
+      `${echoState.time} ms`;
 
-  const readyStatus = document.getElementById("readyStatusAlesis");
-  const presetSelect = document.getElementById("alesisPresetSelect");
-  const applyPresetBtn = document.getElementById("applyAlesisPreset");
+  }
 
-  // Status awal diaktifkan agar efek langsung terdengar
-  echoEnabled = true;
+}
 
-  // Tombol Power On / Off Utama
-  if (powerBtn) {
-    powerBtn.addEventListener("click", () => {
-      echoEnabled = !echoEnabled;
-      powerBtn.classList.toggle("active", echoEnabled);
-      powerBtn.textContent = echoEnabled ? "POWER: ON" : "POWER: OFF";
-      if (readyStatus) {
-        readyStatus.textContent = echoEnabled ? "ALESIS ACTIVE" : "ALESIS POWER OFF";
+
+/* =========================================================
+   UPDATE FEEDBACK UI
+   ========================================================= */
+
+function updateEchoFeedbackUI() {
+
+  const slider =
+    document.getElementById(
+      "delayFeedback"
+    );
+
+
+  const value =
+    document.getElementById(
+      "feedbackValue"
+    );
+
+
+  const percent =
+    Math.round(
+      echoState.feedback * 100
+    );
+
+
+  if (
+    slider
+  ) {
+
+    /*
+     * HTML menggunakan 0–90
+     */
+
+    slider.value =
+      String(
+        percent
+      );
+
+  }
+
+
+  if (
+    value
+  ) {
+
+    value.textContent =
+      `${percent}%`;
+
+  }
+
+}
+
+
+/* =========================================================
+   UPDATE MIX UI
+   ========================================================= */
+
+function updateEchoMixUI() {
+
+  const slider =
+    document.getElementById(
+      "effectMix"
+    );
+
+
+  const value =
+    document.getElementById(
+      "mixValue"
+    );
+
+
+  const percent =
+    Math.round(
+      echoState.mix * 100
+    );
+
+
+  if (
+    slider
+  ) {
+
+    /*
+     * HTML menggunakan 0–100
+     */
+
+    slider.value =
+      String(
+        percent
+      );
+
+  }
+
+
+  if (
+    value
+  ) {
+
+    value.textContent =
+      `${percent}%`;
+
+  }
+
+}
+
+
+/* =========================================================
+   UPDATE ALL UI
+   ========================================================= */
+
+function updateAllEchoUI() {
+
+  updateEchoTimeUI();
+
+  updateEchoFeedbackUI();
+
+  updateEchoMixUI();
+
+  updateEchoUI();
+
+}
+
+
+/* =========================================================
+   PRESETS
+   ========================================================= */
+
+function loadEchoPreset(
+  preset
+) {
+
+  switch (
+    preset
+  ) {
+
+    /* -----------------------------------------------------
+       VOCAL SLAPBACK
+       ----------------------------------------------------- */
+
+    case "vocal-delay":
+
+      echoState.time =
+        250;
+
+      echoState.feedback =
+        0.30;
+
+      echoState.mix =
+        0.35;
+
+      break;
+
+
+    /* -----------------------------------------------------
+       LONG ECHO
+       ----------------------------------------------------- */
+
+    case "long-echo":
+
+      echoState.time =
+        600;
+
+      echoState.feedback =
+        0.60;
+
+      echoState.mix =
+        0.50;
+
+      break;
+
+
+    /* -----------------------------------------------------
+       HALL
+       ----------------------------------------------------- */
+
+    case "reverb-hall":
+
+      echoState.time =
+        400;
+
+      echoState.feedback =
+        0.75;
+
+      echoState.mix =
+        0.60;
+
+      break;
+
+
+    default:
+
+      return;
+
+  }
+
+
+  updateAllEchoUI();
+
+  updateEchoAudio();
+
+
+  const readyStatus =
+    document.getElementById(
+      "readyStatusAlesis"
+    );
+
+
+  if (
+    readyStatus
+  ) {
+
+    readyStatus.textContent =
+      `PRESET: ${String(
+        preset
+      ).toUpperCase()}`;
+
+  }
+
+}
+
+
+/* =========================================================
+   DOM READY
+   ========================================================= */
+
+function initializeEchoUI() {
+
+  const powerBtn =
+    document.getElementById(
+      "echoPowerBtn"
+    );
+
+
+  const bypassButton =
+    document.getElementById(
+      "bypassAlesis"
+    );
+
+
+  const time =
+    document.getElementById(
+      "delayTime"
+    );
+
+
+  const feedback =
+    document.getElementById(
+      "delayFeedback"
+    );
+
+
+  const mix =
+    document.getElementById(
+      "effectMix"
+    );
+
+
+  const presetSelect =
+    document.getElementById(
+      "alesisPresetSelect"
+    );
+
+
+  const applyPresetBtn =
+    document.getElementById(
+      "applyAlesisPreset"
+    );
+
+
+  /* =======================================================
+     POWER
+     ======================================================= */
+
+  if (
+    powerBtn
+  ) {
+
+    powerBtn.addEventListener(
+      "click",
+      () => {
+
+        setEchoPower(
+          !echoEnabled
+        );
+
       }
-      updateEchoAudio();
-    });
+    );
+
   }
 
-  // Tombol Bypass Effect
-  if (bypassButton) {
-    let isBypassed = false;
-    bypassButton.addEventListener("click", () => {
-      isBypassed = !isBypassed;
-      bypassButton.classList.toggle("active", isBypassed);
-      bypassButton.textContent = isBypassed ? "EFFECT BYPASSED" : "BYPASS EFFECT";
-      
-      // Jika dibypass, set wet jadi 0 (suara murni dry)
-      if (isBypassed) {
-        echoDryNode.gain.value = 1;
-        echoWetNode.gain.value = 0;
-        echoFeedbackNode.gain.value = 0;
-      } else {
+
+  /* =======================================================
+     BYPASS
+     ======================================================= */
+
+  if (
+    bypassButton
+  ) {
+
+    bypassButton.addEventListener(
+      "click",
+      () => {
+
+        setEchoBypass(
+          !echoBypassed
+        );
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     DELAY TIME
+     ======================================================= */
+
+  if (
+    time
+  ) {
+
+    time.addEventListener(
+      "input",
+      () => {
+
+        echoState.time =
+          Math.max(
+            50,
+            Math.min(
+              1000,
+              Number(
+                time.value
+              )
+            )
+          );
+
+
+        updateEchoTimeUI();
+
         updateEchoAudio();
+
       }
-    });
+    );
+
   }
 
-  if (time) {
-    time.addEventListener("input", () => {
-      echoState.time = Number(time.value);
-      if (timeVal) timeVal.textContent = `${echoState.time} ms`;
-      updateEchoAudio();
-    });
-  }
 
-  if (feedback) {
-    feedback.addEventListener("input", () => {
-      echoState.feedback = Number(feedback.value);
-      if (feedbackVal) feedbackVal.textContent = `${Math.round(Number(feedback.value) * 100)}%`;
-      updateEchoAudio();
-    });
-  }
+  /* =======================================================
+     FEEDBACK
+     ======================================================= */
 
-  if (mix) {
-    mix.addEventListener("input", () => {
-      echoState.mix = Number(mix.value);
-      if (mixVal) mixVal.textContent = `${Math.round(Number(mix.value) * 100)}%`;
-      updateEchoAudio();
-    });
-  }
+  if (
+    feedback
+  ) {
 
-  if (applyPresetBtn && presetSelect) {
-    applyPresetBtn.addEventListener("click", () => {
-      const preset = presetSelect.value;
-      if (preset === "vocal-delay") {
-        echoState.time = 250;
-        echoState.feedback = 0.3;
-        echoState.mix = 0.35;
-      } else if (preset === "long-echo") {
-        echoState.time = 600;
-        echoState.feedback = 0.6;
-        echoState.mix = 0.5;
-      } else if (preset === "reverb-hall") {
-        echoState.time = 400;
-        echoState.feedback = 0.75;
-        echoState.mix = 0.6;
+    feedback.addEventListener(
+      "input",
+      () => {
+
+        /*
+         * HTML:
+         *
+         * 0–90
+         *
+         * ENGINE:
+         *
+         * 0–0.90
+         */
+
+        echoState.feedback =
+          Math.max(
+            0,
+            Math.min(
+              90,
+              Number(
+                feedback.value
+              )
+            )
+          ) / 100;
+
+
+        updateEchoFeedbackUI();
+
+        updateEchoAudio();
+
       }
+    );
 
-      // Sinkronisasi ke elemen UI HTML
-      if (time) time.value = echoState.time;
-      if (timeVal) timeVal.textContent = `${echoState.time} ms`;
-
-      if (feedback) feedback.value = echoState.feedback;
-      if (feedbackVal) feedbackVal.textContent = `${Math.round(echoState.feedback * 100)}%`;
-
-      if (mix) mix.value = echoState.mix;
-      if (mixVal) mixVal.textContent = `${Math.round(echoState.mix * 100)}%`;
-
-      if (readyStatus) {
-        readyStatus.textContent = `PRESET: ${preset.toUpperCase()}`;
-      }
-      updateEchoAudio();
-    });
   }
-});
+
+
+  /* =======================================================
+     MIX
+     ======================================================= */
+
+  if (
+    mix
+  ) {
+
+    mix.addEventListener(
+      "input",
+      () => {
+
+        /*
+         * HTML:
+         *
+         * 0–100
+         *
+         * ENGINE:
+         *
+         * 0–1
+         */
+
+        echoState.mix =
+          Math.max(
+            0,
+            Math.min(
+              100,
+              Number(
+                mix.value
+              )
+            )
+          ) / 100;
+
+
+        updateEchoMixUI();
+
+        updateEchoAudio();
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     PRESET
+     ======================================================= */
+
+  if (
+    applyPresetBtn &&
+    presetSelect
+  ) {
+
+    applyPresetBtn.addEventListener(
+      "click",
+      () => {
+
+        loadEchoPreset(
+          presetSelect.value
+        );
+
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     INITIAL UI
+     ======================================================= */
+
+  updateAllEchoUI();
+
+}
+
+
+/* =========================================================
+   INITIALIZATION
+   ========================================================= */
+
+if (
+  document.readyState ===
+  "loading"
+) {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+      initializeEchoUI();
+
+      /*
+       * AudioContext sebaiknya tidak dipaksa
+       * running sebelum user interaction.
+       */
+
+    },
+    {
+      once: true
+    }
+  );
+
+}
+
+else {
+
+  initializeEchoUI();
+
+}
+
+
+/* =========================================================
+   EXPORT
+   ========================================================= */
+
+window.DBX2231.echoState =
+  echoState;
+
+
+window.DBX2231.initializeEchoEngine =
+  initializeEchoEngine;
+
+
+window.DBX2231.connectEchoInput =
+  connectEchoInput;
+
+
+window.DBX2231.connectEchoOutput =
+  connectEchoOutput;
+
+
+window.DBX2231.updateEchoAudio =
+  updateEchoAudio;
+
+
+window.DBX2231.setEchoPower =
+  setEchoPower;
+
+
+window.DBX2231.setEchoBypass =
+  setEchoBypass;
+
+
+window.DBX2231.loadEchoPreset =
+  loadEchoPreset;
+
+
+/* BACKWARD COMPATIBILITY */
+
+window.echoState =
+  echoState;
+
+
+window.initializeEchoEngine =
+  initializeEchoEngine;
+
+
+window.connectEchoInput =
+  connectEchoInput;
+
+
+window.connectEchoOutput =
+  connectEchoOutput;
+
+
+window.updateEchoAudio =
+  updateEchoAudio;
+
+
+/* =========================================================
+   END
+   ========================================================= */
