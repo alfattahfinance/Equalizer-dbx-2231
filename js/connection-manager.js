@@ -1,17 +1,32 @@
 /* =========================================================
    CONNECTION MANAGER
+   Universal connection router
 
-   MODES:
-   LOCAL
-   BLUETOOTH
-   ESP32
-   SIMULATOR
+   WEB
+    ↕
+   ┌─────────────────────────────────────┐
+   │ CONNECTION MANAGER                  │
+   └─────────────────────────────────────┘
+       ↕              ↕              ↕
+   SIMULATOR        ESP32        BLUETOOTH
+
+   Protocol:
+   MixerProtocol
+
+   Version: 1.1
 ========================================================= */
 
 (function () {
     "use strict";
 
     const P = window.MixerProtocol;
+
+    if (!P) {
+        console.error(
+            "[CONNECTION MANAGER] MixerProtocol belum dimuat."
+        );
+        return;
+    }
 
     class ConnectionManager {
 
@@ -35,26 +50,31 @@
 
             this.pending = new Map();
 
+            this.started = false;
+
             this.simulator =
-                window.ESP32Simulator;
+                window.ESP32Simulator || null;
 
             this.esp32 =
-                window.ESP32Connection;
+                window.ESP32Connection || null;
 
             this.bluetooth =
-                window.BluetoothConnection;
+                window.BluetoothConnection || null;
+
+            this.unsubscribeSimulator = null;
+            this.unsubscribeESP32 = null;
+            this.unsubscribeBluetooth = null;
+
+            this.panel = null;
 
             this.bindConnections();
 
-            this.createUI();
-
-            this.loadState();
-
-            this.log(
-                "SYSTEM",
-                "Connection Manager siap"
-            );
+            this.restoreMode();
         }
+
+        /* =====================================================
+           EVENT SYSTEM
+        ===================================================== */
 
         subscribe(callback) {
 
@@ -65,10 +85,15 @@
                 return () => {};
             }
 
-            this.listeners.add(callback);
+            this.listeners.add(
+                callback
+            );
 
             return () => {
-                this.listeners.delete(callback);
+
+                this.listeners.delete(
+                    callback
+                );
             };
         }
 
@@ -80,291 +105,513 @@
             ) {
 
                 try {
+
                     callback(event);
+
                 } catch (error) {
-                    console.error(error);
+
+                    console.error(
+                        "[CONNECTION MANAGER]",
+                        error
+                    );
                 }
             }
         }
 
+        /* =====================================================
+           CONNECTION BINDING
+        ===================================================== */
+
         bindConnections() {
 
-            if (this.simulator) {
+            /*
+             * SIMULATOR
+             */
 
-                this.simulator.subscribe(
-                    event => {
+            if (
+                this.simulator &&
+                typeof this.simulator
+                    .subscribe === "function"
+            ) {
 
-                        if (
-                            event.type ===
-                            "FEEDBACK"
-                        ) {
+                this.unsubscribeSimulator =
+                    this.simulator.subscribe(
+                        event => {
 
-                            this.counters.rx++;
+                            if (!event) {
+                                return;
+                            }
 
-                            this.lastRX =
-                                event.packet;
+                            switch (event.type) {
 
-                            this.emit({
-                                type:
-                                    "FEEDBACK",
-                                packet:
-                                    event.packet
-                            });
+                                case "ACK":
 
-                            this.updateUI();
+                                    /*
+                                     * Simulator ACK sudah
+                                     * ditangani oleh sendControl().
+                                     *
+                                     * Jangan hitung ulang.
+                                     */
+
+                                    this.emit({
+                                        type: "ACK",
+                                        packet:
+                                            event.packet ||
+                                            event
+                                    });
+
+                                    break;
+
+                                case "FEEDBACK":
+
+                                    /*
+                                     * Feedback simulator
+                                     * tetap diproses agar
+                                     * hardware simulation
+                                     * bisa mengubah Web.
+                                     */
+
+                                    if (event.packet) {
+
+                                        this.applyFeedback(
+                                            event.packet
+                                        );
+                                    }
+
+                                    break;
+
+                                case "ERROR":
+
+                                    this.counters.error++;
+
+                                    this.emit({
+                                        type: "ERROR",
+                                        error:
+                                            event.error ||
+                                            event
+                                    });
+
+                                    break;
+
+                                case "LOG":
+
+                                    this.emit({
+                                        type: "LOG",
+                                        message:
+                                            event.message ||
+                                            event
+                                    });
+
+                                    break;
+
+                                default:
+
+                                    this.emit(
+                                        event
+                                    );
+                            }
                         }
-
-                        if (
-                            event.type ===
-                            "ACK"
-                        ) {
-
-                            this.counters.ack++;
-
-                            this.emit({
-                                type:
-                                    "ACK",
-                                packet:
-                                    event.packet
-                            });
-
-                            this.updateUI();
-                        }
-
-                        if (
-                            event.type ===
-                            "LOG"
-                        ) {
-
-                            this.log(
-                                event.data.type,
-                                event.data.message,
-                                event.data.packet
-                            );
-                        }
-                    }
-                );
+                    );
             }
 
-            if (this.esp32) {
+            /*
+             * ESP32 SERIAL
+             */
 
-                this.esp32.subscribe(
-                    event => {
+            if (
+                this.esp32 &&
+                typeof this.esp32
+                    .subscribe === "function"
+            ) {
 
-                        if (
-                            event.type ===
-                            "CONNECTED"
-                        ) {
+                this.unsubscribeESP32 =
+                    this.esp32.subscribe(
+                        event => {
 
-                            this.connected =
-                                true;
+                            if (!event) {
+                                return;
+                            }
 
-                            this.log(
-                                "SYSTEM",
-                                "ESP32 CONNECTED"
-                            );
+                            switch (event.type) {
+
+                                case "CONNECTED":
+
+                                    this.emit({
+                                        type:
+                                            "ESP32_CONNECTED"
+                                    });
+
+                                    break;
+
+                                case "DISCONNECTED":
+
+                                    if (
+                                        this.mode ===
+                                        "ESP32"
+                                    ) {
+                                        this.connected =
+                                            false;
+                                    }
+
+                                    this.emit({
+                                        type:
+                                            "ESP32_DISCONNECTED"
+                                    });
+
+                                    break;
+
+                                case "TX":
+
+                                    /*
+                                     * TX dari ESP32
+                                     * connection sudah
+                                     * dihitung oleh
+                                     * sendControl().
+                                     */
+
+                                    this.emit({
+                                        type: "TX",
+                                        packet:
+                                            event.packet
+                                    });
+
+                                    break;
+
+                                case "MESSAGE":
+
+                                    this.handleIncoming(
+                                        event.packet
+                                    );
+
+                                    break;
+
+                                case "ERROR":
+
+                                    this.counters.error++;
+
+                                    this.emit({
+                                        type: "ERROR",
+                                        error:
+                                            event.error
+                                    });
+
+                                    break;
+
+                                default:
+
+                                    this.emit(
+                                        event
+                                    );
+                            }
                         }
-
-                        if (
-                            event.type ===
-                            "DISCONNECTED"
-                        ) {
-
-                            this.connected =
-                                false;
-
-                            this.log(
-                                "SYSTEM",
-                                "ESP32 DISCONNECTED"
-                            );
-                        }
-
-                        if (
-                            event.type ===
-                            "MESSAGE"
-                        ) {
-
-                            this.handleIncoming(
-                                event.packet
-                            );
-                        }
-
-                        if (
-                            event.type ===
-                            "TX"
-                        ) {
-
-                            this.counters.tx++;
-
-                            this.lastTX =
-                                event.packet;
-
-                            this.updateUI();
-                        }
-
-                        if (
-                            event.type ===
-                            "ERROR"
-                        ) {
-
-                            this.counters.error++;
-
-                            this.log(
-                                "ERROR",
-                                event.error?.message ||
-                                "ESP32 error"
-                            );
-                        }
-
-                        this.updateUI();
-                    }
-                );
+                    );
             }
 
-            if (this.bluetooth) {
+            /*
+             * BLUETOOTH
+             */
 
-                this.bluetooth.subscribe(
-                    event => {
+            if (
+                this.bluetooth &&
+                typeof this.bluetooth
+                    .subscribe === "function"
+            ) {
 
-                        if (
-                            event.type ===
-                            "CONNECTED"
-                        ) {
+                this.unsubscribeBluetooth =
+                    this.bluetooth.subscribe(
+                        event => {
 
-                            this.connected =
-                                true;
+                            if (!event) {
+                                return;
+                            }
 
-                            this.log(
-                                "SYSTEM",
-                                "Bluetooth CONNECTED"
-                            );
+                            switch (event.type) {
+
+                                case "CONNECTED":
+
+                                    this.emit({
+                                        type:
+                                            "BLUETOOTH_CONNECTED"
+                                    });
+
+                                    break;
+
+                                case "DISCONNECTED":
+
+                                    if (
+                                        this.mode ===
+                                        "BLUETOOTH"
+                                    ) {
+                                        this.connected =
+                                            false;
+                                    }
+
+                                    this.emit({
+                                        type:
+                                            "BLUETOOTH_DISCONNECTED"
+                                    });
+
+                                    break;
+
+                                case "TX":
+
+                                    this.emit({
+                                        type: "TX",
+                                        packet:
+                                            event.packet
+                                    });
+
+                                    break;
+
+                                case "MESSAGE":
+
+                                    this.handleIncoming(
+                                        event.packet
+                                    );
+
+                                    break;
+
+                                case "ERROR":
+
+                                    this.counters.error++;
+
+                                    this.emit({
+                                        type: "ERROR",
+                                        error:
+                                            event.error
+                                    });
+
+                                    break;
+
+                                default:
+
+                                    this.emit(
+                                        event
+                                    );
+                            }
                         }
-
-                        if (
-                            event.type ===
-                            "DISCONNECTED"
-                        ) {
-
-                            this.connected =
-                                false;
-
-                            this.log(
-                                "SYSTEM",
-                                "Bluetooth DISCONNECTED"
-                            );
-                        }
-
-                        if (
-                            event.type ===
-                            "MESSAGE"
-                        ) {
-
-                            this.handleIncoming(
-                                event.packet
-                            );
-                        }
-
-                        if (
-                            event.type ===
-                            "TX"
-                        ) {
-
-                            this.counters.tx++;
-
-                            this.lastTX =
-                                event.packet;
-
-                            this.updateUI();
-                        }
-
-                        this.updateUI();
-                    }
-                );
+                    );
             }
         }
 
+        /* =====================================================
+           MODE
+        ===================================================== */
+
+        restoreMode() {
+
+            try {
+
+                const saved =
+                    localStorage.getItem(
+                        "mixer_connection_mode"
+                    );
+
+                if (
+                    saved === "SIMULATOR" ||
+                    saved === "ESP32" ||
+                    saved === "BLUETOOTH"
+                ) {
+
+                    this.mode = saved;
+                }
+
+            } catch (_) {}
+        }
+
+        saveMode() {
+
+            try {
+
+                localStorage.setItem(
+                    "mixer_connection_mode",
+                    this.mode
+                );
+
+            } catch (_) {}
+        }
+
+        setMode(mode) {
+
+            const allowed = [
+                "SIMULATOR",
+                "ESP32",
+                "BLUETOOTH"
+            ];
+
+            if (
+                !allowed.includes(mode)
+            ) {
+
+                throw new Error(
+                    "Mode koneksi tidak valid."
+                );
+            }
+
+            this.mode = mode;
+
+            this.saveMode();
+
+            this.emit({
+                type: "MODE_CHANGED",
+                mode
+            });
+
+            this.updatePanel();
+        }
+
+        /* =====================================================
+           CONNECT
+        ===================================================== */
+
         async connect(mode = this.mode) {
 
-            this.mode =
-                String(mode).toUpperCase();
+            this.setMode(mode);
 
-            switch (this.mode) {
+            /*
+             * Pastikan koneksi lama tidak
+             * mengganggu koneksi baru.
+             */
+
+            if (this.connected) {
+
+                await this.disconnect();
+            }
+
+            switch (mode) {
 
                 case "SIMULATOR":
 
-                    this.simulator.start();
+                    if (!this.simulator) {
 
-                    this.connected =
-                        true;
+                        throw new Error(
+                            "ESP32 Simulator tidak tersedia."
+                        );
+                    }
+
+                    if (
+                        !this.simulator.running &&
+                        typeof this.simulator.start ===
+                        "function"
+                    ) {
+
+                        this.simulator.start();
+                    }
+
+                    this.connected = true;
+
+                    this.emit({
+                        type: "CONNECTED",
+                        mode
+                    });
 
                     break;
 
                 case "ESP32":
 
+                    if (!this.esp32) {
+
+                        throw new Error(
+                            "ESP32Connection tidak tersedia."
+                        );
+                    }
+
                     await this.esp32.connect();
 
                     this.connected =
-                        true;
+                        Boolean(
+                            this.esp32.connected
+                        );
+
+                    this.emit({
+                        type: "CONNECTED",
+                        mode
+                    });
 
                     break;
 
                 case "BLUETOOTH":
 
+                    if (!this.bluetooth) {
+
+                        throw new Error(
+                            "BluetoothConnection tidak tersedia."
+                        );
+                    }
+
                     await this.bluetooth.connect();
 
                     this.connected =
-                        true;
+                        Boolean(
+                            this.bluetooth.connected
+                        );
+
+                    this.emit({
+                        type: "CONNECTED",
+                        mode
+                    });
 
                     break;
 
                 default:
 
                     throw new Error(
-                        `Mode ${this.mode} tidak dikenal`
+                        "Mode koneksi tidak dikenal."
                     );
             }
 
-            this.saveState();
+            this.updatePanel();
 
-            this.updateUI();
-
-            this.log(
-                "SYSTEM",
-                `${this.mode} CONNECTED`
-            );
-
-            return true;
+            return this.connected;
         }
+
+        /* =====================================================
+           DISCONNECT
+        ===================================================== */
 
         async disconnect() {
 
-            switch (this.mode) {
+            try {
 
-                case "SIMULATOR":
-
-                    this.simulator.stop();
-                    break;
-
-                case "ESP32":
+                if (
+                    this.mode ===
+                    "ESP32" &&
+                    this.esp32
+                ) {
 
                     await this.esp32.disconnect();
-                    break;
+                }
 
-                case "BLUETOOTH":
+                if (
+                    this.mode ===
+                    "BLUETOOTH" &&
+                    this.bluetooth
+                ) {
 
                     await this.bluetooth.disconnect();
-                    break;
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "[CONNECTION MANAGER] disconnect",
+                    error
+                );
             }
 
             this.connected = false;
 
-            this.updateUI();
+            this.emit({
+                type: "DISCONNECTED",
+                mode: this.mode
+            });
 
-            this.log(
-                "SYSTEM",
-                `${this.mode} DISCONNECTED`
-            );
+            this.updatePanel();
         }
+
+        /* =====================================================
+           SEND CONTROL
+        ===================================================== */
 
         async sendControl(
             channel,
@@ -381,172 +628,469 @@
                     extra
                 );
 
-            this.counters.tx++;
+            /*
+             * Tandai source sebagai WEB.
+             */
+
+            message.source =
+                P.SOURCES.WEB;
 
             this.lastTX =
                 message;
 
-            this.log(
-                "TX",
-                `${parameter} CH${channel} = ${value}`,
-                message
-            );
+            this.counters.tx++;
 
-            this.updateUI();
+            this.emit({
+                type: "TX",
+                packet: message
+            });
+
+            /*
+             * Simpan pending request.
+             */
+
+            this.pending.set(
+                message.id,
+                {
+                    message,
+                    timestamp: Date.now()
+                }
+            );
 
             try {
 
-                let response;
+                /*
+                 * SIMULATOR
+                 */
 
-                switch (this.mode) {
+                if (
+                    this.mode ===
+                    "SIMULATOR"
+                ) {
 
-                    case "SIMULATOR":
-
-                        response =
-                            await this.simulator
-                                .receive(
-                                    message
-                                );
-
-                        break;
-
-                    case "ESP32":
-
-                        await this.esp32
-                            .send(
-                                message
-                            );
-
-                        return message;
-
-                    case "BLUETOOTH":
-
-                        await this.bluetooth
-                            .send(
-                                message
-                            );
-
-                        return message;
-
-                    default:
+                    if (
+                        !this.simulator
+                    ) {
 
                         throw new Error(
-                            "Connection mode belum dipilih."
+                            "ESP32 Simulator tidak tersedia."
                         );
-                }
+                    }
 
-                if (
-                    response?.ack
-                ) {
+                    if (
+                        !this.simulator.running &&
+                        typeof this.simulator.start ===
+                        "function"
+                    ) {
 
-                    this.counters.ack++;
+                        this.simulator.start();
+                    }
 
-                    this.emit({
-                        type: "ACK",
-                        packet:
+                    const response =
+                        await this.simulator.receive(
+                            message
+                        );
+
+                    if (
+                        response &&
+                        response.ack
+                    ) {
+
+                        this.handleIncoming(
                             response.ack
-                    });
+                        );
+                    }
+
+                    if (
+                        response &&
+                        response.feedback
+                    ) {
+
+                        this.handleIncoming(
+                            response.feedback
+                        );
+                    }
+
+                    this.pending.delete(
+                        message.id
+                    );
+
+                    return response;
                 }
+
+                /*
+                 * ESP32 FISIK
+                 */
 
                 if (
-                    response?.feedback
+                    this.mode ===
+                    "ESP32"
                 ) {
 
-                    this.counters.rx++;
+                    if (
+                        !this.esp32 ||
+                        !this.esp32.connected
+                    ) {
 
-                    this.lastRX =
-                        response.feedback;
+                        throw new Error(
+                            "ESP32 belum terhubung."
+                        );
+                    }
 
-                    this.emit({
-                        type:
-                            "FEEDBACK",
-                        packet:
-                            response.feedback
-                    });
-
-                    this.applyFeedback(
-                        response.feedback
+                    await this.esp32.send(
+                        message
                     );
+
+                    return message;
                 }
 
-                this.updateUI();
+                /*
+                 * BLUETOOTH
+                 */
 
-                return response;
+                if (
+                    this.mode ===
+                    "BLUETOOTH"
+                ) {
+
+                    if (
+                        !this.bluetooth ||
+                        !this.bluetooth.connected
+                    ) {
+
+                        throw new Error(
+                            "Bluetooth belum terhubung."
+                        );
+                    }
+
+                    await this.bluetooth.send(
+                        message
+                    );
+
+                    return message;
+                }
+
+                throw new Error(
+                    "Mode koneksi tidak valid."
+                );
 
             } catch (error) {
 
-                this.counters.error++;
-
-                this.log(
-                    "ERROR",
-                    error.message
+                this.pending.delete(
+                    message.id
                 );
 
-                this.updateUI();
+                this.counters.error++;
+
+                this.emit({
+                    type: "ERROR",
+                    error,
+                    packet: message
+                });
 
                 throw error;
             }
         }
+
+        /* =====================================================
+           INCOMING PACKETS
+        ===================================================== */
+
+        handleIncoming(packet) {
+
+            if (!packet) {
+                return;
+            }
+
+            this.lastRX =
+                packet;
+
+            switch (packet.type) {
+
+                case P.TYPES.ACK:
+
+                    this.counters.ack++;
+
+                    if (
+                        packet.replyTo
+                    ) {
+
+                        this.pending.delete(
+                            packet.replyTo
+                        );
+                    }
+
+                    this.emit({
+                        type: "ACK",
+                        packet
+                    });
+
+                    break;
+
+                case P.TYPES.FEEDBACK:
+
+                    this.counters.rx++;
+
+                    this.applyFeedback(
+                        packet
+                    );
+
+                    break;
+
+                case P.TYPES.PONG:
+
+                    this.emit({
+                        type: "PONG",
+                        packet
+                    });
+
+                    break;
+
+                case P.TYPES.STATE_RESPONSE:
+
+                    this.counters.rx++;
+
+                    this.emit({
+                        type:
+                            "STATE_RESPONSE",
+                        packet
+                    });
+
+                    /*
+                     * Jika state response
+                     * membawa daftar control,
+                     * teruskan juga ke UI.
+                     */
+
+                    if (
+                        Array.isArray(
+                            packet.controls
+                        )
+                    ) {
+
+                        for (
+                            const control
+                            of packet.controls
+                        ) {
+
+                            this.applyFeedback(
+                                control
+                            );
+                        }
+                    }
+
+                    break;
+
+                case P.TYPES.ERROR:
+
+                    this.counters.error++;
+
+                    if (
+                        packet.replyTo
+                    ) {
+
+                        this.pending.delete(
+                            packet.replyTo
+                        );
+                    }
+
+                    this.emit({
+                        type: "ERROR",
+                        packet
+                    });
+
+                    break;
+
+                case P.TYPES.CONNECT:
+
+                    this.emit({
+                        type: "REMOTE_CONNECTED",
+                        packet
+                    });
+
+                    break;
+
+                case P.TYPES.DISCONNECT:
+
+                    this.emit({
+                        type: "REMOTE_DISCONNECTED",
+                        packet
+                    });
+
+                    break;
+
+                default:
+
+                    this.counters.rx++;
+
+                    this.emit({
+                        type: "MESSAGE",
+                        packet
+                    });
+            }
+        }
+
+        /* =====================================================
+           APPLY FEEDBACK
+        ===================================================== */
+
+        applyFeedback(packet) {
+
+            if (!packet) {
+                return;
+            }
+
+            this.lastRX =
+                packet;
+
+            /*
+             * Normalisasi parameter/value
+             */
+
+            const parameter =
+                String(
+                    packet.parameter || ""
+                ).toUpperCase();
+
+            const normalizedValue =
+                P.normalizeValue(
+                    parameter,
+                    packet.value
+                );
+
+            const normalized = {
+                ...packet,
+                parameter,
+                value:
+                    normalizedValue
+            };
+
+            this.emit({
+                type:
+                    "CONTROL_FEEDBACK",
+                packet:
+                    normalized
+            });
+
+            /*
+             * Event global.
+             *
+             * DSPControlBridge menangkap
+             * event ini.
+             */
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "mixer:feedback",
+                    {
+                        detail:
+                            normalized
+                    }
+                )
+            );
+
+            /*
+             * Event tambahan untuk UI.
+             */
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "mixer:control-feedback",
+                    {
+                        detail:
+                            normalized
+                    }
+                )
+            );
+        }
+
+        /* =====================================================
+           PING
+        ===================================================== */
 
         async ping() {
 
             const message =
                 P.createPing();
 
-            this.log(
-                "TX",
-                "PING",
-                message
-            );
+            this.lastTX =
+                message;
 
-            if (
-                this.mode ===
-                "SIMULATOR"
-            ) {
+            this.counters.tx++;
 
-                const response =
-                    await this.simulator
-                        .receive(
+            this.emit({
+                type: "TX",
+                packet: message
+            });
+
+            try {
+
+                if (
+                    this.mode ===
+                    "SIMULATOR"
+                ) {
+
+                    const response =
+                        await this.simulator.receive(
                             message
                         );
 
-                this.counters.ack++;
+                    if (
+                        response
+                    ) {
 
-                this.log(
-                    "ACK",
-                    "PONG",
-                    response
+                        this.handleIncoming(
+                            response
+                        );
+                    }
+
+                    return response;
+                }
+
+                if (
+                    this.mode ===
+                    "ESP32"
+                ) {
+
+                    await this.esp32.send(
+                        message
+                    );
+
+                    return true;
+                }
+
+                if (
+                    this.mode ===
+                    "BLUETOOTH"
+                ) {
+
+                    await this.bluetooth.send(
+                        message
+                    );
+
+                    return true;
+                }
+
+                throw new Error(
+                    "Mode koneksi tidak valid."
                 );
 
-                this.updateUI();
+            } catch (error) {
 
-                return response;
-            }
+                this.counters.error++;
 
-            if (
-                this.mode ===
-                "ESP32"
-            ) {
+                this.emit({
+                    type: "ERROR",
+                    error
+                });
 
-                await this.esp32.send(
-                    message
-                );
-
-                return true;
-            }
-
-            if (
-                this.mode ===
-                "BLUETOOTH"
-            ) {
-
-                await this.bluetooth.send(
-                    message
-                );
-
-                return true;
+                throw error;
             }
         }
+
+        /* =====================================================
+           REQUEST STATE
+        ===================================================== */
 
         async requestState() {
 
@@ -555,23 +1099,120 @@
                     P.TYPES.STATE_REQUEST
                 );
 
+            this.lastTX =
+                message;
+
+            this.counters.tx++;
+
+            this.emit({
+                type: "TX",
+                packet: message
+            });
+
+            try {
+
+                if (
+                    this.mode ===
+                    "SIMULATOR"
+                ) {
+
+                    const response =
+                        await this.simulator.receive(
+                            message
+                        );
+
+                    if (
+                        response
+                    ) {
+
+                        this.handleIncoming(
+                            response
+                        );
+                    }
+
+                    return response;
+                }
+
+                if (
+                    this.mode ===
+                    "ESP32"
+                ) {
+
+                    await this.esp32.send(
+                        message
+                    );
+
+                    return true;
+                }
+
+                if (
+                    this.mode ===
+                    "BLUETOOTH"
+                ) {
+
+                    await this.bluetooth.send(
+                        message
+                    );
+
+                    return true;
+                }
+
+                throw new Error(
+                    "Mode koneksi tidak valid."
+                );
+
+            } catch (error) {
+
+                this.counters.error++;
+
+                this.emit({
+                    type: "ERROR",
+                    error
+                });
+
+                throw error;
+            }
+        }
+
+        /* =====================================================
+           RESET
+        ===================================================== */
+
+        async resetRemote() {
+
+            const message =
+                P.createMessage(
+                    P.TYPES.RESET
+                );
+
+            this.lastTX =
+                message;
+
+            this.counters.tx++;
+
+            this.emit({
+                type: "TX",
+                packet: message
+            });
+
             if (
                 this.mode ===
                 "SIMULATOR"
             ) {
 
                 const response =
-                    await this.simulator
-                        .receive(
-                            message
-                        );
+                    await this.simulator.receive(
+                        message
+                    );
 
-                this.emit({
-                    type:
-                        "STATE_RESPONSE",
-                    packet:
+                if (
+                    response
+                ) {
+
+                    this.handleIncoming(
                         response
-                });
+                    );
+                }
 
                 return response;
             }
@@ -595,74 +1236,344 @@
                     message
                 );
             }
+
+            throw new Error(
+                "Mode koneksi tidak valid."
+            );
         }
 
-        applyFeedback(packet) {
+        /* =====================================================
+           TEST: LOOPBACK 16 CH
+        ===================================================== */
 
-            if (!packet) {
-                return;
+        async runLoopbackTest() {
+
+            const results = [];
+
+            for (
+                let channel = 1;
+                channel <= 16;
+                channel++
+            ) {
+
+                try {
+
+                    const value =
+                        Number(
+                            (
+                                channel /
+                                16
+                            ).toFixed(4)
+                        );
+
+                    const response =
+                        await this.sendControl(
+                            channel,
+                            P.PARAMETERS.FADER,
+                            value
+                        );
+
+                    results.push({
+                        channel,
+                        ok:
+                            Boolean(response)
+                    });
+
+                } catch (error) {
+
+                    results.push({
+                        channel,
+                        ok: false,
+                        error:
+                            error.message
+                    });
+                }
             }
+
+            const passed =
+                results.filter(
+                    result =>
+                        result.ok
+                ).length;
+
+            const result = {
+                test:
+                    "16CH LOOPBACK",
+                passed,
+                total: 16,
+                success:
+                    passed === 16,
+                results
+            };
+
+            this.emit({
+                type: "TEST_RESULT",
+                result
+            });
+
+            return result;
+        }
+
+        /* =====================================================
+           TEST: FADER 16 CH
+        ===================================================== */
+
+        async runFaderTest() {
+
+            const results = [];
+
+            for (
+                let channel = 1;
+                channel <= 16;
+                channel++
+            ) {
+
+                const value =
+                    Number(
+                        (
+                            0.1 +
+                            (
+                                channel /
+                                16
+                            ) *
+                            0.8
+                        ).toFixed(4)
+                    );
+
+                try {
+
+                    await this.sendControl(
+                        channel,
+                        P.PARAMETERS.FADER,
+                        value
+                    );
+
+                    results.push({
+                        channel,
+                        value,
+                        ok: true
+                    });
+
+                } catch (error) {
+
+                    results.push({
+                        channel,
+                        value,
+                        ok: false,
+                        error:
+                            error.message
+                    });
+                }
+            }
+
+            const passed =
+                results.filter(
+                    r => r.ok
+                ).length;
+
+            return {
+                test:
+                    "FADER 16CH",
+                passed,
+                total: 16,
+                success:
+                    passed === 16,
+                results
+            };
+        }
+
+        /* =====================================================
+           TEST: MUTE / SOLO
+        ===================================================== */
+
+        async runMuteSoloTest() {
+
+            const results = [];
+
+            for (
+                let channel = 1;
+                channel <= 16;
+                channel++
+            ) {
+
+                try {
+
+                    await this.sendControl(
+                        channel,
+                        P.PARAMETERS.MUTE,
+                        true
+                    );
+
+                    await this.sendControl(
+                        channel,
+                        P.PARAMETERS.MUTE,
+                        false
+                    );
+
+                    await this.sendControl(
+                        channel,
+                        P.PARAMETERS.SOLO,
+                        true
+                    );
+
+                    await this.sendControl(
+                        channel,
+                        P.PARAMETERS.SOLO,
+                        false
+                    );
+
+                    results.push({
+                        channel,
+                        ok: true
+                    });
+
+                } catch (error) {
+
+                    results.push({
+                        channel,
+                        ok: false,
+                        error:
+                            error.message
+                    });
+                }
+            }
+
+            const passed =
+                results.filter(
+                    r => r.ok
+                ).length;
+
+            return {
+                test:
+                    "MUTE/SOLO 16CH",
+                passed,
+                total: 16,
+                success:
+                    passed === 16,
+                results
+            };
+        }
+
+        /* =====================================================
+           TEST: STRESS
+        ===================================================== */
+
+        async runStressTest(
+            count = 1000
+        ) {
+
+            let passed = 0;
+
+            const start =
+                performance.now();
+
+            for (
+                let i = 0;
+                i < count;
+                i++
+            ) {
+
+                const channel =
+                    (
+                        i % 16
+                    ) + 1;
+
+                const value =
+                    Number(
+                        (
+                            Math.sin(i) *
+                            0.5 +
+                            0.5
+                        ).toFixed(4)
+                    );
+
+                try {
+
+                    await this.sendControl(
+                        channel,
+                        P.PARAMETERS.FADER,
+                        value
+                    );
+
+                    passed++;
+
+                } catch (_) {}
+            }
+
+            const elapsed =
+                performance.now() -
+                start;
+
+            return {
+                test:
+                    "STRESS",
+                passed,
+                total: count,
+                elapsed,
+                success:
+                    passed === count
+            };
+        }
+
+        /* =====================================================
+           COUNTERS
+        ===================================================== */
+
+        resetCounters() {
+
+            this.counters = {
+                tx: 0,
+                ack: 0,
+                rx: 0,
+                error: 0
+            };
+
+            this.lastTX = null;
+            this.lastRX = null;
+
+            this.pending.clear();
+
+            this.updatePanel();
 
             this.emit({
                 type:
-                    "CONTROL_FEEDBACK",
-                channel:
-                    packet.channel,
-                parameter:
-                    packet.parameter,
-                value:
-                    packet.value,
-                packet
+                    "COUNTERS_RESET"
             });
+        }
 
-            /*
-             * Event umum yang dapat digunakan oleh
-             * equalizer.js / UI mixer.
-             */
+        getStats() {
 
-            window.dispatchEvent(
-                new CustomEvent(
-                    "mixer:feedback",
+            return {
+                mode:
+                    this.mode,
+
+                connected:
+                    this.connected,
+
+                counters:
                     {
-                        detail: packet
-                    }
-                )
-            );
+                        ...this.counters
+                    },
+
+                pending:
+                    this.pending.size,
+
+                lastTX:
+                    this.lastTX,
+
+                lastRX:
+                    this.lastRX
+            };
         }
 
-        log(
-            type,
-            message,
-            packet = null
-        ) {
+        /* =====================================================
+           UI PANEL
+        ===================================================== */
 
-            this.emit({
-                type: "LOG",
-                log: {
-                    time:
-                        new Date()
-                            .toLocaleTimeString(),
+        createPanel() {
 
-                    type,
-                    message,
-                    packet
-                }
-            });
-
-            this.appendLogToUI(
-                type,
-                message
-            );
-        }
-
-        createUI() {
-
-            if (
-                document.getElementById(
-                    "connectionPanel"
-                )
-            ) {
-                return;
+            if (this.panel) {
+                return this.panel;
             }
 
             const panel =
@@ -671,274 +1582,215 @@
                 );
 
             panel.id =
-                "connectionPanel";
+                "connectionManagerPanel";
 
             panel.innerHTML = `
-
-                <div class="connection-header">
-                    <strong>
-                        CONNECTION
-                    </strong>
-
-                    <span
-                        id="connectionStatus"
-                        class="connection-status"
-                    >
+                <div class="cm-header">
+                    <strong>CONNECTION MANAGER</strong>
+                    <span id="cmStatus">
                         DISCONNECTED
                     </span>
                 </div>
 
-                <div class="connection-row">
+                <div class="cm-row">
 
-                    <label>
-                        MODE
-                    </label>
-
-                    <select id="connectionMode">
-
+                    <select id="cmMode">
                         <option value="SIMULATOR">
                             ESP32 SIMULATOR
                         </option>
 
                         <option value="ESP32">
-                            ESP32
+                            ESP32 SERIAL
                         </option>
 
                         <option value="BLUETOOTH">
                             BLUETOOTH
                         </option>
-
                     </select>
 
-                </div>
-
-                <div class="connection-buttons">
-
-                    <button
-                        id="connectionConnect"
-                        type="button"
-                    >
+                    <button id="cmConnect">
                         CONNECT
                     </button>
 
-                    <button
-                        id="connectionDisconnect"
-                        type="button"
-                    >
+                    <button id="cmDisconnect">
                         DISCONNECT
                     </button>
 
-                    <button
-                        id="connectionPing"
-                        type="button"
-                    >
+                </div>
+
+                <div class="cm-row">
+
+                    <button id="cmPing">
                         PING
                     </button>
 
-                </div>
-
-                <div class="connection-stats">
-
-                    <div>
-                        <span>TX</span>
-                        <strong id="connectionTX">
-                            0
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>ACK</span>
-                        <strong id="connectionACK">
-                            0
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>RX</span>
-                        <strong id="connectionRX">
-                            0
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>ERROR</span>
-                        <strong id="connectionERROR">
-                            0
-                        </strong>
-                    </div>
-
-                </div>
-
-                <div class="connection-test-buttons">
-
-                    <button
-                        id="simLoopbackTest"
-                        type="button"
-                    >
-                        LOOPBACK TEST
+                    <button id="cmState">
+                        STATE
                     </button>
 
-                    <button
-                        id="simFaderTest"
-                        type="button"
-                    >
-                        FADER TEST
-                    </button>
-
-                    <button
-                        id="simMuteSoloTest"
-                        type="button"
-                    >
-                        MUTE / SOLO TEST
-                    </button>
-
-                    <button
-                        id="simStressTest"
-                        type="button"
-                    >
-                        STRESS TEST
-                    </button>
-
-                    <button
-                        id="simReset"
-                        type="button"
-                    >
-                        RESET SIMULATOR
+                    <button id="cmReset">
+                        RESET
                     </button>
 
                 </div>
 
-                <div
-                    id="connectionLastPacket"
-                    class="connection-last-packet"
-                >
-                    READY
+                <div class="cm-row">
+
+                    <button id="cmLoopback">
+                        RUN 16CH LOOPBACK
+                    </button>
+
+                    <button id="cmFader">
+                        RUN FADER 16CH
+                    </button>
+
+                    <button id="cmMuteSolo">
+                        RUN MUTE/SOLO
+                    </button>
+
+                    <button id="cmStress">
+                        RUN STRESS
+                    </button>
+
                 </div>
 
-                <div
-                    id="connectionLog"
-                    class="connection-log"
-                ></div>
+                <div class="cm-counters">
+
+                    <span>
+                        TX:
+                        <b id="cmTX">0</b>
+                    </span>
+
+                    <span>
+                        ACK:
+                        <b id="cmACK">0</b>
+                    </span>
+
+                    <span>
+                        RX:
+                        <b id="cmRX">0</b>
+                    </span>
+
+                    <span>
+                        ERR:
+                        <b id="cmERR">0</b>
+                    </span>
+
+                </div>
+
+                <pre id="cmLog"></pre>
             `;
 
-            /*
-             * Tidak mengubah struktur mixer.
-             * Panel hanya ditambahkan di awal body.
-             */
+            document.body.prepend(
+                panel
+            );
 
-            document.body.prepend(panel);
+            this.panel =
+                panel;
 
-            this.installUIEvents();
+            this.injectPanelCSS();
 
-            this.installStyles();
-        }
-
-        installUIEvents() {
-
-            const mode =
-                document.getElementById(
-                    "connectionMode"
+            const modeSelect =
+                panel.querySelector(
+                    "#cmMode"
                 );
 
-            const connect =
-                document.getElementById(
-                    "connectionConnect"
+            const connectButton =
+                panel.querySelector(
+                    "#cmConnect"
                 );
 
-            const disconnect =
-                document.getElementById(
-                    "connectionDisconnect"
+            const disconnectButton =
+                panel.querySelector(
+                    "#cmDisconnect"
                 );
 
-            const ping =
-                document.getElementById(
-                    "connectionPing"
+            const pingButton =
+                panel.querySelector(
+                    "#cmPing"
                 );
 
-            const loopback =
-                document.getElementById(
-                    "simLoopbackTest"
+            const stateButton =
+                panel.querySelector(
+                    "#cmState"
                 );
 
-            const fader =
-                document.getElementById(
-                    "simFaderTest"
+            const resetButton =
+                panel.querySelector(
+                    "#cmReset"
                 );
 
-            const muteSolo =
-                document.getElementById(
-                    "simMuteSoloTest"
+            const loopbackButton =
+                panel.querySelector(
+                    "#cmLoopback"
                 );
 
-            const stress =
-                document.getElementById(
-                    "simStressTest"
+            const faderButton =
+                panel.querySelector(
+                    "#cmFader"
                 );
 
-            const reset =
-                document.getElementById(
-                    "simReset"
+            const muteSoloButton =
+                panel.querySelector(
+                    "#cmMuteSolo"
                 );
 
-            mode.addEventListener(
+            const stressButton =
+                panel.querySelector(
+                    "#cmStress"
+                );
+
+            modeSelect.value =
+                this.mode;
+
+            modeSelect.addEventListener(
                 "change",
                 () => {
 
-                    this.mode =
-                        mode.value;
-
-                    this.saveState();
-
-                    this.log(
-                        "SYSTEM",
-                        `Mode = ${this.mode}`
+                    this.setMode(
+                        modeSelect.value
                     );
                 }
             );
 
-            connect.addEventListener(
+            connectButton.addEventListener(
                 "click",
                 async () => {
 
                     try {
 
                         await this.connect(
-                            mode.value
+                            modeSelect.value
+                        );
+
+                        this.log(
+                            "CONNECTED " +
+                            modeSelect.value
                         );
 
                     } catch (error) {
 
-                        this.counters.error++;
-
                         this.log(
-                            "ERROR",
+                            "CONNECT ERROR: " +
                             error.message
                         );
-
-                        this.updateUI();
                     }
                 }
             );
 
-            disconnect.addEventListener(
+            disconnectButton.addEventListener(
                 "click",
                 async () => {
 
-                    try {
+                    await this.disconnect();
 
-                        await this.disconnect();
-
-                    } catch (error) {
-
-                        this.log(
-                            "ERROR",
-                            error.message
-                        );
-                    }
+                    this.log(
+                        "DISCONNECTED"
+                    );
                 }
             );
 
-            ping.addEventListener(
+            pingButton.addEventListener(
                 "click",
                 async () => {
 
@@ -946,68 +1798,253 @@
 
                         await this.ping();
 
-                    } catch (error) {
-
-                        this.counters.error++;
-
                         this.log(
-                            "ERROR",
-                            error.message
+                            "PING SENT"
                         );
 
-                        this.updateUI();
+                    } catch (error) {
+
+                        this.log(
+                            "PING ERROR: " +
+                            error.message
+                        );
                     }
                 }
             );
 
-            loopback.addEventListener(
+            stateButton.addEventListener(
                 "click",
-                () => {
-                    this.runLoopbackTest();
-                }
-            );
+                async () => {
 
-            fader.addEventListener(
-                "click",
-                () => {
-                    this.runFaderTest();
-                }
-            );
+                    try {
 
-            muteSolo.addEventListener(
-                "click",
-                () => {
-                    this.runMuteSoloTest();
-                }
-            );
+                        await this.requestState();
 
-            stress.addEventListener(
-                "click",
-                () => {
-                    this.runStressTest();
-                }
-            );
+                        this.log(
+                            "STATE REQUEST SENT"
+                        );
 
-            reset.addEventListener(
-                "click",
-                () => {
+                    } catch (error) {
 
-                    if (
-                        this.simulator
-                    ) {
-
-                        this.simulator.reset();
-                        this.updateUI();
+                        this.log(
+                            "STATE ERROR: " +
+                            error.message
+                        );
                     }
                 }
             );
+
+            resetButton.addEventListener(
+                "click",
+                async () => {
+
+                    try {
+
+                        await this.resetRemote();
+
+                        this.log(
+                            "RESET SENT"
+                        );
+
+                    } catch (error) {
+
+                        this.log(
+                            "RESET ERROR: " +
+                            error.message
+                        );
+                    }
+                }
+            );
+
+            loopbackButton.addEventListener(
+                "click",
+                async () => {
+
+                    const result =
+                        await this
+                            .runLoopbackTest();
+
+                    this.log(
+                        JSON.stringify(
+                            result,
+                            null,
+                            2
+                        )
+                    );
+                }
+            );
+
+            faderButton.addEventListener(
+                "click",
+                async () => {
+
+                    const result =
+                        await this
+                            .runFaderTest();
+
+                    this.log(
+                        JSON.stringify(
+                            result,
+                            null,
+                            2
+                        )
+                    );
+                }
+            );
+
+            muteSoloButton.addEventListener(
+                "click",
+                async () => {
+
+                    const result =
+                        await this
+                            .runMuteSoloTest();
+
+                    this.log(
+                        JSON.stringify(
+                            result,
+                            null,
+                            2
+                        )
+                    );
+                }
+            );
+
+            stressButton.addEventListener(
+                "click",
+                async () => {
+
+                    const result =
+                        await this
+                            .runStressTest(
+                                1000
+                            );
+
+                    this.log(
+                        JSON.stringify(
+                            result,
+                            null,
+                            2
+                        )
+                    );
+                }
+            );
+
+            this.updatePanel();
+
+            return panel;
         }
 
-        installStyles() {
+        updatePanel() {
+
+            if (!this.panel) {
+                return;
+            }
+
+            const status =
+                this.panel.querySelector(
+                    "#cmStatus"
+                );
+
+            const mode =
+                this.panel.querySelector(
+                    "#cmMode"
+                );
+
+            const tx =
+                this.panel.querySelector(
+                    "#cmTX"
+                );
+
+            const ack =
+                this.panel.querySelector(
+                    "#cmACK"
+                );
+
+            const rx =
+                this.panel.querySelector(
+                    "#cmRX"
+                );
+
+            const err =
+                this.panel.querySelector(
+                    "#cmERR"
+                );
+
+            if (status) {
+
+                status.textContent =
+                    this.connected
+                        ? "CONNECTED"
+                        : "DISCONNECTED";
+            }
+
+            if (mode) {
+
+                mode.value =
+                    this.mode;
+            }
+
+            if (tx) {
+
+                tx.textContent =
+                    this.counters.tx;
+            }
+
+            if (ack) {
+
+                ack.textContent =
+                    this.counters.ack;
+            }
+
+            if (rx) {
+
+                rx.textContent =
+                    this.counters.rx;
+            }
+
+            if (err) {
+
+                err.textContent =
+                    this.counters.error;
+            }
+        }
+
+        log(message) {
+
+            if (!this.panel) {
+                return;
+            }
+
+            const log =
+                this.panel.querySelector(
+                    "#cmLog"
+                );
+
+            if (!log) {
+                return;
+            }
+
+            const time =
+                new Date()
+                    .toLocaleTimeString();
+
+            log.textContent +=
+                `[${time}] ${message}\n`;
+
+            log.scrollTop =
+                log.scrollHeight;
+        }
+
+        /* =====================================================
+           PANEL CSS
+        ===================================================== */
+
+        injectPanelCSS() {
 
             if (
                 document.getElementById(
-                    "connectionManagerStyles"
+                    "connectionManagerStyle"
                 )
             ) {
                 return;
@@ -1019,298 +2056,112 @@
                 );
 
             style.id =
-                "connectionManagerStyles";
+                "connectionManagerStyle";
 
             style.textContent = `
-
-                #connectionPanel {
-
-                    position: relative;
+                #connectionManagerPanel {
+                    position: fixed;
+                    left: 10px;
+                    bottom: 10px;
+                    z-index: 99999;
 
                     width: min(
-                        calc(100% - 20px),
-                        1100px
+                        760px,
+                        calc(100vw - 20px)
                     );
 
-                    margin:
-                        10px auto;
+                    max-height: 45vh;
+                    overflow: auto;
 
-                    padding: 12px;
-
-                    box-sizing: border-box;
+                    padding: 10px;
 
                     background:
-                        #111;
+                        rgba(12, 15, 20, 0.96);
 
                     border:
-                        1px solid #333;
+                        1px solid
+                        rgba(255,255,255,0.15);
 
-                    border-radius:
-                        10px;
+                    border-radius: 10px;
 
-                    color:
-                        #eee;
+                    color: #fff;
 
                     font-family:
                         Arial,
                         sans-serif;
 
-                    z-index:
-                        50;
+                    font-size: 12px;
+
+                    box-shadow:
+                        0 8px 30px
+                        rgba(0,0,0,.35);
                 }
 
-                #connectionPanel
-                .connection-header {
-
-                    display:
-                        flex;
-
-                    align-items:
-                        center;
-
-                    justify-content:
-                        space-between;
-
-                    margin-bottom:
-                        10px;
+                #connectionManagerPanel
+                .cm-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 8px;
                 }
 
-                #connectionPanel
-                .connection-status {
+                #connectionManagerPanel
+                .cm-row {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 6px;
+                    margin-bottom: 6px;
+                }
 
-                    padding:
-                        4px 9px;
+                #connectionManagerPanel
+                select,
+                #connectionManagerPanel
+                button {
+                    min-height: 30px;
+                    border-radius: 6px;
+                    border: 1px solid
+                        rgba(255,255,255,.15);
+                    background:
+                        rgba(255,255,255,.08);
+                    color: #fff;
+                    padding: 5px 8px;
+                }
 
-                    border-radius:
-                        20px;
+                #connectionManagerPanel
+                button {
+                    cursor: pointer;
+                }
+
+                #connectionManagerPanel
+                button:hover {
+                    background:
+                        rgba(255,255,255,.16);
+                }
+
+                #connectionManagerPanel
+                .cm-counters {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 12px;
+                    margin: 8px 0;
+                }
+
+                #connectionManagerPanel
+                #cmLog {
+                    margin: 0;
+                    padding: 8px;
+                    min-height: 50px;
+                    max-height: 160px;
+                    overflow: auto;
 
                     background:
-                        #333;
+                        rgba(0,0,0,.35);
 
-                    font-size:
-                        11px;
-                }
+                    border-radius: 6px;
 
-                #connectionPanel
-                .connection-status.connected {
-
-                    background:
-                        #174d24;
-
-                    color:
-                        #7cff91;
-                }
-
-                #connectionPanel
-                .connection-row {
-
-                    display:
-                        flex;
-
-                    align-items:
-                        center;
-
-                    gap:
-                        10px;
-
-                    margin-bottom:
-                        10px;
-                }
-
-                #connectionPanel select,
-                #connectionPanel button {
-
-                    min-height:
-                        36px;
-
-                    border-radius:
-                        6px;
-
-                    border:
-                        1px solid #444;
-
-                    background:
-                        #202020;
-
-                    color:
-                        #fff;
-
-                    padding:
-                        7px 10px;
-                }
-
-                #connectionPanel button {
-
-                    cursor:
-                        pointer;
-                }
-
-                #connectionPanel button:hover {
-
-                    background:
-                        #303030;
-                }
-
-                .connection-buttons,
-                .connection-test-buttons {
-
-                    display:
-                        flex;
-
-                    flex-wrap:
-                        wrap;
-
-                    gap:
-                        7px;
-
-                    margin-bottom:
-                        10px;
-                }
-
-                .connection-stats {
-
-                    display:
-                        grid;
-
-                    grid-template-columns:
-                        repeat(4, 1fr);
-
-                    gap:
-                        7px;
-
-                    margin:
-                        10px 0;
-                }
-
-                .connection-stats div {
-
-                    background:
-                        #191919;
-
-                    border:
-                        1px solid #2d2d2d;
-
-                    border-radius:
-                        6px;
-
-                    padding:
-                        8px;
-
-                    text-align:
-                        center;
-                }
-
-                .connection-stats span {
-
-                    display:
-                        block;
-
-                    font-size:
-                        10px;
-
-                    opacity:
-                        .65;
-                }
-
-                .connection-stats strong {
-
-                    display:
-                        block;
-
-                    margin-top:
-                        3px;
-
-                    font-size:
-                        16px;
-                }
-
-                .connection-last-packet {
-
-                    padding:
-                        8px;
-
-                    background:
-                        #0a0a0a;
-
-                    border:
-                        1px solid #222;
-
-                    border-radius:
-                        5px;
-
-                    font-family:
-                        monospace;
-
-                    font-size:
-                        11px;
-
-                    overflow:
-                        hidden;
-
-                    text-overflow:
-                        ellipsis;
-
-                    white-space:
-                        nowrap;
-                }
-
-                .connection-log {
-
-                    max-height:
-                        160px;
-
-                    overflow:
-                        auto;
-
-                    margin-top:
-                        8px;
-
-                    padding:
-                        7px;
-
-                    background:
-                        #080808;
-
-                    border:
-                        1px solid #222;
-
-                    border-radius:
-                        5px;
-
-                    font-family:
-                        monospace;
-
-                    font-size:
-                        10px;
-                }
-
-                .connection-log-line {
-
-                    padding:
-                        2px 0;
-
-                    border-bottom:
-                        1px solid #151515;
-                }
-
-                @media (
-                    max-width: 600px
-                ) {
-
-                    .connection-stats {
-
-                        grid-template-columns:
-                            repeat(2, 1fr);
-                    }
-
-                    .connection-row {
-
-                        flex-direction:
-                            column;
-
-                        align-items:
-                            stretch;
-                    }
+                    white-space: pre-wrap;
+                    word-break: break-word;
                 }
             `;
 
@@ -1318,456 +2169,46 @@
                 style
             );
         }
+    }
 
-        appendLogToUI(
-            type,
-            message
+    /*
+     * Global instance
+     */
+
+    window.ConnectionManager =
+        new ConnectionManager();
+
+    /*
+     * Create panel after DOM is ready.
+     */
+
+    function initializePanel() {
+
+        if (
+            window.ConnectionManager
         ) {
 
-            const log =
-                document.getElementById(
-                    "connectionLog"
-                );
-
-            if (!log) {
-                return;
-            }
-
-            const line =
-                document.createElement(
-                    "div"
-                );
-
-            line.className =
-                "connection-log-line";
-
-            line.textContent =
-                `[${new Date().toLocaleTimeString()}] ${type}: ${message}`;
-
-            log.prepend(line);
-
-            while (
-                log.children.length >
-                100
-            ) {
-                log.lastChild.remove();
-            }
-        }
-
-        updateUI() {
-
-            const status =
-                document.getElementById(
-                    "connectionStatus"
-                );
-
-            if (status) {
-
-                status.textContent =
-                    this.connected
-                        ? `${this.mode} CONNECTED`
-                        : `${this.mode} DISCONNECTED`;
-
-                status.classList.toggle(
-                    "connected",
-                    this.connected
-                );
-            }
-
-            const tx =
-                document.getElementById(
-                    "connectionTX"
-                );
-
-            const ack =
-                document.getElementById(
-                    "connectionACK"
-                );
-
-            const rx =
-                document.getElementById(
-                    "connectionRX"
-                );
-
-            const error =
-                document.getElementById(
-                    "connectionERROR"
-                );
-
-            if (tx) {
-                tx.textContent =
-                    this.counters.tx;
-            }
-
-            if (ack) {
-                ack.textContent =
-                    this.counters.ack;
-            }
-
-            if (rx) {
-                rx.textContent =
-                    this.counters.rx;
-            }
-
-            if (error) {
-                error.textContent =
-                    this.counters.error;
-            }
-
-            const packet =
-                document.getElementById(
-                    "connectionLastPacket"
-                );
-
-            if (
-                packet &&
-                this.lastRX
-            ) {
-
-                packet.textContent =
-                    JSON.stringify(
-                        this.lastRX
-                    );
-            }
-        }
-
-        async runLoopbackTest() {
-
-            this.log(
-                "TEST",
-                "START LOOPBACK TEST"
-            );
-
-            if (
-                this.mode !==
-                "SIMULATOR"
-            ) {
-
-                this.log(
-                    "TEST",
-                    "Loopback internal memakai SIMULATOR"
-                );
-            }
-
-            if (
-                !this.simulator.running
-            ) {
-                this.simulator.start();
-            }
-
-            const before = {
-                tx:
-                    this.counters.tx,
-
-                ack:
-                    this.counters.ack,
-
-                rx:
-                    this.counters.rx,
-
-                error:
-                    this.counters.error
-            };
-
-            const total = 16;
-
-            let passed = 0;
-
-            for (
-                let channel = 1;
-                channel <= total;
-                channel++
-            ) {
-
-                const value =
-                    -24 +
-                    channel;
-
-                try {
-
-                    const response =
-                        await this.sendControl(
-                            channel,
-                            P.PARAMETERS.FADER,
-                            value
-                        );
-
-                    if (
-                        response?.feedback
-                            ?.value === value
-                    ) {
-
-                        passed++;
-                    }
-
-                } catch (error) {
-
-                    this.log(
-                        "ERROR",
-                        `CH${channel}: ${error.message}`
-                    );
-                }
-            }
-
-            this.log(
-                "TEST",
-                `LOOPBACK RESULT: ${passed}/${total}`
-            );
-
-            return {
-                passed,
-                total,
-                before,
-                after: {
-                    ...this.counters
-                }
-            };
-        }
-
-        async runFaderTest() {
-
-            this.log(
-                "TEST",
-                "START FADER CH1-CH16 TEST"
-            );
-
-            if (
-                !this.simulator.running
-            ) {
-                this.simulator.start();
-            }
-
-            let passed = 0;
-
-            for (
-                let channel = 1;
-                channel <= 16;
-                channel++
-            ) {
-
-                const value =
-                    Math.round(
-                        (
-                            -60 +
-                            Math.random() *
-                            60
-                        ) * 10
-                    ) / 10;
-
-                const response =
-                    await this.sendControl(
-                        channel,
-                        P.PARAMETERS.FADER,
-                        value
-                    );
-
-                if (
-                    response?.feedback
-                        ?.value === value
-                ) {
-                    passed++;
-                }
-            }
-
-            this.log(
-                "TEST",
-                `FADER RESULT: ${passed}/16`
-            );
-
-            return passed === 16;
-        }
-
-        async runMuteSoloTest() {
-
-            this.log(
-                "TEST",
-                "START MUTE/SOLO TEST"
-            );
-
-            if (
-                !this.simulator.running
-            ) {
-                this.simulator.start();
-            }
-
-            let passed = 0;
-            let total = 0;
-
-            for (
-                let channel = 1;
-                channel <= 16;
-                channel++
-            ) {
-
-                total++;
-
-                const mute =
-                    channel % 2 === 0;
-
-                const muteResponse =
-                    await this.sendControl(
-                        channel,
-                        P.PARAMETERS.MUTE,
-                        mute
-                    );
-
-                if (
-                    muteResponse?.feedback
-                        ?.value === mute
-                ) {
-                    passed++;
-                }
-
-                total++;
-
-                const solo =
-                    channel % 3 === 0;
-
-                const soloResponse =
-                    await this.sendControl(
-                        channel,
-                        P.PARAMETERS.SOLO,
-                        solo
-                    );
-
-                if (
-                    soloResponse?.feedback
-                        ?.value === solo
-                ) {
-                    passed++;
-                }
-            }
-
-            this.log(
-                "TEST",
-                `MUTE/SOLO RESULT: ${passed}/${total}`
-            );
-
-            return passed === total;
-        }
-
-        async runStressTest() {
-
-            this.log(
-                "TEST",
-                "START STRESS TEST 1000 COMMANDS"
-            );
-
-            if (
-                !this.simulator.running
-            ) {
-                this.simulator.start();
-            }
-
-            const start =
-                performance.now();
-
-            let passed = 0;
-
-            for (
-                let i = 0;
-                i < 1000;
-                i++
-            ) {
-
-                const channel =
-                    (i % 16) + 1;
-
-                const value =
-                    -60 +
-                    (
-                        i % 60
-                    );
-
-                try {
-
-                    const response =
-                        await this.sendControl(
-                            channel,
-                            P.PARAMETERS.FADER,
-                            value
-                        );
-
-                    if (
-                        response?.feedback
-                            ?.value === value
-                    ) {
-                        passed++;
-                    }
-
-                } catch (_) {}
-            }
-
-            const elapsed =
-                performance.now() -
-                start;
-
-            this.log(
-                "TEST",
-                `STRESS RESULT: ${passed}/1000 | ${elapsed.toFixed(0)} ms`
-            );
-
-            return {
-                passed,
-                total: 1000,
-                elapsed
-            };
-        }
-
-        loadState() {
-
-            try {
-
-                const raw =
-                    localStorage.getItem(
-                        "mixer_connection_state"
-                    );
-
-                if (!raw) {
-                    return;
-                }
-
-                const state =
-                    JSON.parse(raw);
-
-                if (
-                    state.mode
-                ) {
-
-                    this.mode =
-                        state.mode;
-                }
-
-                const select =
-                    document.getElementById(
-                        "connectionMode"
-                    );
-
-                if (select) {
-                    select.value =
-                        this.mode;
-                }
-
-            } catch (_) {}
-        }
-
-        saveState() {
-
-            try {
-
-                localStorage.setItem(
-                    "mixer_connection_state",
-                    JSON.stringify({
-                        mode:
-                            this.mode
-                    })
-                );
-
-            } catch (_) {}
+            window.ConnectionManager
+                .createPanel();
         }
     }
 
-    window.MixerConnection =
-        new ConnectionManager();
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializePanel,
+            {
+                once: true
+            }
+        );
+
+    } else {
+
+        initializePanel();
+    }
 
 })();
