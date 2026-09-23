@@ -2,13 +2,18 @@
    AUDIO ENGINE
    SOURCE
       ↓
-   ECHO ALESIS
+   ALESIS ECHO
       ↓
-   EQUALIZER
+   DBX 2231 EQUALIZER
       ↓
    MASTER
       ↓
    OUTPUT
+   ========================================================= */
+
+
+/* =========================================================
+   GLOBAL AUDIO
    ========================================================= */
 
 let audioContext = null;
@@ -17,22 +22,44 @@ let masterGainNode = null;
 
 let sourceNode = null;
 
+
+/* =========================================================
+   DBX EQUALIZER INPUT
+   ========================================================= */
+
 let stereoInputNode = null;
 
 let stereoSplitter = null;
 
 let stereoMerger = null;
 
+
+/* =========================================================
+   AUDIO SOURCES
+   ========================================================= */
+
 let microphoneStream = null;
 
 let audioFileSourceNode = null;
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
 
 let isMuted = false;
 
 let audioInputActive = false;
 
+
+/* =========================================================
+   PLAYLIST
+   ========================================================= */
+
 let audioFiles = [];
+
 let currentAudioIndex = -1;
+
 let audioObjectUrls = [];
 
 
@@ -43,113 +70,168 @@ let audioObjectUrls = [];
 function createAudioContext() {
 
   if (audioContext) {
+
     return;
+
   }
+
 
   const AudioContextClass =
     window.AudioContext ||
     window.webkitAudioContext;
 
+
   if (!AudioContextClass) {
+
     throw new Error(
       "Web Audio API tidak didukung."
     );
+
   }
+
 
   audioContext =
     new AudioContextClass();
 
 
+  /* =======================================================
+     MASTER
+     ======================================================= */
+
   masterGainNode =
     audioContext.createGain();
 
+
+  /* =======================================================
+     DBX INPUT
+     ======================================================= */
 
   stereoInputNode =
     audioContext.createGain();
 
 
-  stereoInputNode.channelCount = 2;
+  stereoInputNode.channelCount =
+    2;
+
 
   stereoInputNode.channelCountMode =
     "explicit";
+
 
   stereoInputNode.channelInterpretation =
     "speakers";
 
 
-  stereoSplitter =
-    audioContext.createChannelSplitter(2);
+  /* =======================================================
+     SPLITTER
+     ======================================================= */
 
+  stereoSplitter =
+    audioContext.createChannelSplitter(
+      2
+    );
+
+
+  /* =======================================================
+     MERGER
+     ======================================================= */
 
   stereoMerger =
-    audioContext.createChannelMerger(2);
+    audioContext.createChannelMerger(
+      2
+    );
 
+
+  /* =======================================================
+     DBX INPUT → SPLITTER
+     ======================================================= */
 
   stereoInputNode.connect(
     stereoSplitter
   );
 
 
-  /*
-   * MASTER
-   */
+  /* =======================================================
+     MASTER LEVEL
+     ======================================================= */
 
   const masterSlider =
     document.getElementById(
       "masterGain"
     );
 
+
   const masterDb =
     masterSlider
-      ? Number(masterSlider.value)
+      ? Number(
+          masterSlider.value
+        )
       : -12;
 
 
   masterGainNode.gain.value =
     isMuted
       ? 0
-      : dbToGain(masterDb);
+      : dbToGain(
+          masterDb
+        );
 
 
-  /*
-   * OUTPUT
-   */
+  /* =======================================================
+     MERGER → MASTER
+     ======================================================= */
 
   stereoMerger.connect(
     masterGainNode
   );
+
+
+  /* =======================================================
+     MASTER → OUTPUT
+     ======================================================= */
 
   masterGainNode.connect(
     audioContext.destination
   );
 
 
-  /*
-   * Beritahu modul lain.
-   */
+  /* =======================================================
+     INITIALIZE ALESIS
+     ======================================================= */
 
   if (
-    typeof initializeEchoEngine ===
+    typeof window.initializeEchoEngine ===
     "function"
   ) {
-    initializeEchoEngine();
+
+    window.initializeEchoEngine();
+
   }
 
+
+  /* =======================================================
+     INITIALIZE EQUALIZER
+     ======================================================= */
+
   if (
-    typeof initializeEqualizerEngine ===
+    typeof window.initializeEqualizerEngine ===
     "function"
   ) {
-    initializeEqualizerEngine();
+
+    window.initializeEqualizerEngine();
+
   }
 
 }
 
 
 /* =========================================================
-   DB → GAIN
+   DB → LINEAR GAIN
    ========================================================= */
 
-function dbToGain(db) {
+function dbToGain(
+  db
+) {
 
   return Math.pow(
     10,
@@ -160,38 +242,51 @@ function dbToGain(db) {
 
 
 /* =========================================================
-   SOURCE → AUDIO CHAIN
+   SOURCE → ECHO
    ========================================================= */
 
 function connectSourceToChannels(
   newSource
 ) {
 
+  if (!newSource) {
+
+    return;
+
+  }
+
+
+  /*
+   * Hentikan source sebelumnya
+   */
+
   disconnectCurrentSource();
 
-  if (!newSource) {
-    return;
-  }
 
   sourceNode =
     newSource;
 
 
-  /*
-   * ALUR AUDIO:
-   * SOURCE → ECHO ALESIS → EQUALIZER
-   */
+  /* =======================================================
+     SOURCE → ALESIS
+     ======================================================= */
 
   if (
-    typeof connectEchoInput ===
+    typeof window.connectEchoInput ===
     "function"
   ) {
 
-    connectEchoInput(
+    window.connectEchoInput(
       sourceNode
     );
 
-  } else {
+  }
+
+  else {
+
+    /*
+     * Fallback apabila Echo belum tersedia
+     */
 
     sourceNode.connect(
       stereoInputNode
@@ -204,12 +299,45 @@ function connectSourceToChannels(
     true;
 
 
+  /* =======================================================
+     STATUS CHANNEL
+     ======================================================= */
+
   if (
-    typeof updateAllStatusLights ===
+    typeof window.updateAllStatusLights ===
     "function"
   ) {
 
-    updateAllStatusLights();
+    window.updateAllStatusLights();
+
+  }
+
+}
+
+
+/* =========================================================
+   ECHO → DBX
+   ========================================================= */
+
+function connectEchoToEqualizer() {
+
+  if (
+    !window.stereoInputNode
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    typeof window.connectEchoOutput ===
+    "function"
+  ) {
+
+    window.connectEchoOutput(
+      stereoInputNode
+    );
 
   }
 
@@ -222,51 +350,162 @@ function connectSourceToChannels(
 
 function disconnectCurrentSource() {
 
-  if (sourceNode) {
+  /*
+   * Jangan memutus semua koneksi node dengan
+   * source.disconnect() secara membabi buta.
+   *
+   * Hanya putuskan koneksi menuju Echo.
+   */
+
+  if (
+    sourceNode &&
+    typeof window.echoInputNode !==
+    "undefined"
+  ) {
 
     try {
-      sourceNode.disconnect();
-    } catch (_) {}
+
+      sourceNode.disconnect(
+        window.echoInputNode
+      );
+
+    }
+
+    catch (_) {}
 
   }
 
-  sourceNode = null;
 
-  audioInputActive = false;
+  sourceNode =
+    null;
+
+
+  audioInputActive =
+    false;
+
+
+  if (
+    typeof window.updateAllStatusLights ===
+    "function"
+  ) {
+
+    window.updateAllStatusLights();
+
+  }
 
 }
 
 
 /* =========================================================
-   PLAYLIST & FILE MANAGEMENT
+   PLAYLIST
    ========================================================= */
 
 function revokeAudioObjectUrls() {
-  audioObjectUrls.forEach(url => {
-    try { URL.revokeObjectURL(url); } catch (_) {}
-  });
+
+  audioObjectUrls.forEach(
+    url => {
+
+      try {
+
+        URL.revokeObjectURL(
+          url
+        );
+
+      }
+
+      catch (_) {}
+
+    }
+  );
+
+
   audioObjectUrls = [];
+
 }
 
-function selectAudioFile(index) {
-  const audioPlayer = document.getElementById("audioPlayer");
-  if (!audioPlayer) return;
-  if (index < 0 || index >= audioFiles.length) return;
-  
-  currentAudioIndex = index;
-  const file = audioFiles[index];
-  audioPlayer.pause();
 
-  if (audioPlayer.dataset.objectUrl) {
-    try { URL.revokeObjectURL(audioPlayer.dataset.objectUrl); } catch (_) {}
+/* =========================================================
+   SELECT AUDIO FILE
+   ========================================================= */
+
+function selectAudioFile(
+  index
+) {
+
+  const audioPlayer =
+    document.getElementById(
+      "audioPlayer"
+    );
+
+
+  if (!audioPlayer) {
+
+    return;
+
   }
 
-  const objectUrl = URL.createObjectURL(file);
-  audioObjectUrls.push(objectUrl);
-  audioPlayer.src = objectUrl;
-  audioPlayer.dataset.objectUrl = objectUrl;
 
-  setReadyStatus(`FILE READY: ${file.name}`);
+  if (
+    index < 0 ||
+    index >= audioFiles.length
+  ) {
+
+    return;
+
+  }
+
+
+  currentAudioIndex =
+    index;
+
+
+  const file =
+    audioFiles[index];
+
+
+  audioPlayer.pause();
+
+
+  if (
+    audioPlayer.dataset.objectUrl
+  ) {
+
+    try {
+
+      URL.revokeObjectURL(
+        audioPlayer.dataset.objectUrl
+      );
+
+    }
+
+    catch (_) {}
+
+  }
+
+
+  const objectUrl =
+    URL.createObjectURL(
+      file
+    );
+
+
+  audioObjectUrls.push(
+    objectUrl
+  );
+
+
+  audioPlayer.src =
+    objectUrl;
+
+
+  audioPlayer.dataset.objectUrl =
+    objectUrl;
+
+
+  setReadyStatus(
+    `FILE READY: ${file.name}`
+  );
+
 }
 
 
@@ -278,17 +517,26 @@ async function startMicrophone() {
 
   createAudioContext();
 
-  if (audioContext.state === "suspended") {
+
+  if (
+    audioContext.state ===
+    "suspended"
+  ) {
+
     await audioContext.resume();
+
   }
 
 
-  if (microphoneStream) {
+  if (
+    microphoneStream
+  ) {
 
     microphoneStream
       .getTracks()
       .forEach(
-        track => track.stop()
+        track =>
+          track.stop()
       );
 
   }
@@ -305,9 +553,17 @@ async function startMicrophone() {
 
   }
 
-  const audioPlayer = document.getElementById("audioPlayer");
+
+  const audioPlayer =
+    document.getElementById(
+      "audioPlayer"
+    );
+
+
   if (audioPlayer) {
+
     audioPlayer.pause();
+
   }
 
 
@@ -356,25 +612,36 @@ async function startMicrophone() {
 
 
   setReadyStatus(
-    "MICROPHONE ACTIVE"
+    "MICROPHONE → ALESIS → DBX ACTIVE"
   );
 
 }
 
 
 /* =========================================================
-   AUDIO FILE (START)
+   AUDIO FILE
    ========================================================= */
 
 async function startAudioFile() {
 
   createAudioContext();
 
-  if (audioContext.state === "suspended") {
+
+  if (
+    audioContext.state ===
+    "suspended"
+  ) {
+
     await audioContext.resume();
+
   }
 
-  const audioPlayer = document.getElementById("audioPlayer");
+
+  const audioPlayer =
+    document.getElementById(
+      "audioPlayer"
+    );
+
 
   if (
     !audioPlayer ||
@@ -390,87 +657,156 @@ async function startAudioFile() {
   }
 
 
-  if (microphoneStream) {
+  if (
+    microphoneStream
+  ) {
 
     microphoneStream
       .getTracks()
       .forEach(
-        track => track.stop()
+        track =>
+          track.stop()
       );
 
-    microphoneStream = null;
+
+    microphoneStream =
+      null;
 
   }
 
 
   /*
-   * MediaElementSource hanya sekali.
+   * MediaElementSource hanya dibuat sekali.
    */
 
-  if (!audioFileSourceNode) {
+  if (
+    !audioFileSourceNode
+  ) {
+
     try {
+
       audioFileSourceNode =
         audioContext.createMediaElementSource(
           audioPlayer
         );
-    } catch (e) {
-      console.warn("MediaElementSource sudah dibuat:", e);
+
     }
+
+    catch (error) {
+
+      console.warn(
+        "MediaElementSource sudah dibuat:",
+        error
+      );
+
+    }
+
   }
 
 
-  if (audioFileSourceNode) {
+  if (
+    audioFileSourceNode
+  ) {
+
     connectSourceToChannels(
       audioFileSourceNode
     );
+
   }
 
 
   try {
+
     await audioPlayer.play();
+
+
+    const fileName =
+      audioFiles[
+        currentAudioIndex
+      ]
+        ? audioFiles[
+            currentAudioIndex
+          ].name
+        : "AUDIO";
+
+
     setReadyStatus(
-      `PLAYING: ${audioFiles[currentAudioIndex] ? audioFiles[currentAudioIndex].name : "AUDIO"}`
+      `PLAYING → ALESIS → DBX: ${fileName}`
     );
-  } catch (err) {
-    console.error("Gagal memutar audio:", err);
-    alert("Silakan klik tombol START AUDIO sekali lagi untuk mengizinkan pemutaran.");
-    setReadyStatus("AUDIO PLAY ERROR");
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "Gagal memutar audio:",
+      error
+    );
+
+
+    alert(
+      "Silakan klik START AUDIO sekali lagi."
+    );
+
+
+    setReadyStatus(
+      "AUDIO PLAY ERROR"
+    );
+
   }
 
 }
 
 
 /* =========================================================
-   STOP
+   STOP AUDIO
    ========================================================= */
 
 function stopAudio() {
 
-  if (microphoneStream) {
+  if (
+    microphoneStream
+  ) {
 
     microphoneStream
       .getTracks()
       .forEach(
-        track => track.stop()
+        track =>
+          track.stop()
       );
 
-    microphoneStream = null;
+
+    microphoneStream =
+      null;
 
   }
 
-  const audioPlayer = document.getElementById("audioPlayer");
+
+  const audioPlayer =
+    document.getElementById(
+      "audioPlayer"
+    );
+
+
   if (audioPlayer) {
 
     audioPlayer.pause();
 
+
     try {
-      audioPlayer.currentTime = 0;
-    } catch (_) {}
+
+      audioPlayer.currentTime =
+        0;
+
+    }
+
+    catch (_) {}
 
   }
 
 
   disconnectCurrentSource();
+
 
   setReadyStatus(
     "AUDIO STOPPED"
@@ -485,25 +821,35 @@ function stopAudio() {
 
 function updateMasterGain() {
 
-  if (!masterGainNode) {
+  if (
+    !masterGainNode
+  ) {
+
     return;
+
   }
+
 
   const slider =
     document.getElementById(
       "masterGain"
     );
 
+
   const value =
     slider
-      ? Number(slider.value)
+      ? Number(
+          slider.value
+        )
       : -12;
 
 
   masterGainNode.gain.value =
     isMuted
       ? 0
-      : dbToGain(value);
+      : dbToGain(
+          value
+        );
 
 }
 
@@ -521,16 +867,19 @@ function setReadyStatus(
       "readyStatus"
     );
 
+
   if (element) {
+
     element.textContent =
       message;
+
   }
 
 }
 
 
 /* =========================================================
-   MASTER EVENTS
+   MASTER / AUDIO UI
    ========================================================= */
 
 function initializeAudioEngineUI() {
@@ -547,17 +896,23 @@ function initializeAudioEngineUI() {
     );
 
 
-  if (masterSlider) {
+  if (
+    masterSlider
+  ) {
 
     masterSlider.addEventListener(
       "input",
       event => {
 
         const value =
-          Number(event.target.value);
+          Number(
+            event.target.value
+          );
 
 
-        if (masterValue) {
+        if (
+          masterValue
+        ) {
 
           masterValue.textContent =
             `${value} dB`;
@@ -573,13 +928,19 @@ function initializeAudioEngineUI() {
   }
 
 
+  /* =======================================================
+     MUTE
+     ======================================================= */
+
   const muteButton =
     document.getElementById(
       "muteOutput"
     );
 
 
-  if (muteButton) {
+  if (
+    muteButton
+  ) {
 
     muteButton.addEventListener(
       "click",
@@ -616,13 +977,19 @@ function initializeAudioEngineUI() {
   }
 
 
+  /* =======================================================
+     MICROPHONE
+     ======================================================= */
+
   const micButton =
     document.getElementById(
       "micButton"
     );
 
 
-  if (micButton) {
+  if (
+    micButton
+  ) {
 
     micButton.addEventListener(
       "click",
@@ -632,9 +999,14 @@ function initializeAudioEngineUI() {
 
           await startMicrophone();
 
-        } catch (error) {
+        }
 
-          console.error(error);
+        catch (error) {
+
+          console.error(
+            error
+          );
+
 
           alert(
             "Mikrofon tidak dapat digunakan."
@@ -648,13 +1020,19 @@ function initializeAudioEngineUI() {
   }
 
 
+  /* =======================================================
+     START AUDIO
+     ======================================================= */
+
   const startButton =
     document.getElementById(
       "startButton"
     );
 
 
-  if (startButton) {
+  if (
+    startButton
+  ) {
 
     startButton.addEventListener(
       "click",
@@ -664,9 +1042,14 @@ function initializeAudioEngineUI() {
 
           await startAudioFile();
 
-        } catch (error) {
+        }
 
-          console.error(error);
+        catch (error) {
+
+          console.error(
+            error
+          );
+
 
           alert(
             "Audio tidak dapat diputar."
@@ -680,13 +1063,19 @@ function initializeAudioEngineUI() {
   }
 
 
+  /* =======================================================
+     STOP
+     ======================================================= */
+
   const stopButton =
     document.getElementById(
       "stopButton"
     );
 
 
-  if (stopButton) {
+  if (
+    stopButton
+  ) {
 
     stopButton.addEventListener(
       "click",
@@ -696,43 +1085,152 @@ function initializeAudioEngineUI() {
   }
 
 
-  /* Listener untuk Input File Audio */
-  const audioFileInput = document.getElementById("audioFile");
-  if (audioFileInput) {
-    audioFileInput.addEventListener("change", event => {
-      const selectedFiles = Array.from(event.target.files || []);
-      if (selectedFiles.length === 0) return;
+  /* =======================================================
+     FILE INPUT
+     ======================================================= */
 
-      const audioPlayer = document.getElementById("audioPlayer");
-      if (audioPlayer) audioPlayer.pause();
-      
-      revokeAudioObjectUrls();
-      audioFiles = selectedFiles;
-      currentAudioIndex = 0;
-      selectAudioFile(0);
-      setReadyStatus(`${selectedFiles.length} FILE AUDIO DIPILIH`);
-    });
+  const audioFileInput =
+    document.getElementById(
+      "audioFile"
+    );
+
+
+  if (
+    audioFileInput
+  ) {
+
+    audioFileInput.addEventListener(
+      "change",
+      event => {
+
+        const selectedFiles =
+          Array.from(
+            event.target.files || []
+          );
+
+
+        if (
+          selectedFiles.length === 0
+        ) {
+
+          return;
+
+        }
+
+
+        const audioPlayer =
+          document.getElementById(
+            "audioPlayer"
+          );
+
+
+        if (
+          audioPlayer
+        ) {
+
+          audioPlayer.pause();
+
+        }
+
+
+        revokeAudioObjectUrls();
+
+
+        audioFiles =
+          selectedFiles;
+
+
+        currentAudioIndex =
+          0;
+
+
+        selectAudioFile(
+          0
+        );
+
+
+        setReadyStatus(
+          `${selectedFiles.length} FILE → SIAP KE ALESIS`
+        );
+
+      }
+    );
+
   }
 
 
-  /* Listener ketika audio selesai diputar */
-  const audioPlayer = document.getElementById("audioPlayer");
-  if (audioPlayer) {
-    audioPlayer.addEventListener("ended", async () => {
-      if (audioFiles.length === 0) {
-        setReadyStatus("PLAYLIST SELESAI");
+  /* =======================================================
+     AUDIO END
+     ======================================================= */
+
+  const audioPlayer =
+    document.getElementById(
+      "audioPlayer"
+    );
+
+
+  if (
+    audioPlayer
+  ) {
+
+    audioPlayer.addEventListener(
+      "ended",
+      async () => {
+
+        if (
+          audioFiles.length === 0
+        ) {
+
+          setReadyStatus(
+            "PLAYLIST SELESAI"
+          );
+
+
+          disconnectCurrentSource();
+
+
+          return;
+
+        }
+
+
+        if (
+          currentAudioIndex <
+          audioFiles.length - 1
+        ) {
+
+          currentAudioIndex++;
+
+
+          selectAudioFile(
+            currentAudioIndex
+          );
+
+
+          try {
+
+            await startAudioFile();
+
+          }
+
+          catch (_) {}
+
+
+          return;
+
+        }
+
+
+        setReadyStatus(
+          "PLAYLIST SELESAI"
+        );
+
+
         disconnectCurrentSource();
-        return;
+
       }
-      if (currentAudioIndex < audioFiles.length - 1) {
-        currentAudioIndex++;
-        selectAudioFile(currentAudioIndex);
-        try { await startAudioFile(); } catch (_) {}
-        return;
-      }
-      setReadyStatus("PLAYLIST SELESAI");
-      disconnectCurrentSource();
-    });
+    );
+
   }
 
 }
@@ -749,11 +1247,14 @@ async function loadAudioDevices() {
       "inputDevice"
     );
 
+
   if (
     !select ||
     !navigator.mediaDevices
   ) {
+
     return;
+
   }
 
 
@@ -764,7 +1265,8 @@ async function loadAudioDevices() {
         .enumerateDevices();
 
 
-    select.innerHTML = "";
+    select.innerHTML =
+      "";
 
 
     devices
@@ -798,8 +1300,9 @@ async function loadAudioDevices() {
         }
       );
 
+  }
 
-  } catch (error) {
+  catch (error) {
 
     console.warn(
       error
@@ -811,7 +1314,7 @@ async function loadAudioDevices() {
 
 
 /* =========================================================
-   INIT
+   INITIALIZATION
    ========================================================= */
 
 document.addEventListener(
@@ -824,3 +1327,35 @@ document.addEventListener(
 
   }
 );
+
+
+/* =========================================================
+   EXPORT
+   ========================================================= */
+
+window.audioContext =
+  audioContext;
+
+window.createAudioContext =
+  createAudioContext;
+
+window.connectSourceToChannels =
+  connectSourceToChannels;
+
+window.disconnectCurrentSource =
+  disconnectCurrentSource;
+
+window.startMicrophone =
+  startMicrophone;
+
+window.startAudioFile =
+  startAudioFile;
+
+window.stopAudio =
+  stopAudio;
+
+window.updateMasterGain =
+  updateMasterGain;
+
+window.setReadyStatus =
+  setReadyStatus;
