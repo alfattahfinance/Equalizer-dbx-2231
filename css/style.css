@@ -1254,3 +1254,224 @@ input[type="range"] {
   text-shadow: 0 0 4px rgba(255,170,0,.35);
 }
 
+/* =========================================================
+   DSP EFFECT BAR
+   ========================================================= */
+
+.dsp-rack {
+  margin-top:10px;
+  padding:12px;
+
+  border:1px solid #657985;
+  border-radius:8px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #263640,
+      #080f14
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.15),
+    inset 0 -15px 25px rgba(0,0,0,.5),
+    0 5px 15px #000;
+}
+
+
+.dsp-title {
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:1px;
+
+  color:#fff;
+
+  margin-bottom:10px;
+}
+
+
+.dsp-controls {
+
+  display:grid;
+
+  grid-template-columns:
+  repeat(4,1fr);
+
+  gap:10px;
+}
+
+
+.dsp-control {
+
+  padding:10px;
+
+  border-radius:6px;
+
+  border:1px solid #526773;
+
+  background:
+  linear-gradient(
+    145deg,
+    #192933,
+    #081117
+  );
+
+}
+
+
+.dsp-control label {
+
+  display:block;
+
+  font-size:11px;
+
+  font-weight:900;
+
+  margin-bottom:8px;
+
+  color:#dce7ec;
+
+}
+
+
+.dsp-control strong {
+
+  color:#ffb52b;
+
+}
+
+
+/* =========================================================
+   EQUALIZER BAR
+   ========================================================= */
+
+
+.equalizer-rack {
+
+ margin-top:15px;
+
+ padding:12px;
+
+ border:1px solid #637580;
+
+ border-radius:8px;
+
+ background:
+ linear-gradient(
+ 145deg,
+ #25353f,
+ #080f14
+ );
+
+ box-shadow:
+ inset 0 0 20px #000;
+
+}
+
+
+
+.eq-header {
+
+ display:flex;
+
+ justify-content:space-between;
+
+ align-items:center;
+
+ margin-bottom:10px;
+
+}
+
+
+.eq-title {
+
+ font-size:20px;
+
+ font-weight:900;
+
+}
+
+
+.eq-bar {
+
+ display:flex;
+
+ align-items:flex-end;
+
+ gap:8px;
+
+ overflow-x:auto;
+
+ padding:10px;
+
+
+}
+
+
+.eq-slider {
+
+ width:32px;
+
+ height:260px;
+
+ background:#0b1218;
+
+ border:1px solid #526773;
+
+ border-radius:5px;
+
+ display:flex;
+
+ justify-content:center;
+
+ position:relative;
+
+}
+
+
+.eq-slider input {
+
+ position:absolute;
+
+ width:240px;
+
+ transform:rotate(-90deg);
+
+ top:105px;
+
+}
+
+
+.eq-label {
+
+ position:absolute;
+
+ bottom:5px;
+
+ font-size:9px;
+
+ font-weight:900;
+
+ color:#fff;
+
+}
+
+
+
+@media(max-width:700px){
+
+.dsp-controls{
+
+grid-template-columns:
+1fr 1fr;
+
+}
+
+
+.eq-slider{
+
+height:220px;
+
+}
+
+}
