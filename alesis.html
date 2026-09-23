@@ -53,54 +53,80 @@
       </div>
     </section>
 
-    <!-- KONTROL EFEK ALESIS -->
-    <section class="audio-engine" style="margin-top: 15px;">
-      <div class="section-title">EFFECT PARAMETERS</div>
+<section class="dsp-rack">
 
-      <div class="engine-grid">
+<div class="dsp-title">
+🎛 ALESIS QUADRAVERB DIGITAL ECHO
+</div>
 
-        <!-- DELAY TIME -->
-        <div class="engine-box">
-          <div class="engine-label">DELAY TIME / SPEED</div>
-          <div style="margin: 15px 0;">
-            <input type="range" id="delayTime" min="50" max="1000" step="10" value="300" />
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 5px;">
-              <span>50 ms</span>
-              <strong id="delayTimeValue" style="color: var(--orange);">300 ms</strong>
-              <span>1000 ms</span>
-            </div>
-          </div>
-        </div>
+<div class="dsp-controls">
 
-        <!-- FEEDBACK -->
-        <div class="engine-box">
-          <div class="engine-label">FEEDBACK / REPEATS</div>
-          <div style="margin: 15px 0;">
-            <input type="range" id="delayFeedback" min="0" max="0.9" step="0.05" value="0.4" />
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 5px;">
-              <span>0%</span>
-              <strong id="feedbackValue" style="color: var(--orange);">40%</strong>
-              <span>90%</span>
-            </div>
-          </div>
-        </div>
 
-        <!-- MIX -->
-        <div class="engine-box">
-          <div class="engine-label">EFFECT MIX (WET / DRY)</div>
-          <div style="margin: 15px 0;">
-            <input type="range" id="effectMix" min="0" max="1" step="0.05" value="0.5" />
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 5px;">
-              <span>Dry (Asli)</span>
-              <strong id="mixValue" style="color: var(--orange);">50%</strong>
-              <span>Wet (Efek)</span>
-            </div>
-          </div>
-          <button class="hardware-button" id="bypassAlesis" style="width:100%; margin-top:10px;">BYPASS EFFECT</button>
-        </div>
+<div class="dsp-control">
+<label>DELAY TIME</label>
+<input type="range"
+id="delayTime"
+min="50"
+max="1000"
+value="300">
 
-      </div>
-    </section>
+<strong id="delayTimeValue">
+300 ms
+</strong>
+
+</div>
+
+
+<div class="dsp-control">
+<label>FEEDBACK</label>
+
+<input type="range"
+id="delayFeedback"
+min="0"
+max="90"
+value="40">
+
+<strong id="feedbackValue">
+40%
+</strong>
+
+</div>
+
+
+<div class="dsp-control">
+<label>WET / DRY</label>
+
+<input type="range"
+id="effectMix"
+min="0"
+max="100"
+value="50">
+
+<strong id="mixValue">
+50%
+</strong>
+
+</div>
+
+
+<div class="dsp-control">
+
+<label>MODE</label>
+
+<button
+class="hardware-button"
+id="bypassAlesis">
+
+BYPASS
+
+</button>
+
+</div>
+
+
+</div>
+
+</section>
 
     <!-- FOOTER -->
     <footer class="footer">
