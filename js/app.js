@@ -6,6 +6,7 @@ const pageContainer = document.getElementById("pageContainer");
 
 let equalizerPage = null;
 let echoPage = null;
+let mixerPage = null;
 
 /* =========================================================
    EQUALIZER PAGE
@@ -51,7 +52,7 @@ function renderEqualizerPage() {
 }
 
 /* =========================================================
-   ECHO ALESIS PAGE (DITAMBAHKAN AGAR TIDAK ERROR)
+   ECHO ALESIS PAGE
    ========================================================= */
 
 function renderEchoPage() {
@@ -119,18 +120,172 @@ function renderEcho() {
 }
 
 /* =========================================================
+   DIGITAL MIXER PAGE
+   ========================================================= */
+
+function renderMixerPage() {
+  const page = document.createElement("section");
+  page.className = "app-page";
+  page.id = "mixerPage";
+
+  page.innerHTML = `
+    <div class="mixer-console">
+      <div class="mixer-top-console">
+        <div class="mixer-tft-screen">
+          <div class="tft-header">
+            <span>M32/X32 DIGITAL CONSOLE INTERFACE</span>
+            <span style="color: #10b981;">● ONLINE LINKED</span>
+          </div>
+          <div class="tft-body">
+            <div class="rta-display-box" id="mixerRtaBars"></div>
+            <div class="mixer-screen-info">
+              <div><b>Scene:</b> Main Live FOH</div>
+              <div><b>DSP Load:</b> 14%</div>
+              <div><b>Sample Rate:</b> 48kHz</div>
+            </div>
+          </div>
+        </div>
+        <div class="mixer-control-section">
+          <div style="font-size: 10px; font-weight: bold; color: #38bdf8; margin-bottom: 4px;">SECTION SELECT</div>
+          <div class="section-grid-btns">
+            <button class="console-btn active">CONFIG</button>
+            <button class="console-btn">GATE</button>
+            <button class="console-btn">DYNAMICS</button>
+            <button class="console-btn">EQ</button>
+            <button class="console-btn">SENDS</button>
+            <button class="console-btn">MAIN</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mixer-desk-surface">
+        <!-- CH 1 -->
+        <div class="console-channel-strip">
+          <div class="strip-label-box">CH 1: MIC</div>
+          <div class="strip-knobs-area">
+            <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+            <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+          </div>
+          <div class="fader-readout">0.0 dB</div>
+          <div class="fader-panel-area">
+            <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+            <div class="vert-led-meter">
+              <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+            </div>
+          </div>
+          <div class="strip-action-buttons" style="margin-top:8px;">
+            <button class="console-action-btn mute">MUTE</button>
+            <button class="console-action-btn solo">SOLO</button>
+          </div>
+        </div>
+
+        <!-- CH 2 -->
+        <div class="console-channel-strip">
+          <div class="strip-label-box">CH 2: MUSIC</div>
+          <div class="strip-knobs-area">
+            <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+            <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+          </div>
+          <div class="fader-readout">0.0 dB</div>
+          <div class="fader-panel-area">
+            <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+            <div class="vert-led-meter">
+              <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+            </div>
+          </div>
+          <div class="strip-action-buttons" style="margin-top:8px;">
+            <button class="console-action-btn mute">MUTE</button>
+            <button class="console-action-btn solo">SOLO</button>
+          </div>
+        </div>
+
+        <!-- CH 3 -->
+        <div class="console-channel-strip">
+          <div class="strip-label-box">CH 3: AUX</div>
+          <div class="strip-knobs-area">
+            <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+            <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+          </div>
+          <div class="fader-readout">0.0 dB</div>
+          <div class="fader-panel-area">
+            <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+            <div class="vert-led-meter">
+              <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+            </div>
+          </div>
+          <div class="strip-action-buttons" style="margin-top:8px;">
+            <button class="console-action-btn mute">MUTE</button>
+            <button class="console-action-btn solo">SOLO</button>
+          </div>
+        </div>
+
+        <!-- CH 4 -->
+        <div class="console-channel-strip">
+          <div class="strip-label-box">CH 4: FX</div>
+          <div class="strip-knobs-area">
+            <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+            <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+          </div>
+          <div class="fader-readout">0.0 dB</div>
+          <div class="fader-panel-area">
+            <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+            <div class="vert-led-meter">
+              <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+            </div>
+          </div>
+          <div class="strip-action-buttons" style="margin-top:8px;">
+            <button class="console-action-btn mute">MUTE</button>
+            <button class="console-action-btn solo">SOLO</button>
+          </div>
+        </div>
+
+        <!-- MASTER L/R -->
+        <div class="console-channel-strip master-strip">
+          <div class="strip-label-box">MASTER L/R</div>
+          <div class="strip-knobs-area" style="border-color: #78350f;">
+            <div class="knob-row"><span>LIMIT</span><span>ON</span></div>
+            <div class="knob-row"><span>PROC</span><select><option>EQ+ECHO</option><option>BYPASS</option></select></div>
+          </div>
+          <div class="fader-readout">0.0 dB</div>
+          <div class="fader-panel-area">
+            <div class="fader-slot"><input type="range" min="-50" max="6" step="0.5" value="0"></div>
+            <div class="vert-led-meter">
+              <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+            </div>
+          </div>
+          <div class="strip-action-buttons" style="margin-top:8px;">
+            <button class="console-action-btn mute" style="background:#b45309; color:#fff;">MUTE</button>
+            <button class="console-action-btn active" style="background:#fbbf24; color:#000;">LR</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  pageContainer.appendChild(page);
+  mixerPage = page;
+  return page;
+}
+
+function renderMixer() {
+  renderMixerPage();
+}
+
+/* =========================================================
    SHOW PAGE
    ========================================================= */
 
 function showPage(pageName) {
   if (equalizerPage) {
-    equalizerPage.classList.toggle("hidden", pageName !== "equalizer");
     equalizerPage.style.display = pageName === "equalizer" ? "block" : "none";
   }
 
   if (echoPage) {
-    echoPage.classList.toggle("hidden", pageName !== "echo");
     echoPage.style.display = pageName === "echo" ? "block" : "none";
+  }
+
+  if (mixerPage) {
+    mixerPage.style.display = pageName === "mixer" ? "block" : "none";
   }
 
   document.querySelectorAll(".page-button").forEach(button => {
@@ -155,5 +310,6 @@ document.querySelectorAll(".page-button").forEach(button => {
 document.addEventListener("DOMContentLoaded", () => {
   renderEqualizerPage();
   renderEcho();
+  renderMixer();
   showPage("equalizer");
 });
