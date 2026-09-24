@@ -4,17 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#111827">
-  <meta name="description" content="GQX-3102 Equalizer & Echo Audio Processor Online + ESP32 BLE">
+  <meta name="description" content="GQX-3102 Equalizer, Echo & Digital Mixer Console + ESP32 BLE">
   <link rel="manifest" href="manifest.json">
 
-  <title>GQX-3102 Equalizer & Echo Online</title>
+  <title>GQX-3102 Equalizer & Digital Mixer Online</title>
   <style>
 /* =========================================================
    RESET & STYLING DASAR
 ========================================================= */
 * { box-sizing: border-box; }
 html, body { width: 100%; min-height: 100%; margin: 0; padding: 0; overflow-x: hidden; }
-body { font-family: Arial, Helvetica, sans-serif; background: #101216; color: #ffffff; -webkit-text-size-adjust: 100%; }
+body { font-family: Arial, Helvetica, sans-serif; background: #0c0f15; color: #ffffff; -webkit-text-size-adjust: 100%; }
 button, input, select { font: inherit; -webkit-tap-highlight-color: transparent; cursor: pointer; }
 
 .app { width: 100%; max-width: 100%; margin: 0 auto; padding: 10px; }
@@ -32,11 +32,11 @@ header, .topbar {
 .actions button:hover, .actions button.active { background: #00d9ff; color: #000; border-color: #00d9ff; }
 
 /* =========================================================
-   DUAL TAB NAVIGATION BAR
+   TIGA TAB NAVIGASI UTAMA
 ========================================================= */
 .mode-switch-bar {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -62,7 +62,7 @@ header, .topbar {
 .tab-content.active { display: block; }
 
 /* =========================================================
-   RACK & CHANNEL CONTAINER
+   RACK & CHANNEL CONTAINER (EQUALIZER)
 ========================================================= */
 .rack { background: #14181f; border: 1px solid #3a414b; border-radius: 8px; padding: 12px; }
 .rack-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #2a323d; padding-bottom: 8px; }
@@ -119,7 +119,6 @@ header, .topbar {
   z-index: 2;
 }
 
-/* Container Wrapper Fader agar area klik track berfungsi presisi */
 .slider-track-container {
   position: relative;
   height: 165px;
@@ -134,7 +133,7 @@ header, .topbar {
 .scale { display: flex; justify-content: space-between; font-size: 9px; color: #64748b; padding: 2px 4px; }
 
 /* =========================================================
-   TAMPILAN ECHO PROCESSOR PANEL
+   PANEL ECHO PROCESSOR
 ========================================================= */
 .echo-panel-box {
   background: #161a22;
@@ -149,49 +148,145 @@ header, .topbar {
   margin-bottom: 15px;
 }
 .echo-onoff-btn {
-  background: #252b35;
-  color: #fff;
-  border: 1px solid #485260;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 12px;
+  background: #252b35; color: #fff; border: 1px solid #485260; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px;
 }
 .echo-onoff-btn.active {
-  background: #10b981;
-  border-color: #34d399;
-  color: #000;
-  box-shadow: 0 0 8px #10b981;
+  background: #10b981; border-color: #34d399; color: #000; box-shadow: 0 0 8px #10b981;
+}
+.echo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.echo-control-card { background: #101216; border: 1px solid #2a323d; padding: 15px; border-radius: 6px; }
+.echo-control-card label { display: block; font-size: 11px; color: #38bdf8; margin-bottom: 6px; font-weight: bold; }
+.echo-control-card input[type="range"] { width: 100%; accent-color: #38bdf8; margin-bottom: 6px; }
+.echo-val { font-size: 11px; color: #f59e0b; font-family: monospace; text-align: right; }
+
+/* =========================================================
+   DIGITAL MIXER CONSOLE (Gaya Konsol Profesional Asli)
+========================================================= */
+.mixer-console {
+  background: #12161f;
+  border: 1px solid #3a414b;
+  border-radius: 8px;
+  padding: 15px;
+}
+.mixer-desk {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) 1.2fr;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+.mixer-strip {
+  background: #181d28;
+  border: 1px solid #2d3748;
+  border-radius: 6px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 110px;
+}
+.mixer-strip.master-strip {
+  background: #1e1710;
+  border-color: #d97706;
+}
+.strip-header {
+  font-size: 10px;
+  font-weight: bold;
+  color: #38bdf8;
+  margin-bottom: 8px;
+  text-align: center;
+  border-bottom: 1px solid #2a323d;
+  width: 100%;
+  padding-bottom: 4px;
+}
+.master-strip .strip-header {
+  color: #fbbf24;
+  border-color: #b45309;
+}
+.strip-knob-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  background: #10131b;
+  padding: 8px 4px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.strip-control-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  color: #94a3b8;
+}
+.strip-control-row select {
+  background: #1e293b;
+  color: #fff;
+  border: 1px solid #485260;
+  font-size: 9px;
+  padding: 2px;
+  border-radius: 3px;
 }
 
-.echo-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
+/* Fader Vertikal Panjang Khas Mixer Digital */
+.fader-track-box {
+  position: relative;
+  height: 200px;
+  width: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #090b10;
+  border: 1px solid #222938;
+  border-radius: 4px;
+  margin: 8px 0;
 }
-.echo-control-card {
-  background: #101216;
-  border: 1px solid #2a323d;
-  padding: 15px;
-  border-radius: 6px;
+.fader-track-box input[type="range"] {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 20px;
+  height: 185px;
+  accent-color: #00d9ff;
+  cursor: pointer;
 }
-.echo-control-card label {
-  display: block;
-  font-size: 11px;
-  color: #38bdf8;
-  margin-bottom: 6px;
-  font-weight: bold;
+.master-strip .fader-track-box input[type="range"] {
+  accent-color: #fbbf24;
 }
-.echo-control-card input[type="range"] {
-  width: 100%;
-  accent-color: #38bdf8;
-  margin-bottom: 6px;
-}
-.echo-val {
-  font-size: 11px;
-  color: #f59e0b;
+.fader-db-val {
+  font-size: 10px;
   font-family: monospace;
-  text-align: right;
+  color: #38bdf8;
+  margin-bottom: 8px;
+}
+.master-strip .fader-db-val {
+  color: #fbbf24;
+}
+.strip-buttons {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+.strip-btn {
+  flex: 1;
+  background: #252b35;
+  color: #cbd5e1;
+  border: 1px solid #485260;
+  padding: 6px 2px;
+  font-size: 9px;
+  font-weight: bold;
+  border-radius: 3px;
+  text-align: center;
+}
+.strip-btn.mute-btn.active {
+  background: #ef4444;
+  color: #fff;
+  border-color: #f87171;
+}
+.strip-btn.solo-btn.active {
+  background: #f59e0b;
+  color: #000;
+  border-color: #fbbf24;
 }
 
 /* Audio & Bluetooth Panel */
@@ -235,7 +330,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
     <header class="topbar">
       <div>
         <div class="brand">AUDIO PROCESSOR ONLINE</div>
-        <div class="subtitle">GQX-3102 Equalizer & Echo Controller + ESP32 BLE</div>
+        <div class="subtitle">GQX-3102 Equalizer, Echo & Digital Mixer Console + ESP32 BLE</div>
       </div>
       <div class="actions">
         <button id="saveButton">SAVE</button>
@@ -244,10 +339,11 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
       </div>
     </header>
 
-    <!-- DUA BAR TAB NAVIGASI UTAMA -->
+    <!-- TIGA TAB NAVIGASI UTAMA -->
     <nav class="mode-switch-bar">
       <button class="tab-btn active" id="tabEqBtn">🎛️ EQUALIZER</button>
       <button class="tab-btn" id="tabEchoBtn">🔊 ECHO PROCESSOR</button>
+      <button class="tab-btn" id="tabMixerBtn">🎚️ DIGITAL MIXER</button>
     </nav>
 
     <!-- KONTEN TAB 1: EQUALIZER -->
@@ -400,6 +496,106 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
       </div>
     </div>
 
+    <!-- KONTEN TAB 3: DIGITAL MIXER CONSOLE -->
+    <div class="tab-content" id="tabMixerContent">
+      <div class="mixer-console">
+        <div class="echo-header-row" style="margin-bottom: 12px;">
+          <div>
+            <h3 style="color: #00d9ff; margin:0 0 4px 0;">DIGITAL MIXER CONSOLE</h3>
+            <p style="font-size: 11px; color: #94a3b8; margin:0;">Tampilan fader konsol digital profesional dengan channel strip vertikal.</p>
+          </div>
+          <span style="font-size: 11px; color: #10b981; font-weight: bold; background: #1a2e26; padding: 4px 8px; border-radius: 4px; border: 1px solid #10b981;">ONLINE READY</span>
+        </div>
+
+        <div class="mixer-desk">
+          <!-- CH 1 -->
+          <div class="mixer-strip">
+            <div class="strip-header">CH 1: MIC</div>
+            <div class="strip-knob-section">
+              <div class="strip-control-row"><span>GAIN</span><span>0 dB</span></div>
+              <div class="strip-control-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            </div>
+            <div class="fader-db-val">0.0 dB</div>
+            <div class="fader-track-box">
+              <input type="range" min="-40" max="10" step="0.5" value="0">
+            </div>
+            <div class="strip-buttons">
+              <button class="strip-btn mute-btn">MUTE</button>
+              <button class="strip-btn solo-btn">SOLO</button>
+            </div>
+          </div>
+
+          <!-- CH 2 -->
+          <div class="mixer-strip">
+            <div class="strip-header">CH 2: MUSIC</div>
+            <div class="strip-knob-section">
+              <div class="strip-control-row"><span>GAIN</span><span>0 dB</span></div>
+              <div class="strip-control-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            </div>
+            <div class="fader-db-val">0.0 dB</div>
+            <div class="fader-track-box">
+              <input type="range" min="-40" max="10" step="0.5" value="0">
+            </div>
+            <div class="strip-buttons">
+              <button class="strip-btn mute-btn">MUTE</button>
+              <button class="strip-btn solo-btn">SOLO</button>
+            </div>
+          </div>
+
+          <!-- CH 3 -->
+          <div class="mixer-strip">
+            <div class="strip-header">CH 3: AUX</div>
+            <div class="strip-knob-section">
+              <div class="strip-control-row"><span>GAIN</span><span>0 dB</span></div>
+              <div class="strip-control-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            </div>
+            <div class="fader-db-val">0.0 dB</div>
+            <div class="fader-track-box">
+              <input type="range" min="-40" max="10" step="0.5" value="0">
+            </div>
+            <div class="strip-buttons">
+              <button class="strip-btn mute-btn">MUTE</button>
+              <button class="strip-btn solo-btn">SOLO</button>
+            </div>
+          </div>
+
+          <!-- CH 4 -->
+          <div class="mixer-strip">
+            <div class="strip-header">CH 4: FX</div>
+            <div class="strip-knob-section">
+              <div class="strip-control-row"><span>GAIN</span><span>0 dB</span></div>
+              <div class="strip-control-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            </div>
+            <div class="fader-db-val">0.0 dB</div>
+            <div class="fader-track-box">
+              <input type="range" min="-40" max="10" step="0.5" value="0">
+            </div>
+            <div class="strip-buttons">
+              <button class="strip-btn mute-btn">MUTE</button>
+              <button class="strip-btn solo-btn">SOLO</button>
+            </div>
+          </div>
+
+          <!-- MASTER L/R STRIP -->
+          <div class="mixer-strip master-strip">
+            <div class="strip-header">MASTER L/R</div>
+            <div class="strip-knob-section" style="border-color: #b45309;">
+              <div class="strip-control-row"><span>LIMIT</span><span>ON</span></div>
+              <div class="strip-control-row"><span>PROC</span><select><option>EQ+ECHO</option><option>BYPASS</option></select></div>
+            </div>
+            <div class="fader-db-val" style="color: #fbbf24;">0.0 dB</div>
+            <div class="fader-track-box">
+              <input type="range" min="-50" max="6" step="0.5" value="0">
+            </div>
+            <div class="strip-buttons">
+              <button class="strip-btn mute-btn" style="background:#b45309; color:#fff;">MUTE</button>
+              <button class="strip-btn active" style="background:#fbbf24; color:#000;">LR</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- PANEL AUDIO ENGINE & BLUETOOTH BERSAMA -->
     <section class="audio-panel">
       <h3>AUDIO ENGINE & BLUETOOTH ESP32</h3>
@@ -462,25 +658,40 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
 "use strict";
 
 /* =========================================================
-   NAVIGASI TAB (EQUALIZER VS ECHO)
+   NAVIGASI TIGA TAB (EQUALIZER, ECHO, DIGITAL MIXER)
 ========================================================= */
 const tabEqBtn = document.getElementById("tabEqBtn");
 const tabEchoBtn = document.getElementById("tabEchoBtn");
+const tabMixerBtn = document.getElementById("tabMixerBtn");
 const tabEqContent = document.getElementById("tabEqContent");
 const tabEchoContent = document.getElementById("tabEchoContent");
+const tabMixerContent = document.getElementById("tabMixerContent");
 
 tabEqBtn.addEventListener("click", () => {
   tabEqBtn.classList.add("active");
   tabEchoBtn.classList.remove("active");
+  tabMixerBtn.classList.remove("active");
   tabEqContent.classList.add("active");
   tabEchoContent.classList.remove("active");
+  tabMixerContent.classList.remove("active");
 });
 
 tabEchoBtn.addEventListener("click", () => {
   tabEchoBtn.classList.add("active");
   tabEqBtn.classList.remove("active");
+  tabMixerBtn.classList.remove("active");
   tabEchoContent.classList.add("active");
   tabEqContent.classList.remove("active");
+  tabMixerContent.classList.remove("active");
+});
+
+tabMixerBtn.addEventListener("click", () => {
+  tabMixerBtn.classList.add("active");
+  tabEqBtn.classList.remove("active");
+  tabEchoBtn.classList.remove("active");
+  tabMixerContent.classList.add("active");
+  tabEqContent.classList.remove("active");
+  tabEchoContent.classList.remove("active");
 });
 
 /* =========================================================
@@ -561,7 +772,6 @@ const channels = [...document.querySelectorAll(".channel")];
 
 function setStatus(msg) { const el = document.getElementById("status"); if (el) el.textContent = "Status: " + msg; }
 function setAudioStatus(msg) { const el = document.getElementById("audioStatus"); if (el) el.textContent = msg; }
-function setFeedbackStatus(msg) { const el = document.getElementById("feedbackStatus"); if (el) el.textContent = msg; }
 function formatFrequency(v) { return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 
 function createBands(channel) {
@@ -576,7 +786,6 @@ function createBands(channel) {
     frequencyLabel.className = "band-frequency";
     frequencyLabel.textContent = formatFrequency(frequency) + " Hz";
 
-    // Bungkus slider dengan kontainer track agar area kosong bisa diklik untuk naik/turun 1 tingkat
     const trackContainer = document.createElement("div");
     trackContainer.className = "slider-track-container";
 
@@ -597,13 +806,11 @@ function createBands(channel) {
       sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));
     });
 
-       // Fitur Klik Track Kosong: Naik / Turun 1 langkah (0.5 dB)
     band.addEventListener("click", (e) => {
       if (e.target === slider) return;
       const rect = band.getBoundingClientRect();
       const clickY = e.clientY - rect.top;
       
-      // Batasi area klik persis di sepanjang jalur track (antara 15px dari atas sampai 35px dari bawah)
       const trackTop = 15;
       const trackBottom = band.clientHeight - 35;
       
@@ -624,20 +831,15 @@ function createBands(channel) {
       }
 
       slider.value = String(newVal);
-      updateVisual(newVal);
+      value.textContent = Number(newVal).toFixed(1);
       syncAudioControlsFromUI();
       sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));
     });
-
 
     trackContainer.appendChild(slider);
     band.append(frequencyLabel, trackContainer, value);
     eq.appendChild(band);
   });
-}
-
-function updateMeter(channel) {
-  return;
 }
 
 /* =========================================================
@@ -668,7 +870,6 @@ const masterGainValue = document.getElementById("masterGainValue");
 const outputMode = document.getElementById("outputMode");
 const muteOutputButton = document.getElementById("muteOutputButton");
 
-// Kontrol Echo DOM
 const echoDelay = document.getElementById("echoDelay");
 const echoFeedback = document.getElementById("echoFeedback");
 const echoDamping = document.getElementById("echoDamping");
@@ -732,7 +933,6 @@ function buildEqualizerChannel(channelIndex) {
   const channel = channels[channelIndex];
   const gainControl = channel.querySelector(".gain");
   const hpfControl = channel.querySelector(".hpf");
-  const bypassButton = channel.querySelector(".bypass-button");
   const bandControls = [...channel.querySelectorAll(".band input[type='range']")];
 
   const inputGain = audioContext.createGain();
@@ -815,7 +1015,6 @@ function initializeAudioGraph() {
   outputMuteGainNode.gain.value = outputMuted ? 0 : 1;
 
   rebuildAudioRouting();
-
   outputMuteGainNode.connect(audioContext.destination);
 
   audioGraphReady = true;
@@ -1182,6 +1381,13 @@ document.getElementById("resetButton").addEventListener("click", () => {
 masterGainControl.addEventListener("input", updateMasterGain);
 outputMode.addEventListener("change", updateMasterGain);
 muteOutputButton.addEventListener("click", () => { outputMuted = !outputMuted; updateOutputMute(); });
+
+/* Script interaksi tombol Mute & Solo pada Digital Mixer */
+document.querySelectorAll(".strip-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    btn.classList.toggle("active");
+  });
+});
 
 refreshInputDevices();
   </script>
