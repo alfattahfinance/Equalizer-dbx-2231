@@ -58,7 +58,6 @@ header, .topbar {
   box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
 }
 
-/* Tampilan Konten Tab */
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
@@ -121,11 +120,32 @@ header, .topbar {
   border-radius: 8px;
   padding: 20px;
 }
+.echo-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.echo-onoff-btn {
+  background: #252b35;
+  color: #fff;
+  border: 1px solid #485260;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 12px;
+}
+.echo-onoff-btn.active {
+  background: #10b981;
+  border-color: #34d399;
+  color: #000;
+  box-shadow: 0 0 8px #10b981;
+}
+
 .echo-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px;
-  margin-top: 15px;
 }
 .echo-control-card {
   background: #101216;
@@ -322,8 +342,13 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
     <!-- KONTEN TAB 2: ECHO PROCESSOR -->
     <div class="tab-content" id="tabEchoContent">
       <div class="echo-panel-box">
-        <h3 style="color: #38bdf8; margin-top:0;">DIGITAL ECHO & REVERB PROCESSOR</h3>
-        <p style="font-size: 11px; color: #94a3b8;">Atur parameter pantulan suara, delay, dan pengulangan echo secara real-time.</p>
+        <div class="echo-header-row">
+          <div>
+            <h3 style="color: #38bdf8; margin:0 0 4px 0;">DIGITAL ECHO & REVERB PROCESSOR</h3>
+            <p style="font-size: 11px; color: #94a3b8; margin:0;">Atur parameter efek pantulan suara yang terhubung langsung ke output EQ.</p>
+          </div>
+          <button class="echo-onoff-btn" id="echoToggleBtn">ECHO: OFF</button>
+        </div>
         
         <div class="echo-grid">
           <div class="echo-control-card">
@@ -576,12 +601,13 @@ function updateMeter(channel) {
 }
 
 /* =========================================================
-   AUDIO ENGINE & ECHO WEB AUDIO API NODES
+   AUDIO ENGINE & ECHO WEB AUDIO API ROUTING
 ========================================================= */
 let audioContext = null, microphoneStream = null, activeSource = null, microphoneSource = null, audioElementSource = null;
 let splitterNode = null, mergerNode = null, masterGainNode = null, outputMuteGainNode = null;
 let delayNode = null, feedbackGainNode = null, filterNode = null, echoWetNode = null, echoDryNode = null;
 
+let isEchoEnabled = false;
 let selectedInputDeviceId = "", audioGraphReady = false, selectedAudioUrl = null, meterAnimationId = null, outputMuted = false;
 
 const audioChannels = [
@@ -607,6 +633,7 @@ const echoDelay = document.getElementById("echoDelay");
 const echoFeedback = document.getElementById("echoFeedback");
 const echoDamping = document.getElementById("echoDamping");
 const echoMix = document.getElementById("echoMix");
+const echoToggleBtn = document.getElementById("echoToggleBtn");
 
 function createAudioContext() {
   if (!audioContext) {
@@ -741,7 +768,7 @@ function initializeAudioGraph() {
   echoDryNode = audioContext.createGain();
   echoDryNode.gain.value = 1.0 - Number(echoMix.value);
 
-  // Rantai Echo Feedback Loop
+  // Rantai Feedback Echo Loop
   delayNode.connect(filterNode);
   filterNode.connect(feedbackGainNode);
   feedbackGainNode.connect(delayNode);
@@ -749,11 +776,9 @@ function initializeAudioGraph() {
   masterGainNode.gain.value = dbToGain(getSafeMasterGainDb());
   outputMuteGainNode.gain.value = outputMuted ? 0 : 1;
 
-  audioChannels[0].analyser.connect(mergerNode, 0, 0);
-  audioChannels[1].analyser.connect(mergerNode, 0, 1);
+  // Hubungkan output EQ (mergerNode) secara dinamis sesuai status Echo ON/OFF
+  rebuildAudioRouting();
 
-  mergerNode.connect(masterGainNode);
-  masterGainNode.connect(outputMuteGainNode);
   outputMuteGainNode.connect(audioContext.destination);
 
   audioGraphReady = true;
@@ -762,7 +787,50 @@ function initializeAudioGraph() {
   startRealMeters();
 }
 
-// Event Listener Kontrol Echo
+/* =========================================================
+   ROUTING DINAMIS: EQ -> ECHO (JIKA ON) -> MASTER
+========================================================= */
+function rebuildAudioRouting() {
+  if (!audioGraphReady) return;
+
+  // Putus koneksi lama untuk mencegah tumpang tindih
+  try { mergerNode.disconnect(); } catch (e) {}
+  try { delayNode.disconnect(echoWetNode); } catch (e) {}
+  try { mergerNode.disconnect(echoDryNode); } catch (e) {}
+  try { echoWetNode.disconnect(masterGainNode); } catch (e) {}
+  try { echoDryNode.disconnect(masterGainNode); } catch (e) {}
+
+  if (isEchoEnabled) {
+    // Jalur Sinyal LEWAT ECHO (Wet + Dry)
+    mergerNode.connect(echoDryNode);
+    echoDryNode.connect(masterGainNode);
+
+    mergerNode.connect(delayNode);
+    delayNode.connect(echoWetNode);
+    echoWetNode.connect(masterGainNode);
+  } else {
+    // Jalur Sinyal LANGSUNG KE MASTER (Echo Bypass/Off)
+    mergerNode.connect(masterGainNode);
+  }
+}
+
+// Tombol ON / OFF Echo
+echoToggleBtn.addEventListener("click", () => {
+  isEchoEnabled = !isEchoEnabled;
+  if (isEchoEnabled) {
+    echoToggleBtn.textContent = "ECHO: ON";
+    echoToggleBtn.classList.add("active");
+    setStatus("Efek Echo diaktifkan.");
+  } else {
+    echoToggleBtn.textContent = "ECHO: OFF";
+    echoToggleBtn.classList.remove("active");
+    setStatus("Efek Echo dimatikan.");
+  }
+  rebuildAudioRouting();
+  sendDataToESP32(JSON.stringify({ type: "echo_status", state: isEchoEnabled ? "ON" : "OFF" }));
+});
+
+// Event Listener Kontrol Parameter Echo
 echoDelay.addEventListener("input", () => {
   document.getElementById("echoDelayVal").textContent = Number(echoDelay.value).toFixed(2) + " detik";
   if (delayNode && audioContext) delayNode.delayTime.setTargetAtTime(Number(echoDelay.value), audioContext.currentTime, 0.01);
