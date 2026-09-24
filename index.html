@@ -105,9 +105,31 @@ header, .topbar {
 
 .eq-section { width: 100%; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
 .eq { display: grid; grid-template-columns: repeat(31, 38px); gap: 4px; min-width: max-content; }
-.band { background: #101216; border: 1px solid #2a323d; border-radius: 4px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; height: 230px; }
+.band { background: #101216; border: 1px solid #2a323d; border-radius: 4px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; height: 230px; position: relative; }
 .band-frequency { font-size: 8px; color: #94a3b8; margin-bottom: 4px; text-align: center; }
-.band input[type="range"] { writing-mode: vertical-lr; direction: rtl; width: 16px; height: 165px; accent-color: #38bdf8; cursor: pointer; }
+
+.band input[type="range"] {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 16px;
+  height: 165px;
+  accent-color: #38bdf8;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+/* Container Wrapper Fader agar area klik track berfungsi presisi */
+.slider-track-container {
+  position: relative;
+  height: 165px;
+  width: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
 .band-value { font-size: 8px; color: #38bdf8; margin-top: 4px; font-family: monospace; text-align: center; }
 .scale { display: flex; justify-content: space-between; font-size: 9px; color: #64748b; padding: 2px 4px; }
 
@@ -554,6 +576,10 @@ function createBands(channel) {
     frequencyLabel.className = "band-frequency";
     frequencyLabel.textContent = formatFrequency(frequency) + " Hz";
 
+    // Bungkus slider dengan kontainer track agar area kosong bisa diklik untuk naik/turun 1 tingkat
+    const trackContainer = document.createElement("div");
+    trackContainer.className = "slider-track-container";
+
     const slider = document.createElement("input");
     slider.type = "range";
     slider.min = "-15";
@@ -568,36 +594,51 @@ function createBands(channel) {
     slider.addEventListener("input", () => {
       value.textContent = Number(slider.value).toFixed(1);
       syncAudioControlsFromUI();
-      updateMeter(channel);
       sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));
     });
 
-    band.append(frequencyLabel, slider, value);
+    // Fitur Klik Track Kosong: Naik / Turun 1 langkah (step = 0.5)
+    trackContainer.addEventListener("click", (e) => {
+      // Jika yang disentuh pas di atas jempol slider, abaikan agar tidak dobel event
+      if (e.target === slider) return;
+
+      const rect = trackContainer.getBoundingClientRect();
+      const clickY = e.clientY - rect.top; // Posisi klik dari atas (0 di atas / +15dB, bawah di 165px / -15dB)
+      const trackHeight = rect.height;
+      
+      // Hitung persentase posisi klik dari atas (0.0 di atas, 1.0 di bawah)
+      const ratio = Math.max(0, Math.min(1, clickY / trackHeight));
+      
+      // Karena arah fader vertikal dibalik (rtl dengan min=-15, max=15):
+      // Atas = +15, Bawah = -15
+      const currentVal = parseFloat(slider.value);
+      const step = parseFloat(slider.step) || 0.5;
+
+      // Jika klik di atas posisi jempol saat ini -> Naik 1 step. Jika di bawah -> Turun 1 step.
+      // Posisi rasio 0.0 setara dengan max (+15), rasio 1.0 setara dengan min (-15)
+      const clickedVal = 15 - (ratio * 30);
+
+      let newVal = currentVal;
+      if (clickedVal > currentVal) {
+        newVal = Math.min(parseFloat(slider.max), currentVal + step);
+      } else {
+        newVal = Math.max(parseFloat(slider.min), currentVal - step);
+      }
+
+      slider.value = String(newVal);
+      value.textContent = newVal.toFixed(1);
+      syncAudioControlsFromUI();
+      sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));
+    });
+
+    trackContainer.appendChild(slider);
+    band.append(frequencyLabel, trackContainer, value);
     eq.appendChild(band);
   });
 }
 
 function updateMeter(channel) {
-  const meter = channel.querySelector(".meter");
-  const clip = channel.querySelector(".clip");
-  if (!meter || !clip) return;
-
-  const sliders = [...channel.querySelectorAll(".band input")];
-  const gainControl = channel.querySelector(".gain");
-  const gain = gainControl ? Number(gainControl.value) : 0;
-  const maximum = sliders.length ? Math.max(...sliders.map(s => Math.abs(Number(s.value)))) : 0;
-  const level = Math.min(12, Math.max(1, Math.round(((maximum + Math.abs(gain)) / 30) * 12)));
-
-  meter.innerHTML = "";
-  for (let index = 0; index < 12; index++) {
-    const segment = document.createElement("span");
-    if (index >= 9) segment.classList.add("red");
-    else if (index >= 7) segment.classList.add("yellow");
-    else segment.classList.add("green");
-    if (index < level) segment.classList.add("on");
-    meter.appendChild(segment);
-  }
-  clip.classList.toggle("on", level >= 12);
+  return;
 }
 
 /* =========================================================
@@ -751,7 +792,6 @@ function initializeAudioGraph() {
   masterGainNode = audioContext.createGain();
   outputMuteGainNode = audioContext.createGain();
 
-  // Inisialisasi Node Echo & Delay
   delayNode = audioContext.createDelay(2.0);
   delayNode.delayTime.value = Number(echoDelay.value);
 
@@ -768,7 +808,6 @@ function initializeAudioGraph() {
   echoDryNode = audioContext.createGain();
   echoDryNode.gain.value = 1.0 - Number(echoMix.value);
 
-  // Rantai Feedback Echo Loop
   delayNode.connect(filterNode);
   filterNode.connect(feedbackGainNode);
   feedbackGainNode.connect(delayNode);
@@ -776,7 +815,6 @@ function initializeAudioGraph() {
   masterGainNode.gain.value = dbToGain(getSafeMasterGainDb());
   outputMuteGainNode.gain.value = outputMuted ? 0 : 1;
 
-  // Hubungkan output EQ (mergerNode) secara dinamis sesuai status Echo ON/OFF
   rebuildAudioRouting();
 
   outputMuteGainNode.connect(audioContext.destination);
@@ -787,13 +825,9 @@ function initializeAudioGraph() {
   startRealMeters();
 }
 
-/* =========================================================
-   ROUTING DINAMIS: EQ -> ECHO (JIKA ON) -> MASTER
-========================================================= */
 function rebuildAudioRouting() {
   if (!audioGraphReady) return;
 
-  // Putus koneksi lama untuk mencegah tumpang tindih
   try { mergerNode.disconnect(); } catch (e) {}
   try { delayNode.disconnect(echoWetNode); } catch (e) {}
   try { mergerNode.disconnect(echoDryNode); } catch (e) {}
@@ -801,7 +835,6 @@ function rebuildAudioRouting() {
   try { echoDryNode.disconnect(masterGainNode); } catch (e) {}
 
   if (isEchoEnabled) {
-    // Jalur Sinyal LEWAT ECHO (Wet + Dry)
     mergerNode.connect(echoDryNode);
     echoDryNode.connect(masterGainNode);
 
@@ -809,12 +842,10 @@ function rebuildAudioRouting() {
     delayNode.connect(echoWetNode);
     echoWetNode.connect(masterGainNode);
   } else {
-    // Jalur Sinyal LANGSUNG KE MASTER (Echo Bypass/Off)
     mergerNode.connect(masterGainNode);
   }
 }
 
-// Tombol ON / OFF Echo
 echoToggleBtn.addEventListener("click", () => {
   isEchoEnabled = !isEchoEnabled;
   if (isEchoEnabled) {
@@ -830,7 +861,6 @@ echoToggleBtn.addEventListener("click", () => {
   sendDataToESP32(JSON.stringify({ type: "echo_status", state: isEchoEnabled ? "ON" : "OFF" }));
 });
 
-// Event Listener Kontrol Parameter Echo
 echoDelay.addEventListener("input", () => {
   document.getElementById("echoDelayVal").textContent = Number(echoDelay.value).toFixed(2) + " detik";
   if (delayNode && audioContext) delayNode.delayTime.setTargetAtTime(Number(echoDelay.value), audioContext.currentTime, 0.01);
@@ -929,42 +959,27 @@ stopAudioButton.addEventListener("click", () => {
   setAudioStatus("Audio dihentikan.");
 });
 
-/* =========================================================
-   METER LED HIDUP HANYA JIKA ADA INPUT/OUTPUT AUDIO NYATA
-========================================================= */
-
 function startRealMeters() {
-  if (meterAnimationId) {
-    return;
-  }
-
-  const meterBuffers = [
-    new Uint8Array(1024),
-    new Uint8Array(1024)
-  ];
-
+  if (meterAnimationId) return;
+  const meterBuffers = [new Uint8Array(1024), new Uint8Array(1024)];
+  
   function updateRealMeters() {
     meterAnimationId = requestAnimationFrame(updateRealMeters);
-
+    
     audioChannels.forEach((audioChannel, index) => {
       const channel = channels[index];
-
-      if (!audioChannel.analyser) {
-        return;
-      }
+      if (!audioChannel.analyser) return;
 
       const meter = channel.querySelector(".meter");
       const clip = channel.querySelector(".clip");
       const buffer = meterBuffers[index];
 
-      // Ambil data gelombang audio real-time dari jalur Web Audio API
       audioChannel.analyser.getByteTimeDomainData(buffer);
 
       let sum = 0;
       let peak = 0;
 
       for (let i = 0; i < buffer.length; i++) {
-        // Normalisasi data dari 0-255 ke rentang -1 sampai 1 (titik tengah 128 adalah hening)
         const sample = (buffer[i] - 128) / 128;
         sum += sample * sample;
         if (Math.abs(sample) > peak) {
@@ -972,11 +987,9 @@ function startRealMeters() {
         }
       }
 
-      // Hitung nilai RMS untuk mendeteksi energi suara yang valid
       const rms = Math.sqrt(sum / buffer.length);
 
-      // Jika keheningan total (tidak ada suara masuk/output), paksa meter mati (0 bar)
-      if (rms < 0.002 || !audioRunning) {
+      if (rms < 0.002) {
         meter.innerHTML = "";
         for (let s = 0; s < 12; s++) {
           const seg = document.createElement("span");
@@ -989,44 +1002,23 @@ function startRealMeters() {
         return;
       }
 
-      // Konversi nilai RMS ke desibel (dB)
       const db = 20 * Math.log10(rms);
-      
-      // Petakan skala dB (-60 dB sampai 0 dB) ke jumlah segmen LED (0 sampai 12)
-      const level = Math.max(
-        0,
-        Math.min(
-          12,
-          Math.round(((db + 60) / 60) * 12)
-        )
-      );
+      const level = Math.max(0, Math.min(12, Math.round(((db + 60) / 60) * 12)));
 
       meter.innerHTML = "";
-
       for (let segmentIndex = 0; segmentIndex < 12; segmentIndex++) {
         const segment = document.createElement("span");
+        if (segmentIndex >= 9) segment.classList.add("red");
+        else if (segmentIndex >= 7) segment.classList.add("yellow");
+        else segment.classList.add("green");
 
-        if (segmentIndex >= 9) {
-          segment.classList.add("red");
-        } else if (segmentIndex >= 7) {
-          segment.classList.add("yellow");
-        } else {
-          segment.classList.add("green");
-        }
-
-        // Nyalakan LED sesuai tinggi level suara yang masuk
-        if (segmentIndex < level) {
-          segment.classList.add("on");
-        }
-
+        if (segmentIndex < level) segment.classList.add("on");
         meter.appendChild(segment);
       }
 
-      // Indikator CLIP menyala merah jika suara mencapai batas maksimal/distorsi (> 98%)
       clip.classList.toggle("on", peak >= 0.98);
     });
   }
-
   updateRealMeters();
 }
 
@@ -1061,7 +1053,6 @@ function updateValues(channel) {
     const v = b.querySelector(".band-value");
     if (s && v) v.textContent = Number(s.value).toFixed(1);
   });
-  updateMeter(channel);
   syncAudioControlsFromUI();
 }
 
@@ -1091,6 +1082,8 @@ function setPreset(type) {
         if (index >= 12 && index <= 18) val = -1;
       }
       slider.value = String(val);
+      const valDisplay = slider.closest(".band").querySelector(".band-value");
+      if (valDisplay) valDisplay.textContent = Number(slider.value).toFixed(1);
     });
     updateValues(channel);
   });
@@ -1120,7 +1113,11 @@ channels.forEach((channel, idx) => {
     testBtn.classList.toggle("active");
     const testing = testBtn.classList.contains("active");
     channel.querySelector(".gain").value = testing ? "6" : "0";
-    channel.querySelectorAll(".band input").forEach(s => s.value = testing ? "2" : "0");
+    channel.querySelectorAll(".band input").forEach(s => {
+      s.value = testing ? "2" : "0";
+      const valDisplay = s.closest(".band").querySelector(".band-value");
+      if (valDisplay) valDisplay.textContent = Number(s.value).toFixed(1);
+    });
     updateValues(channel);
   });
   updateValues(channel);
@@ -1154,7 +1151,11 @@ document.getElementById("loadButton").addEventListener("click", () => {
       channel.querySelector(".hpf").value = item.hpf ?? "off";
       channel.querySelector(".range").value = item.range ?? "15";
       setRange(channel, item.range ?? "15");
-      channel.querySelectorAll(".band input").forEach((s, bIdx) => { s.value = item.bands?.[bIdx] ?? "0"; });
+      channel.querySelectorAll(".band input").forEach((s, bIdx) => {
+        s.value = item.bands?.[bIdx] ?? "0";
+        const valDisplay = s.closest(".band").querySelector(".band-value");
+        if (valDisplay) valDisplay.textContent = Number(s.value).toFixed(1);
+      });
       updateValues(channel);
     });
     setStatus("Setting dipanggil kembali.");
@@ -1167,7 +1168,11 @@ document.getElementById("resetButton").addEventListener("click", () => {
     channel.querySelector(".hpf").value = "off";
     channel.querySelector(".range").value = "15";
     setRange(channel, "15");
-    channel.querySelectorAll(".band input").forEach(s => s.value = "0");
+    channel.querySelectorAll(".band input").forEach(s => {
+      s.value = "0";
+      const valDisplay = s.closest(".band").querySelector(".band-value");
+      if (valDisplay) valDisplay.textContent = "0.0";
+    });
     channel.querySelector(".bypass-button").classList.remove("active");
     document.getElementById(`ch${idx}_active_led`).classList.add("active-led");
     updateValues(channel);
