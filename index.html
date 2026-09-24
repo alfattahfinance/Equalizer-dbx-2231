@@ -929,37 +929,104 @@ stopAudioButton.addEventListener("click", () => {
   setAudioStatus("Audio dihentikan.");
 });
 
+/* =========================================================
+   METER LED HIDUP HANYA JIKA ADA INPUT/OUTPUT AUDIO NYATA
+========================================================= */
+
 function startRealMeters() {
-  if (meterAnimationId) return;
-  const meterBuffers = [new Uint8Array(1024), new Uint8Array(1024)];
+  if (meterAnimationId) {
+    return;
+  }
+
+  const meterBuffers = [
+    new Uint8Array(1024),
+    new Uint8Array(1024)
+  ];
+
   function updateRealMeters() {
     meterAnimationId = requestAnimationFrame(updateRealMeters);
+
     audioChannels.forEach((audioChannel, index) => {
       const channel = channels[index];
-      if (!audioChannel.analyser) return;
+
+      if (!audioChannel.analyser) {
+        return;
+      }
+
       const meter = channel.querySelector(".meter");
       const clip = channel.querySelector(".clip");
       const buffer = meterBuffers[index];
+
+      // Ambil data gelombang audio real-time dari jalur Web Audio API
       audioChannel.analyser.getByteTimeDomainData(buffer);
+
+      let sum = 0;
       let peak = 0;
+
       for (let i = 0; i < buffer.length; i++) {
-        let norm = Math.abs(buffer[i] - 128) / 128;
-        if (norm > peak) peak = norm;
+        // Normalisasi data dari 0-255 ke rentang -1 sampai 1 (titik tengah 128 adalah hening)
+        const sample = (buffer[i] - 128) / 128;
+        sum += sample * sample;
+        if (Math.abs(sample) > peak) {
+          peak = Math.abs(sample);
+        }
       }
-      const db = peak > 0 ? 20 * Math.log10(peak) : -60;
-      const level = Math.max(0, Math.min(12, Math.round(((db + 60) / 60) * 12)));
+
+      // Hitung nilai RMS untuk mendeteksi energi suara yang valid
+      const rms = Math.sqrt(sum / buffer.length);
+
+      // Jika keheningan total (tidak ada suara masuk/output), paksa meter mati (0 bar)
+      if (rms < 0.002 || !audioRunning) {
+        meter.innerHTML = "";
+        for (let s = 0; s < 12; s++) {
+          const seg = document.createElement("span");
+          if (s >= 9) seg.classList.add("red");
+          else if (s >= 7) seg.classList.add("yellow");
+          else seg.classList.add("green");
+          meter.appendChild(seg);
+        }
+        clip.classList.remove("on");
+        return;
+      }
+
+      // Konversi nilai RMS ke desibel (dB)
+      const db = 20 * Math.log10(rms);
+      
+      // Petakan skala dB (-60 dB sampai 0 dB) ke jumlah segmen LED (0 sampai 12)
+      const level = Math.max(
+        0,
+        Math.min(
+          12,
+          Math.round(((db + 60) / 60) * 12)
+        )
+      );
+
       meter.innerHTML = "";
-      for (let s = 0; s < 12; s++) {
-        const seg = document.createElement("span");
-        if (s >= 9) seg.classList.add("red");
-        else if (s >= 7) seg.classList.add("yellow");
-        else seg.classList.add("green");
-        if (s < level) seg.classList.add("on");
-        meter.appendChild(seg);
+
+      for (let segmentIndex = 0; segmentIndex < 12; segmentIndex++) {
+        const segment = document.createElement("span");
+
+        if (segmentIndex >= 9) {
+          segment.classList.add("red");
+        } else if (segmentIndex >= 7) {
+          segment.classList.add("yellow");
+        } else {
+          segment.classList.add("green");
+        }
+
+        // Nyalakan LED sesuai tinggi level suara yang masuk
+        if (segmentIndex < level) {
+          segment.classList.add("on");
+        }
+
+        meter.appendChild(segment);
       }
+
+      // Indikator CLIP menyala merah jika suara mencapai batas maksimal/distorsi (> 98%)
       clip.classList.toggle("on", peak >= 0.98);
     });
   }
+
   updateRealMeters();
 }
 
