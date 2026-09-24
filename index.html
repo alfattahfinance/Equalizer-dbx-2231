@@ -160,161 +160,273 @@ header, .topbar {
 .echo-val { font-size: 11px; color: #f59e0b; font-family: monospace; text-align: right; }
 
 /* =========================================================
-   DIGITAL MIXER CONSOLE (Gaya Konsol Profesional Asli)
+   DIGITAL MIXER CONSOLE - PROFESSIONAL LAYOUT (MIDAS/X32 STYLE)
 ========================================================= */
 .mixer-console {
-  background: #0f131a;
-  border: 1px solid #2a3441;
-  border-radius: 10px;
-  padding: 15px;
-}
-.mixer-top-screen {
-  background: #080a0e;
-  border: 1px solid #1e293b;
-  border-radius: 6px;
-  padding: 10px 15px;
-  margin-bottom: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.mixer-desk {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(90px, 1fr)) 1.2fr;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-}
-.mixer-strip {
-  background: #171d28;
-  border: 1px solid #2a3441;
-  border-radius: 6px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.mixer-strip.master-strip {
-  background: #1a140f;
-  border-color: #b45309;
-}
-.strip-header {
-  font-size: 10px;
-  font-weight: bold;
-  color: #38bdf8;
-  margin-bottom: 6px;
-  text-align: center;
-  border-bottom: 1px solid #252e3d;
-  width: 100%;
-  padding-bottom: 4px;
-}
-.master-strip .strip-header {
-  color: #fbbf24;
-  border-color: #78350f;
-}
-.strip-controls-block {
-  width: 100%;
-  background: #0f131a;
-  border: 1px solid #222a36;
-  border-radius: 4px;
-  padding: 6px;
-  margin-bottom: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.strip-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 8px;
-  color: #94a3b8;
-}
-.strip-row select {
-  background: #1e293b;
-  color: #fff;
-  border: 1px solid #485260;
-  font-size: 8px;
-  padding: 1px;
-  border-radius: 2px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
 }
 
-/* Area Fader & LED Meter Vertikal di Samping Fader */
-.fader-section {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 6px 0;
+.mixer-top-console {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+  background: #040609;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
 }
-.vertical-led-meter {
+
+/* Layar TFT Digital */
+.mixer-tft-screen {
+  background: #080c14;
+  border: 2px solid #1f2937;
+  border-radius: 6px;
+  padding: 10px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.9);
+}
+
+.tft-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1e293b;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+.tft-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  height: 90px;
+}
+
+.rta-display-box {
+  background: #020408;
+  border: 1px solid #111827;
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 4px;
+}
+
+.mixer-screen-info {
+  background: #020408;
+  border: 1px solid #111827;
+  border-radius: 4px;
+  padding: 6px;
+  font-size: 10px;
+  color: #94a3b8;
   display: flex;
   flex-direction: column;
-  gap: 1.5px;
-  width: 6px;
-  height: 180px;
-  background: #080a0e;
-  border: 1px solid #1e293b;
-  padding: 2px 1px;
-  border-radius: 2px;
+  justify-content: space-around;
 }
-.vertical-led-meter span {
+
+/* Bagian Tombol Kanan Layar (Section Control) */
+.mixer-control-section {
+  background: #11161d;
+  border: 1px solid #21262d;
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.section-grid-btns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.console-btn {
+  background: #1f2937;
+  color: #cbd5e1;
+  border: 1px solid #374151;
+  font-size: 9px;
+  font-weight: bold;
+  padding: 6px 2px;
+  border-radius: 3px;
+  text-align: center;
+}
+
+.console-btn.active {
+  background: #0284c7;
+  color: #fff;
+  border-color: #38bdf8;
+}
+
+/* Channel Strip Konsol Fisik */
+.mixer-desk-surface {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) 1.25fr;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.console-channel-strip {
+  background: linear-gradient(180deg, #161b22, #0d1117);
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.console-channel-strip.master-strip {
+  background: linear-gradient(180deg, #221a10, #110c05);
+  border-color: #d97706;
+}
+
+.strip-label-box {
+  background: #0b0f15;
+  border: 1px solid #21262d;
+  border-radius: 4px;
+  width: 100%;
+  padding: 5px;
+  text-align: center;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+}
+
+.master-strip .strip-label-box {
+  color: #fbbf24;
+  border-color: #78350f;
+  background: #140d04;
+}
+
+.strip-knobs-area {
+  width: 100%;
+  background: #080c10;
+  border: 1px solid #1f2937;
+  border-radius: 4px;
+  padding: 6px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.knob-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  color: #94a3b8;
+}
+
+.knob-row select {
+  background: #111827;
+  color: #fff;
+  border: 1px solid #374151;
+  font-size: 9px;
+  padding: 2px;
+  border-radius: 3px;
+}
+
+/* Fader & Meter Konsol */
+.fader-panel-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.vert-led-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 8px;
+  height: 190px;
+  background: #020408;
+  border: 1px solid #1f2937;
+  padding: 3px 1px;
+  border-radius: 3px;
+}
+
+.vert-led-meter span {
   flex: 1;
   background: #111827;
   border-radius: 1px;
 }
-.vertical-led-meter span.green.on { background: #10b981; box-shadow: 0 0 3px #10b981; }
-.vertical-led-meter span.yellow.on { background: #f59e0b; box-shadow: 0 0 3px #f59e0b; }
-.vertical-led-meter span.red.on { background: #ef4444; box-shadow: 0 0 3px #ef4444; }
 
-.fader-track-box {
+.vert-led-meter span.green.on { background: #10b981; box-shadow: 0 0 4px #10b981; }
+.vert-led-meter span.yellow.on { background: #f59e0b; box-shadow: 0 0 4px #f59e0b; }
+.vert-led-meter span.red.on { background: #ef4444; box-shadow: 0 0 4px #ef4444; }
+
+.fader-slot {
   position: relative;
-  height: 180px;
-  width: 26px;
+  height: 190px;
+  width: 28px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #080a0e;
-  border: 1px solid #222a36;
+  background: #05070a;
+  border: 1px solid #1f2937;
   border-radius: 4px;
 }
-.fader-track-box input[type="range"] {
+
+.fader-slot input[type="range"] {
   writing-mode: vertical-lr;
   direction: rtl;
-  width: 16px;
-  height: 165px;
-  accent-color: #00d9ff;
+  width: 18px;
+  height: 175px;
+  accent-color: #38bdf8;
   cursor: pointer;
 }
-.master-strip .fader-track-box input[type="range"] {
+
+.master-strip .fader-slot input[type="range"] {
   accent-color: #fbbf24;
 }
-.fader-db-display {
-  font-size: 9px;
+
+.fader-readout {
+  font-size: 10px;
   font-family: monospace;
   color: #38bdf8;
   margin-bottom: 6px;
+  font-weight: bold;
 }
-.master-strip .fader-db-display {
+
+.master-strip .fader-readout {
   color: #fbbf24;
 }
-.strip-buttons {
+
+.strip-action-buttons {
   display: flex;
-  gap: 3px;
+  gap: 4px;
   width: 100%;
 }
-.strip-btn {
+
+.console-action-btn {
   flex: 1;
-  background: #252b35;
+  background: #21262d;
   color: #cbd5e1;
-  border: 1px solid #485260;
-  padding: 5px 2px;
-  font-size: 8px;
+  border: 1px solid #374151;
+  padding: 6px 2px;
+  font-size: 9px;
   font-weight: bold;
   border-radius: 3px;
   text-align: center;
 }
-.strip-btn.mute-btn.active { background: #ef4444; color: #fff; border-color: #f87171; }
-.strip-btn.solo-btn.active { background: #f59e0b; color: #000; border-color: #fbbf24; }
+
+.console-action-btn.mute.active { background: #ef4444; color: #fff; border-color: #f87171; }
+.console-action-btn.solo.active { background: #f59e0b; color: #000; border-color: #fbbf24; }
 
 /* Audio & Bluetooth Panel */
 .audio-panel { background: #1b2027; border: 1px solid #3a414b; border-radius: 8px; padding: 12px; margin-top: 14px; }
@@ -523,7 +635,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
       </div>
     </div>
 
-       <!-- KONTEN TAB 3: DIGITAL MIXER CONSOLE -->
+    <!-- KONTEN TAB 3: DIGITAL MIXER CONSOLE -->
     <div class="tab-content" id="tabMixerContent">
       <div class="mixer-console">
         
@@ -574,7 +686,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <div class="fader-slot">
                 <input type="range" min="-40" max="10" step="0.5" value="0">
               </div>
-              <div class="vert-led-meter">
+              <div class="vert-led-meter" id="mixerMeter1">
                 <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
               </div>
             </div>
@@ -596,7 +708,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <div class="fader-slot">
                 <input type="range" min="-40" max="10" step="0.5" value="0">
               </div>
-              <div class="vert-led-meter">
+              <div class="vert-led-meter" id="mixerMeter2">
                 <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
               </div>
             </div>
@@ -618,7 +730,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <div class="fader-slot">
                 <input type="range" min="-40" max="10" step="0.5" value="0">
               </div>
-              <div class="vert-led-meter">
+              <div class="vert-led-meter" id="mixerMeter3">
                 <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
               </div>
             </div>
@@ -640,7 +752,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <div class="fader-slot">
                 <input type="range" min="-40" max="10" step="0.5" value="0">
               </div>
-              <div class="vert-led-meter">
+              <div class="vert-led-meter" id="mixerMeter4">
                 <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
               </div>
             </div>
@@ -662,7 +774,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <div class="fader-slot">
                 <input type="range" min="-50" max="6" step="0.5" value="0">
               </div>
-              <div class="vert-led-meter">
+              <div class="vert-led-meter" id="mixerMeterMaster">
                 <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
               </div>
             </div>
@@ -1463,14 +1575,15 @@ outputMode.addEventListener("change", updateMasterGain);
 muteOutputButton.addEventListener("click", () => { outputMuted = !outputMuted; updateOutputMute(); });
 
 /* Interaksi Tombol Mute & Solo pada Digital Mixer */
-document.querySelectorAll(".strip-btn").forEach(btn => {
+document.querySelectorAll(".console-action-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     btn.classList.toggle("active");
   });
 });
 
 refreshInputDevices();
-    // Animasi RTA Spectrum di Layar Mixer Digital
+
+// Animasi RTA Spectrum di Layar Mixer Digital
 const mixerRtaBars = document.getElementById("mixerRtaBars");
 if (mixerRtaBars && mixerRtaBars.children.length === 0) {
   for (let i = 0; i < 20; i++) {
@@ -1488,6 +1601,24 @@ if (mixerRtaBars && mixerRtaBars.children.length === 0) {
   }, 120);
 }
 
+// Simulasi LED Meter Vertikal Mixer Bergerak
+setInterval(() => {
+  const meters = [
+    document.querySelectorAll("#mixerMeter1 span"),
+    document.querySelectorAll("#mixerMeter2 span"),
+    document.querySelectorAll("#mixerMeter3 span"),
+    document.querySelectorAll("#mixerMeter4 span"),
+    document.querySelectorAll("#mixerMeterMaster span")
+  ];
+  meters.forEach(meterSpans => {
+    if (!meterSpans) return;
+    const activeCount = Math.floor(Math.random() * 8) + 2;
+    meterSpans.forEach((span, idx) => {
+      if (idx >= (10 - activeCount)) span.classList.add("on");
+      else span.classList.remove("on");
+    });
+  });
+}, 180);
   </script>
 </body>
 </html>
