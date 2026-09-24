@@ -240,7 +240,6 @@ function initEqualizerBands(page) {
       bandsContainer.appendChild(bandDiv);
     });
 
-    // Event Gain & Buttons
     const gainInp = channelEl.querySelector(".gain");
     const gainValStr = channelEl.querySelector(".g-val");
     if (gainInp && gainValStr) {
@@ -302,6 +301,7 @@ function renderEchoPage() {
 function renderEcho() {
   renderEchoPage();
 }
+
 /* =========================================================
    DIGITAL MIXER PAGE (FIXED & FULLY INTERACTIVE)
    ========================================================= */
@@ -322,7 +322,7 @@ function renderMixerPage() {
             <span style="color: #10b981;">● DSP: 48kHz / 32-bit</span>
           </div>
 
-          <!-- Tab Menu Layar Atas (Dibuat sebagai tombol interaktif) -->
+          <!-- Tab Menu Layar Atas -->
           <div style="display: flex; gap: 4px; background: #0f172a; padding: 4px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #1e293b; overflow-x: auto;">
             <button class="tft-tab active" data-tab="home" style="background: #0284c7; color: #fff; border: 1px solid #38bdf8; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">HOME</button>
             <button class="tft-tab" data-tab="meters" style="background: #1e293b; color: #94a3b8; border: 1px solid #334155; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">METERS</button>
@@ -344,7 +344,7 @@ function renderMixerPage() {
             </div>
           </div>
 
-          <!-- 6 Encoders Fisik di Bawah Layar (Interaktif) -->
+          <!-- 6 Encoders Fisik di Bawah Layar -->
           <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 6px; background: #090d16; padding: 4px; border-radius: 4px; border: 1px solid #1e293b;">
             <div class="tft-encoder-knob" data-enc="gain" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace; cursor: pointer;">GAIN<span id="enc1Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">+12dB</span></div>
             <div class="tft-encoder-knob" data-enc="hpf" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace; cursor: pointer;">HPF<span id="enc2Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">80Hz</span></div>
@@ -511,7 +511,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================================================
-   DIGITAL MIXER LOGIC & INTERACTIVITY (FIXED)
+   DIGITAL MIXER LOGIC & INTERACTIVITY (FIXED & MERGED)
    ========================================================= */
 
 function initDigitalMixerFunctions() {
@@ -641,50 +641,5 @@ function initDigitalMixerFunctions() {
         soloBtn.classList.toggle("active");
       });
     }
-  });
-}
-  // Logika Tombol Section Select (CONFIG, GATE, DYNAMICS, EQ, SENDS, MAIN)
-  const consoleBtns = mixerPage.querySelectorAll(".mixer-control-section .console-btn");
-  const tftSectionTitle = mixerPage.querySelector("#tftSectionTitle");
-  const tftContentArea = mixerPage.querySelector("#tftContentArea");
-
-  const sectionData = {
-    config: {
-      title: "CONFIG / PREAMP INTERFACE",
-      content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 6px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif.</div>"
-    },
-    gate: {
-      title: "NOISE GATE / EXPANDER PROCESSOR",
-      content: "<div><b>Threshold:</b> -45 dB | <b>Ratio:</b> 1:2.5 | <b>Attack:</b> 5ms | <b>Hold:</b> 20ms</div><div style='margin-top: 6px; color: #94a3b8;'>Meredam kebisingan latar belakang saat sinyal input kecil.</div>"
-    },
-    dynamics: {
-      title: "DYNAMICS / COMPRESSOR PROCESSOR",
-      content: "<div><b>Threshold:</b> -18 dB | <b>Ratio:</b> 3:1 | <b>Attack:</b> 15ms | <b>Release:</b> 300ms</div><div style='margin-top: 6px; color: #94a3b8;'>Mengontrol rentang dinamis agar suara vokal/musik lebih stabil.</div>"
-    },
-    eq: {
-      title: "CHANNEL PARAMETRIC EQUALIZER",
-      content: "<div><b>Low Cut (HPF):</b> 80Hz | <b>Band 1 (Low):</b> 100Hz (+2dB) | <b>Band 2 (Mid):</b> 2.5kHz (-3dB) | <b>Band 3 (High):</b> 10kHz (+4dB)</div><div style='margin-top: 6px; color: #94a3b8;'>Pemrosesan filter frekuensi parametrik 4-band pada kanal terpilih.</div>"
-    },
-    sends: {
-      title: "BUS SENDS & FX ROUTING",
-      content: "<div><b>Bus 1 (Echo Send):</b> -6.0 dB | <b>Bus 2 (Reverb Send):</b> -12.0 dB | <b>Tap:</b> Post-Fader</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan pengiriman sinyal (aux/effects send) ke prosesor eksternal.</div>"
-    },
-    main: {
-      title: "MAIN FOH OUTPUT & MATRIX",
-      content: "<div><b>Main L/R:</b> Active | <b>Matrix 1/2:</b> Feed Live | <b>Master Limiter:</b> -0.5 dB</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan keluaran utama (Main Bus) menuju sound system lapangan.</div>"
-    }
-  };
-
-  consoleBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      consoleBtns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      const sectionKey = btn.dataset.section;
-      if (sectionData[sectionKey] && tftSectionTitle && tftContentArea) {
-        tftSectionTitle.textContent = sectionData[sectionKey].title;
-        tftContentArea.innerHTML = sectionData[sectionKey].content;
-      }
-    });
   });
 }
