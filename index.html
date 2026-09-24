@@ -399,8 +399,15 @@ function createBands(channel) {
       if (e.target === slider) return;
       const rect = band.getBoundingClientRect();
       const clickY = e.clientY - rect.top;
-      const trackHeight = rect.height - 40;
-      const ratio = Math.max(0, Math.min(1, (clickY - 10) / trackHeight));
+      
+      // Batasi area klik hanya di sepanjang batang track fader (antara 25px dari atas hingga 35px dari bawah)
+      const trackTop = 25;
+      const trackBottom = band.clientHeight - 35;
+      
+      if (clickY < trackTop || clickY > trackBottom) return; // Abaikan jika klik di area label frekuensi/teks
+
+      const trackHeight = trackBottom - trackTop;
+      const ratio = Math.max(0, Math.min(1, (clickY - trackTop) / trackHeight));
       
       const currentVal = parseFloat(slider.value);
       const step = 0.5;
@@ -418,6 +425,7 @@ function createBands(channel) {
       syncAudioControlsFromUI();
       sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));
     });
+
 
     band.append(track, slider, freqLabel, valLabel);
     eq.appendChild(band);
