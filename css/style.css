@@ -62,6 +62,9 @@ button:active {
   padding: 7px;
 }
 
+/* =========================================================
+   TOP RACK & NAVIGATION BAR (TAB SWITCHER)
+   ========================================================= */
 .top-rack {
   min-height: 82px;
   display: flex;
@@ -73,11 +76,12 @@ button:active {
   border: 1px solid #566a77;
   border-radius: 7px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.15), inset 0 -10px 20px rgba(0,0,0,.45), 0 5px 15px rgba(0,0,0,.7);
+  margin-bottom: 10px;
 }
 
 .brand h1 {
   margin: 0;
-  font-size: clamp(22px, 3vw, 42px);
+  font-size: clamp(20px, 2.5vw, 36px);
   font-weight: 900;
   letter-spacing: 2px;
   text-shadow: 0 2px 2px #000, 0 0 8px rgba(255,255,255,.08);
@@ -98,7 +102,7 @@ button:active {
   gap: 5px;
 }
 
-.hardware-button {
+.hardware-button, .page-button {
   min-height: 40px;
   padding: 8px 15px;
   border: 1px solid #687987;
@@ -106,17 +110,18 @@ button:active {
   background: linear-gradient(180deg, #34434f, #17222c);
   box-shadow: inset 0 1px 0 #ffffff22, inset 0 -2px 0 #0008;
   color: #e9f2f7;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: .3px;
+  transition: all 0.2s;
 }
 
-.hardware-button:hover {
+.hardware-button:hover, .page-button:hover {
   border-color: #18bfff;
   box-shadow: 0 0 10px rgba(0,180,255,.35), inset 0 1px 0 rgba(255,255,255,.15);
 }
 
-.hardware-button.active {
+.hardware-button.active, .page-button.active {
   color: #fff;
   background: linear-gradient(180deg, #176a8d, #073246);
   border-color: #1abaff;
@@ -138,7 +143,7 @@ button:active {
 }
 
 .device-name {
-  font-size: clamp(20px, 3vw, 31px);
+  font-size: clamp(18px, 2.5vw, 28px);
   font-weight: 900;
   letter-spacing: 2px;
   text-shadow: 0 2px 2px #000;
@@ -147,7 +152,7 @@ button:active {
 .device-subtitle {
   margin-top: 3px;
   color: #ffb62a;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: .8px;
 }
@@ -161,6 +166,9 @@ select {
   color: var(--text);
 }
 
+/* =========================================================
+   EQUALIZER CHANNELS & RACK INTERFACE
+   ========================================================= */
 .channels-scroll {
   width: 100%;
   overflow-x: auto;
@@ -203,14 +211,14 @@ select {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: clamp(16px, 1.5vw, 22px);
+  font-size: clamp(14px, 1.2vw, 20px);
   font-weight: 900;
   text-shadow: 0 2px 2px #000;
 }
 
 .power-led {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #ffffff 0 8%, #62ff9a 20%, #13ef51 55%, #07842d 100%);
   border: 1px solid #42ff83;
@@ -312,31 +320,13 @@ select {
   display: flex;
   justify-content: space-between;
   margin-top: 4px;
-  font-size: 12px;
-}
-
-.small-button {
-  min-height: 35px;
-  min-width: 38px;
-  padding: 5px 10px;
-  border: 1px solid #617582;
-  border-radius: 5px;
-  background: linear-gradient(180deg, #334754, #101b23);
   font-size: 11px;
-  font-weight: 900;
-}
-
-.small-button.active {
-  color: #fff;
-  background: linear-gradient(180deg, #176a8d, #073246);
-  border-color: #1abaff;
-  box-shadow: 0 0 8px rgba(0,180,255,.4);
 }
 
 .led-meter {
   display: grid;
-  grid-template-columns: repeat(18, minmax(7px, 1fr));
-  gap: 3px;
+  grid-template-columns: repeat(18, minmax(5px, 1fr));
+  gap: 2px;
   min-height: 36px;
   padding: 5px;
   border: 1px solid #314752;
@@ -345,9 +335,9 @@ select {
 }
 
 .led-meter span {
-  min-width: 7px;
+  min-width: 5px;
   height: 22px;
-  border-radius: 3px;
+  border-radius: 2px;
   background: #10201c;
   border: 1px solid #20352d;
 }
@@ -363,15 +353,15 @@ select {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  min-width: 55px;
+  min-width: 50px;
   border: 1px solid #743238;
   border-radius: 6px;
   background: linear-gradient(180deg, #401719, #18090b);
 }
 
 .clip-led {
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: #87252a;
   border: 1px solid #9d3036;
@@ -384,7 +374,7 @@ select {
 
 .clip-text {
   color: #ff7777;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
 }
 
@@ -403,7 +393,7 @@ select {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   width: 100%;
-  min-width: 1178px;
+  min-width: 1000px;
   margin-bottom: 4px;
   font-size: 11px;
   font-weight: 800;
@@ -413,7 +403,7 @@ select {
 .eq-area {
   display: flex;
   width: 100%;
-  min-width: 1220px;
+  min-width: 1040px;
   gap: 8px;
 }
 
@@ -422,7 +412,7 @@ select {
   flex-direction: column;
   justify-content: space-between;
   flex: 0 0 31px;
-  height: 330px;
+  height: 280px;
   padding: 9px 0 22px;
   font-size: 10px;
   font-weight: 900;
@@ -431,15 +421,15 @@ select {
 
 .bands {
   display: grid;
-  grid-template-columns: repeat(31, 30px);
-  gap: 8px;
-  min-width: 1178px;
+  grid-template-columns: repeat(31, 28px);
+  gap: 6px;
+  min-width: 1020px;
 }
 
 .band {
   position: relative;
-  width: 30px;
-  height: 330px;
+  width: 28px;
+  height: 280px;
   padding: 6px 2px 0;
   border: 1px solid #4c606c;
   border-radius: 5px;
@@ -451,8 +441,8 @@ select {
   position: absolute;
   top: 48%;
   left: 50%;
-  width: 270px;
-  height: 36px;
+  width: 210px;
+  height: 32px;
   transform: translate(-50%, -50%) rotate(-90deg);
   appearance: none;
   -webkit-appearance: none;
@@ -463,10 +453,10 @@ select {
 .band input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   -webkit-appearance: none;
-  width: 24px;
-  height: 34px;
+  width: 20px;
+  height: 28px;
   border: 2px solid rgba(255,255,255,.85);
-  border-radius: 5px;
+  border-radius: 4px;
   background: linear-gradient(to bottom, #f5f5f5, #aeb6bf);
   box-shadow: 0 2px 4px rgba(0,0,0,0.6);
 }
@@ -475,7 +465,7 @@ select {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 900;
   white-space: nowrap;
 }
@@ -496,13 +486,19 @@ select {
 
 .mixer-top-console {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
   background: #040609;
   border: 1px solid #21262d;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .mixer-top-console {
+    grid-template-columns: 2fr 1fr;
+  }
 }
 
 .mixer-tft-screen {
@@ -525,33 +521,38 @@ select {
   color: #38bdf8;
 }
 
-.tft-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  height: 90px;
-}
-
-.rta-display-box {
-  background: #020408;
-  border: 1px solid #111827;
-  border-radius: 4px;
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  padding: 4px;
-}
-
-.mixer-screen-info {
-  background: #020408;
-  border: 1px solid #111827;
-  border-radius: 4px;
-  padding: 6px;
-  font-size: 10px;
+.tft-tab {
+  background: #1e293b;
   color: #94a3b8;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
+  border: 1px solid #334155;
+  font-size: 9px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tft-tab.active {
+  background: #0284c7;
+  color: #fff;
+  border-color: #38bdf8;
+}
+
+.tft-encoder-knob {
+  background: linear-gradient(180deg, #1e293b, #0f172a);
+  border: 1px solid #475569;
+  border-radius: 4px;
+  text-align: center;
+  padding: 4px 2px;
+  font-size: 8px;
+  color: #cbd5e1;
+  font-family: monospace;
+  cursor: pointer;
+}
+
+.tft-encoder-knob:hover {
+  border-color: #38bdf8;
 }
 
 .mixer-control-section {
@@ -743,53 +744,3 @@ select {
 
 .console-action-btn.mute.active { background: #ef4444; color: #fff; border-color: #f87171; }
 .console-action-btn.solo.active { background: #f59e0b; color: #000; border-color: #fbbf24; }
-/* Perbaikan Layout Layar Mixer agar Responsif di HP */
-.mixer-top-console {
-  display: grid;
-  grid-template-columns: 1fr; /* Default ke 1 kolom pada layar kecil */
-  gap: 12px;
-  background: #040609;
-  border: 1px solid #21262d;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 16px;
-}
-
-@media (min-width: 768px) {
-  .mixer-top-console {
-    grid-template-columns: 2fr 1fr; /* Kembali 2 kolom pada layar tablet/desktop */
-  }
-}
-
-/* Membuat Tab Menu & Encoder dapat diklik */
-.tft-tab {
-  background: #1e293b;
-  color: #94a3b8;
-  border: 1px solid #334155;
-  font-size: 9px;
-  font-weight: bold;
-  padding: 4px 8px;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.tft-tab.active {
-  background: #0284c7;
-  color: #fff;
-  border-color: #38bdf8;
-}
-
-.tft-encoder-knob {
-  background: linear-gradient(180deg, #1e293b, #0f172a);
-  border: 1px solid #475569;
-  border-radius: 4px;
-  text-align: center;
-  padding: 4px 2px;
-  font-size: 8px;
-  color: #cbd5e1;
-  font-family: monospace;
-  cursor: pointer;
-}
-.tft-encoder-knob:hover {
-  border-color: #38bdf8;
-}
