@@ -206,31 +206,22 @@ header, .topbar {
 
 .tft-body {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
   height: 90px;
-}
-
-.rta-display-box {
-  background: #020408;
-  border: 1px solid #111827;
-  border-radius: 4px;
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  padding: 4px;
 }
 
 .mixer-screen-info {
   background: #020408;
   border: 1px solid #111827;
   border-radius: 4px;
-  padding: 6px;
-  font-size: 10px;
-  color: #94a3b8;
+  padding: 8px;
+  font-size: 11px;
+  color: #38bdf8;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: flex-start;
 }
 
 /* Bagian Tombol Kanan Layar (Section Control) */
@@ -643,17 +634,13 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
         <div class="mixer-top-console">
           <div class="mixer-tft-screen">
             <div class="tft-header">
-              <span>M32/X32 DIGITAL CONSOLE INTERFACE</span>
+              <span id="tftSectionTitle">CONFIG / PREAMP INTERFACE</span>
               <span style="color: #10b981;">● ONLINE LINKED</span>
             </div>
             <div class="tft-body">
-              <div class="rta-display-box" id="mixerRtaBars">
-                <!-- Dynamic RTA Spectrum Bars -->
-              </div>
-              <div class="mixer-screen-info">
-                <div><b>Scene:</b> Main Live FOH</div>
-                <div><b>DSP Load:</b> 14%</div>
-                <div><b>Sample Rate:</b> 48kHz</div>
+              <div class="mixer-screen-info" id="tftContentArea">
+                <div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div>
+                <div style="margin-top: 6px; color: #94a3b8;">Atur parameter input gain dan sumber sinyal kanal aktif.</div>
               </div>
             </div>
           </div>
@@ -661,12 +648,12 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
           <div class="mixer-control-section">
             <div style="font-size: 10px; font-weight: bold; color: #38bdf8; margin-bottom: 4px;">SECTION SELECT</div>
             <div class="section-grid-btns">
-              <button class="console-btn active">CONFIG</button>
-              <button class="console-btn">GATE</button>
-              <button class="console-btn">DYNAMICS</button>
-              <button class="console-btn">EQ</button>
-              <button class="console-btn">SENDS</button>
-              <button class="console-btn">MAIN</button>
+              <button class="console-btn active" data-section="config">CONFIG</button>
+              <button class="console-btn" data-section="gate">GATE</button>
+              <button class="console-btn" data-section="dynamics">DYNAMICS</button>
+              <button class="console-btn" data-section="eq">EQ</button>
+              <button class="console-btn" data-section="sends">SENDS</button>
+              <button class="console-btn" data-section="main">MAIN</button>
             </div>
           </div>
         </div>
@@ -1581,25 +1568,52 @@ document.querySelectorAll(".console-action-btn").forEach(btn => {
   });
 });
 
-refreshInputDevices();
+/* Logika Tombol Section Select (CONFIG, GATE, DYNAMICS, EQ, SENDS, MAIN) */
+const consoleBtns = document.querySelectorAll(".mixer-control-section .console-btn");
+const tftSectionTitle = document.getElementById("tftSectionTitle");
+const tftContentArea = document.getElementById("tftContentArea");
 
-// Animasi RTA Spectrum di Layar Mixer Digital
-const mixerRtaBars = document.getElementById("mixerRtaBars");
-if (mixerRtaBars && mixerRtaBars.children.length === 0) {
-  for (let i = 0; i < 20; i++) {
-    const bar = document.createElement("div");
-    bar.style.flex = "1";
-    bar.style.height = Math.floor(Math.random() * 80 + 15) + "%";
-    bar.style.background = "linear-gradient(to top, #0284c7, #38bdf8)";
-    bar.style.borderRadius = "1px";
-    mixerRtaBars.appendChild(bar);
+const sectionData = {
+  config: {
+    title: "CONFIG / PREAMP INTERFACE",
+    content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 6px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif.</div>"
+  },
+  gate: {
+    title: "NOISE GATE / EXPANDER PROCESSOR",
+    content: "<div><b>Threshold:</b> -45 dB | <b>Ratio:</b> 1:2.5 | <b>Attack:</b> 5ms | <b>Hold:</b> 20ms</div><div style='margin-top: 6px; color: #94a3b8;'>Meredam kebisingan latar belakang saat sinyal input kecil.</div>"
+  },
+  dynamics: {
+    title: "DYNAMICS / COMPRESSOR PROCESSOR",
+    content: "<div><b>Threshold:</b> -18 dB | <b>Ratio:</b> 3:1 | <b>Attack:</b> 15ms | <b>Release:</b> 300ms</div><div style='margin-top: 6px; color: #94a3b8;'>Mengontrol rentang dinamis agar suara vokal/musik lebih stabil.</div>"
+  },
+  eq: {
+    title: "CHANNEL PARAMETRIC EQUALIZER",
+    content: "<div><b>Low Cut (HPF):</b> 80Hz | <b>Band 1 (Low):</b> 100Hz (+2dB) | <b>Band 2 (Mid):</b> 2.5kHz (-3dB) | <b>Band 3 (High):</b> 10kHz (+4dB)</div><div style='margin-top: 6px; color: #94a3b8;'>Pemrosesan filter frekuensi parametrik 4-band pada kanal terpilih.</div>"
+  },
+  sends: {
+    title: "BUS SENDS & FX ROUTING",
+    content: "<div><b>Bus 1 (Echo Send):</b> -6.0 dB | <b>Bus 2 (Reverb Send):</b> -12.0 dB | <b>Tap:</b> Post-Fader</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan pengiriman sinyal (aux/effects send) ke prosesor eksternal.</div>"
+  },
+  main: {
+    title: "MAIN FOH OUTPUT & MATRIX",
+    content: "<div><b>Main L/R:</b> Active | <b>Matrix 1/2:</b> Feed Live | <b>Master Limiter:</b> -0.5 dB</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan keluaran utama (Main Bus) menuju sound system lapangan.</div>"
   }
-  setInterval(() => {
-    [...mixerRtaBars.children].forEach(bar => {
-      bar.style.height = Math.floor(Math.random() * 85 + 10) + "%";
-    });
-  }, 120);
-}
+};
+
+consoleBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    consoleBtns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const sectionKey = btn.textContent.toLowerCase().trim();
+    if (sectionData[sectionKey] && tftSectionTitle && tftContentArea) {
+      tftSectionTitle.textContent = sectionData[sectionKey].title;
+      tftContentArea.innerHTML = sectionData[sectionKey].content;
+    }
+  });
+});
+
+refreshInputDevices();
 
 // Simulasi LED Meter Vertikal Mixer Bergerak
 setInterval(() => {
