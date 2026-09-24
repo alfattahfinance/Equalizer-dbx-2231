@@ -743,3 +743,53 @@ select {
 
 .console-action-btn.mute.active { background: #ef4444; color: #fff; border-color: #f87171; }
 .console-action-btn.solo.active { background: #f59e0b; color: #000; border-color: #fbbf24; }
+/* Perbaikan Layout Layar Mixer agar Responsif di HP */
+.mixer-top-console {
+  display: grid;
+  grid-template-columns: 1fr; /* Default ke 1 kolom pada layar kecil */
+  gap: 12px;
+  background: #040609;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .mixer-top-console {
+    grid-template-columns: 2fr 1fr; /* Kembali 2 kolom pada layar tablet/desktop */
+  }
+}
+
+/* Membuat Tab Menu & Encoder dapat diklik */
+.tft-tab {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  font-size: 9px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tft-tab.active {
+  background: #0284c7;
+  color: #fff;
+  border-color: #38bdf8;
+}
+
+.tft-encoder-knob {
+  background: linear-gradient(180deg, #1e293b, #0f172a);
+  border: 1px solid #475569;
+  border-radius: 4px;
+  text-align: center;
+  padding: 4px 2px;
+  font-size: 8px;
+  color: #cbd5e1;
+  font-family: monospace;
+  cursor: pointer;
+}
+.tft-encoder-knob:hover {
+  border-color: #38bdf8;
+}
