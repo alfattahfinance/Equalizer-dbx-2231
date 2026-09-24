@@ -120,7 +120,7 @@ function renderEcho() {
 }
 
 /* =========================================================
-   DIGITAL MIXER PAGE
+   DIGITAL MIXER PAGE (MIDAS / X32 PROFESSIONAL STYLE)
    ========================================================= */
 
 function renderMixerPage() {
@@ -131,18 +131,48 @@ function renderMixerPage() {
   page.innerHTML = `
     <div class="mixer-console">
       <div class="mixer-top-console">
+        
+        <!-- LAYAR TFT UTAMA (MIDAS / X32 STYLE) -->
         <div class="mixer-tft-screen">
           <div class="tft-header">
             <span id="tftSectionTitle">CONFIG / PREAMP INTERFACE</span>
-            <span style="color: #10b981;">● ONLINE LINKED</span>
+            <span style="color: #10b981;">● DSP: 48kHz / 32-bit</span>
           </div>
-          <div class="tft-body" style="grid-template-columns: 1fr;">
-            <div id="tftContentArea" style="background: #020408; border: 1px solid #111827; border-radius: 4px; padding: 8px; font-size: 11px; color: #38bdf8; overflow-y: auto;">
+
+          <!-- Tab Menu Layar Atas -->
+          <div class="tft-top-tabs" style="display: flex; gap: 4px; background: #0f172a; padding: 4px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #1e293b;">
+            <button class="tft-tab active" style="background: #0284c7; color: #fff; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">HOME</button>
+            <button class="tft-tab" style="background: #1e293b; color: #94a3b8; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">METERS</button>
+            <button class="tft-tab" style="background: #1e293b; color: #94a3b8; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">ROUTING</button>
+            <button class="tft-tab" style="background: #1e293b; color: #94a3b8; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">SETUP</button>
+            <button class="tft-tab" style="background: #1e293b; color: #94a3b8; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">LIBRARY</button>
+            <button class="tft-tab" style="background: #1e293b; color: #94a3b8; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">EFFECTS</button>
+          </div>
+
+          <!-- Tampilan Utama Konten Layar -->
+          <div class="tft-main-viewport" style="background: #020408; border: 1px solid #1e293b; border-radius: 4px; height: 110px; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;">
+            <div class="tft-content-screen" id="tftContentArea" style="font-size: 11px; color: #38bdf8; line-height: 1.4;">
               <div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div>
-              <div style="margin-top: 6px; color: #94a3b8;">Atur parameter input gain dan sumber sinyal kanal aktif.</div>
+              <div style="margin-top: 6px; color: #94a3b8;">Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>
+            </div>
+            <div style="font-size: 9px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 4px; display: flex; justify-content: space-between;">
+              <span>CH 01: Lead Vocal</span>
+              <span>Gate/Comp/EQ/Insert Active</span>
             </div>
           </div>
+
+          <!-- 6 Encoders Fisik di Bawah Layar -->
+          <div class="tft-encoders-bar" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; background: #090d16; padding: 6px; border-radius: 4px; border: 1px solid #1e293b;">
+            <div class="tft-encoder-knob" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">GAIN<span id="enc1Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">+12dB</span></div>
+            <div class="tft-encoder-knob" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">HPF<span id="enc2Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">80Hz</span></div>
+            <div class="tft-encoder-knob" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">THRESH<span id="enc3Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">-18dB</span></div>
+            <div class="tft-encoder-knob" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">RATIO<span id="enc4Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">3:1</span></div>
+            <div class="tft-encoder-knob" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">FREQUENCY<span id="enc5Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">2.5kHz</span></div>
+            <div class="tft-encoder-knob" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">MIX/SEND<span id="enc6Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">0.0dB</span></div>
+          </div>
         </div>
+
+        <!-- Bagian Tombol Kanan Layar (Section Control) -->
         <div class="mixer-control-section">
           <div style="font-size: 10px; font-weight: bold; color: #38bdf8; margin-bottom: 4px;">SECTION SELECT</div>
           <div class="section-grid-btns">
@@ -264,10 +294,6 @@ function renderMixerPage() {
   mixerPage = page;
   initDigitalMixerFunctions();
   return page;
-}
-
-function renderMixer() {
-  renderMixerPage();
 }
 
 /* =========================================================
