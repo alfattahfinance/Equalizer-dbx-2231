@@ -513,7 +513,6 @@ document.addEventListener("DOMContentLoaded", () => {
 /* =========================================================
    DIGITAL MIXER LOGIC & INTERACTIVITY (FIXED & MERGED)
    ========================================================= */
-
 function initDigitalMixerFunctions() {
   if (!mixerPage) return;
 
@@ -567,16 +566,8 @@ function initDigitalMixerFunctions() {
   const tftTabs = mixerPage.querySelectorAll(".tft-tab");
   tftTabs.forEach(tab => {
     tab.addEventListener("click", () => {
-      tftTabs.forEach(t => {
-        t.classList.remove("active");
-        t.style.background = "#1e293b";
-        t.style.color = "#94a3b8";
-        t.style.borderColor = "#334155";
-      });
+      tftTabs.forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
-      tab.style.background = "#0284c7";
-      tab.style.color = "#fff";
-      tab.style.borderColor = "#38bdf8";
 
       const tabName = tab.dataset.tab;
       if (tftContentArea) {
@@ -586,10 +577,6 @@ function initDigitalMixerFunctions() {
           tftContentArea.innerHTML = "<div style='color:#f59e0b;'><b>Signal Routing Matrix:</b> USB Audio, Analog Inputs, dan Aux Assign.</div>";
         } else if (tabName === "effects") {
           tftContentArea.innerHTML = "<div style='color:#38bdf8;'><b>FX Rack 1-4:</b> Dual Digital Delay, Vintage Room Reverb, Graphic EQ Insert.</div>";
-        } else if (tabName === "setup") {
-          tftContentArea.innerHTML = "<div style='color:#a855f7;'><b>Console Setup & Preferences:</b> Sample Rate 48kHz, Word Clock Internal, OSC Net.</div>";
-        } else if (tabName === "library") {
-          tftContentArea.innerHTML = "<div style='color:#ec4899;'><b>Preset Library:</b> Recall saved channel strips and effects patches.</div>";
         } else {
           tftContentArea.innerHTML = "<div><b>System Home View:</b> Status DSP Normal, Firmware v4.02.</div>";
         }
@@ -599,21 +586,21 @@ function initDigitalMixerFunctions() {
 
   // 3. Logika Interaksi 6 Encoders Fisik di Bawah Layar
   const encoders = mixerPage.querySelectorAll(".tft-encoder-knob");
-  encoders.forEach(enc => {
+  encoders.forEach((enc, index) => {
     enc.addEventListener("click", () => {
       const spanValue = enc.querySelector("span");
-      if (spanValue) {
-        spanValue.style.color = "#f59e0b";
-        setTimeout(() => spanValue.style.color = "#38bdf8", 300);
-      }
+      let currentText = spanValue.textContent;
+      // Simulasi interaksi naik/turun nilai saat encoder diklik
+      spanValue.style.color = "#f59e0b";
+      setTimeout(() => spanValue.style.color = "#38bdf8", 300);
+      
       if (tftContentArea) {
-        tftContentArea.innerHTML += `<div style='font-size:9px; color:#fbbf24; margin-top:2px;'>Encoder [${enc.textContent.trim().split('\n')[0]}] disesuaikan.</div>`;
-        tftContentArea.scrollTop = tftContentArea.scrollHeight;
+        tftContentArea.innerHTML += `<div style='font-size:9px; color:#fbbf24; margin-top:3px;'>Encoder [${enc.textContent.trim()}] diubah.</div>`;
       }
     });
   });
 
-  // 4. Interaksi fader kanal & tombol bawah
+  // 4. Interaksi fader kanal bawah
   const channelStrips = mixerPage.querySelectorAll(".console-channel-strip");
   channelStrips.forEach(strip => {
     const faderInput = strip.querySelector("input[type='range']");
@@ -643,3 +630,4 @@ function initDigitalMixerFunctions() {
     }
   });
 }
+
