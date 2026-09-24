@@ -264,6 +264,10 @@ function renderMixerPage() {
 
   pageContainer.appendChild(page);
   mixerPage = page;
+  
+  // Inisialisasi fungsi mixer setelah elemen dibuat
+  initDigitalMixerFunctions();
+  
   return page;
 }
 
@@ -340,7 +344,7 @@ function initDigitalMixerFunctions() {
   }
 
   // 2. Kontrol Fader & Tampilan Nilai dB pada Channel Strip & Master
-  const channelStrips = document.querySelectorAll(".console-channel-strip");
+  const channelStrips = mixerPage ? mixerPage.querySelectorAll(".console-channel-strip") : [];
   channelStrips.forEach(strip => {
     const faderInput = strip.querySelector("input[type='range']");
     const readout = strip.querySelector(".fader-readout");
@@ -375,12 +379,10 @@ function initDigitalMixerFunctions() {
       setInterval(() => {
         if (mixerPage && mixerPage.style.display !== "none") {
           const faderVal = parseFloat(faderInput.value);
-          // Jika fader terlalu rendah atau di-mute, matikan LED
           if (faderVal < -30 || (muteBtn && muteBtn.classList.contains("active"))) {
             ledSpanLoop(ledSpans, 0);
             return;
           }
-          // Hitung jumlah lampu LED yang menyala berdasarkan besar fader
           const activeSegments = Math.min(ledSpans.length, Math.max(1, Math.floor((faderVal + 40) / 5) + Math.floor(Math.random() * 3)));
           ledSpanLoop(ledSpans, activeSegments);
         }
@@ -389,7 +391,7 @@ function initDigitalMixerFunctions() {
   });
 
   // 3. Tombol Section Select di Panel Kanan Layar TFT
-  const consoleBtns = document.querySelectorAll(".mixer-control-section .console-btn");
+  const consoleBtns = mixerPage ? mixerPage.querySelectorAll(".mixer-control-section .console-btn") : [];
   consoleBtns.forEach(btn => {
     btn.addEventListener("click", () => {
       consoleBtns.forEach(b => b.classList.remove("active"));
@@ -400,7 +402,6 @@ function initDigitalMixerFunctions() {
 
 function ledSpanLoop(spans, count) {
   spans.forEach((span, idx) => {
-    // Urutan dari bawah ke atas
     const targetIdx = spans.length - 1 - idx;
     if (targetIdx < count) {
       span.classList.add("on");
@@ -409,4 +410,3 @@ function ledSpanLoop(spans, count) {
     }
   });
 }
-
