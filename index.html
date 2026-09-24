@@ -163,108 +163,143 @@ header, .topbar {
    DIGITAL MIXER CONSOLE (Gaya Konsol Profesional Asli)
 ========================================================= */
 .mixer-console {
-  background: #12161f;
-  border: 1px solid #3a414b;
-  border-radius: 8px;
+  background: #0f131a;
+  border: 1px solid #2a3441;
+  border-radius: 10px;
   padding: 15px;
+}
+.mixer-top-screen {
+  background: #080a0e;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .mixer-desk {
   display: grid;
-  grid-template-columns: repeat(4, 1fr) 1.2fr;
+  grid-template-columns: repeat(4, minmax(90px, 1fr)) 1.2fr;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
 }
 .mixer-strip {
-  background: #181d28;
-  border: 1px solid #2d3748;
+  background: #171d28;
+  border: 1px solid #2a3441;
   border-radius: 6px;
-  padding: 10px 8px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 110px;
 }
 .mixer-strip.master-strip {
-  background: #1e1710;
-  border-color: #d97706;
+  background: #1a140f;
+  border-color: #b45309;
 }
 .strip-header {
   font-size: 10px;
   font-weight: bold;
   color: #38bdf8;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-align: center;
-  border-bottom: 1px solid #2a323d;
+  border-bottom: 1px solid #252e3d;
   width: 100%;
   padding-bottom: 4px;
 }
 .master-strip .strip-header {
   color: #fbbf24;
-  border-color: #b45309;
+  border-color: #78350f;
 }
-.strip-knob-section {
+.strip-controls-block {
+  width: 100%;
+  background: #0f131a;
+  border: 1px solid #222a36;
+  border-radius: 4px;
+  padding: 6px;
+  margin-bottom: 6px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  width: 100%;
-  background: #10131b;
-  padding: 8px 4px;
-  border-radius: 4px;
-  margin-bottom: 8px;
+  gap: 4px;
 }
-.strip-control-row {
+.strip-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 9px;
+  font-size: 8px;
   color: #94a3b8;
 }
-.strip-control-row select {
+.strip-row select {
   background: #1e293b;
   color: #fff;
   border: 1px solid #485260;
-  font-size: 9px;
-  padding: 2px;
-  border-radius: 3px;
+  font-size: 8px;
+  padding: 1px;
+  border-radius: 2px;
 }
 
-/* Fader Vertikal Panjang Khas Mixer Digital */
+/* Area Fader & LED Meter Vertikal di Samping Fader */
+.fader-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0;
+}
+.vertical-led-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5px;
+  width: 6px;
+  height: 180px;
+  background: #080a0e;
+  border: 1px solid #1e293b;
+  padding: 2px 1px;
+  border-radius: 2px;
+}
+.vertical-led-meter span {
+  flex: 1;
+  background: #111827;
+  border-radius: 1px;
+}
+.vertical-led-meter span.green.on { background: #10b981; box-shadow: 0 0 3px #10b981; }
+.vertical-led-meter span.yellow.on { background: #f59e0b; box-shadow: 0 0 3px #f59e0b; }
+.vertical-led-meter span.red.on { background: #ef4444; box-shadow: 0 0 3px #ef4444; }
+
 .fader-track-box {
   position: relative;
-  height: 200px;
-  width: 32px;
+  height: 180px;
+  width: 26px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #090b10;
-  border: 1px solid #222938;
+  background: #080a0e;
+  border: 1px solid #222a36;
   border-radius: 4px;
-  margin: 8px 0;
 }
 .fader-track-box input[type="range"] {
   writing-mode: vertical-lr;
   direction: rtl;
-  width: 20px;
-  height: 185px;
+  width: 16px;
+  height: 165px;
   accent-color: #00d9ff;
   cursor: pointer;
 }
 .master-strip .fader-track-box input[type="range"] {
   accent-color: #fbbf24;
 }
-.fader-db-val {
-  font-size: 10px;
+.fader-db-display {
+  font-size: 9px;
   font-family: monospace;
   color: #38bdf8;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
-.master-strip .fader-db-val {
+.master-strip .fader-db-display {
   color: #fbbf24;
 }
 .strip-buttons {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   width: 100%;
 }
 .strip-btn {
@@ -272,22 +307,14 @@ header, .topbar {
   background: #252b35;
   color: #cbd5e1;
   border: 1px solid #485260;
-  padding: 6px 2px;
-  font-size: 9px;
+  padding: 5px 2px;
+  font-size: 8px;
   font-weight: bold;
   border-radius: 3px;
   text-align: center;
 }
-.strip-btn.mute-btn.active {
-  background: #ef4444;
-  color: #fff;
-  border-color: #f87171;
-}
-.strip-btn.solo-btn.active {
-  background: #f59e0b;
-  color: #000;
-  border-color: #fbbf24;
-}
+.strip-btn.mute-btn.active { background: #ef4444; color: #fff; border-color: #f87171; }
+.strip-btn.solo-btn.active { background: #f59e0b; color: #000; border-color: #fbbf24; }
 
 /* Audio & Bluetooth Panel */
 .audio-panel { background: #1b2027; border: 1px solid #3a414b; border-radius: 8px; padding: 12px; margin-top: 14px; }
@@ -499,27 +526,32 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
     <!-- KONTEN TAB 3: DIGITAL MIXER CONSOLE -->
     <div class="tab-content" id="tabMixerContent">
       <div class="mixer-console">
-        <div class="echo-header-row" style="margin-bottom: 12px;">
+        <div class="mixer-top-screen">
           <div>
-            <h3 style="color: #00d9ff; margin:0 0 4px 0;">DIGITAL MIXER CONSOLE</h3>
-            <p style="font-size: 11px; color: #94a3b8; margin:0;">Tampilan fader konsol digital profesional dengan channel strip vertikal.</p>
+            <h3 style="color: #00d9ff; margin:0 0 2px 0;">DIGITAL MIXER CONSOLE (RACK 4-CH)</h3>
+            <p style="font-size: 10px; color: #94a3b8; margin:0;">Tampilan konsol digital standar profesional dengan LED meter vertikal.</p>
           </div>
-          <span style="font-size: 11px; color: #10b981; font-weight: bold; background: #1a2e26; padding: 4px 8px; border-radius: 4px; border: 1px solid #10b981;">ONLINE READY</span>
+          <span style="font-size: 10px; color: #10b981; font-weight: bold; background: #11221c; padding: 4px 8px; border-radius: 4px; border: 1px solid #10b981;">HARDWARE LINKED</span>
         </div>
 
         <div class="mixer-desk">
           <!-- CH 1 -->
           <div class="mixer-strip">
             <div class="strip-header">CH 1: MIC</div>
-            <div class="strip-knob-section">
-              <div class="strip-control-row"><span>GAIN</span><span>0 dB</span></div>
-              <div class="strip-control-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            <div class="strip-controls-block">
+              <div class="strip-row"><span>GAIN</span><span>0 dB</span></div>
+              <div class="strip-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
             </div>
-            <div class="fader-db-val">0.0 dB</div>
-            <div class="fader-track-box">
-              <input type="range" min="-40" max="10" step="0.5" value="0">
+            <div class="fader-db-display">0.0 dB</div>
+            <div class="fader-section">
+              <div class="fader-track-box">
+                <input type="range" min="-40" max="10" step="0.5" value="0">
+              </div>
+              <div class="vertical-led-meter">
+                <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+              </div>
             </div>
-            <div class="strip-buttons">
+            <div class="strip-buttons" style="margin-top:6px;">
               <button class="strip-btn mute-btn">MUTE</button>
               <button class="strip-btn solo-btn">SOLO</button>
             </div>
@@ -528,15 +560,20 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
           <!-- CH 2 -->
           <div class="mixer-strip">
             <div class="strip-header">CH 2: MUSIC</div>
-            <div class="strip-knob-section">
-              <div class="strip-control-row"><span>GAIN</span><span>0 dB</span></div>
-              <div class="strip-control-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            <div class="strip-controls-block">
+              <div class="strip-row"><span>GAIN</span><span>0 dB</span></div>
+              <div class="strip-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
             </div>
-            <div class="fader-db-val">0.0 dB</div>
-            <div class="fader-track-box">
-              <input type="range" min="-40" max="10" step="0.5" value="0">
+            <div class="fader-db-display">0.0 dB</div>
+            <div class="fader-section">
+              <div class="fader-track-box">
+                <input type="range" min="-40" max="10" step="0.5" value="0">
+              </div>
+              <div class="vertical-led-meter">
+                <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+              </div>
             </div>
-            <div class="strip-buttons">
+            <div class="strip-buttons" style="margin-top:6px;">
               <button class="strip-btn mute-btn">MUTE</button>
               <button class="strip-btn solo-btn">SOLO</button>
             </div>
@@ -545,15 +582,20 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
           <!-- CH 3 -->
           <div class="mixer-strip">
             <div class="strip-header">CH 3: AUX</div>
-            <div class="strip-knob-section">
-              <div class="strip-control-row"><span>GAIN</span><span>0 dB</span></div>
-              <div class="strip-control-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            <div class="strip-controls-block">
+              <div class="strip-row"><span>GAIN</span><span>0 dB</span></div>
+              <div class="strip-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
             </div>
-            <div class="fader-db-val">0.0 dB</div>
-            <div class="fader-track-box">
-              <input type="range" min="-40" max="10" step="0.5" value="0">
+            <div class="fader-db-display">0.0 dB</div>
+            <div class="fader-section">
+              <div class="fader-track-box">
+                <input type="range" min="-40" max="10" step="0.5" value="0">
+              </div>
+              <div class="vertical-led-meter">
+                <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+              </div>
             </div>
-            <div class="strip-buttons">
+            <div class="strip-buttons" style="margin-top:6px;">
               <button class="strip-btn mute-btn">MUTE</button>
               <button class="strip-btn solo-btn">SOLO</button>
             </div>
@@ -562,15 +604,20 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
           <!-- CH 4 -->
           <div class="mixer-strip">
             <div class="strip-header">CH 4: FX</div>
-            <div class="strip-knob-section">
-              <div class="strip-control-row"><span>GAIN</span><span>0 dB</span></div>
-              <div class="strip-control-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            <div class="strip-controls-block">
+              <div class="strip-row"><span>GAIN</span><span>0 dB</span></div>
+              <div class="strip-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
             </div>
-            <div class="fader-db-val">0.0 dB</div>
-            <div class="fader-track-box">
-              <input type="range" min="-40" max="10" step="0.5" value="0">
+            <div class="fader-db-display">0.0 dB</div>
+            <div class="fader-section">
+              <div class="fader-track-box">
+                <input type="range" min="-40" max="10" step="0.5" value="0">
+              </div>
+              <div class="vertical-led-meter">
+                <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+              </div>
             </div>
-            <div class="strip-buttons">
+            <div class="strip-buttons" style="margin-top:6px;">
               <button class="strip-btn mute-btn">MUTE</button>
               <button class="strip-btn solo-btn">SOLO</button>
             </div>
@@ -579,15 +626,20 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
           <!-- MASTER L/R STRIP -->
           <div class="mixer-strip master-strip">
             <div class="strip-header">MASTER L/R</div>
-            <div class="strip-knob-section" style="border-color: #b45309;">
-              <div class="strip-control-row"><span>LIMIT</span><span>ON</span></div>
-              <div class="strip-control-row"><span>PROC</span><select><option>EQ+ECHO</option><option>BYPASS</option></select></div>
+            <div class="strip-controls-block" style="border-color: #78350f;">
+              <div class="strip-row"><span>LIMIT</span><span>ON</span></div>
+              <div class="strip-row"><span>PROC</span><select><option>EQ+ECHO</option><option>BYPASS</option></select></div>
             </div>
-            <div class="fader-db-val" style="color: #fbbf24;">0.0 dB</div>
-            <div class="fader-track-box">
-              <input type="range" min="-50" max="6" step="0.5" value="0">
+            <div class="fader-db-display" style="color: #fbbf24;">0.0 dB</div>
+            <div class="fader-section">
+              <div class="fader-track-box">
+                <input type="range" min="-50" max="6" step="0.5" value="0">
+              </div>
+              <div class="vertical-led-meter">
+                <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+              </div>
             </div>
-            <div class="strip-buttons">
+            <div class="strip-buttons" style="margin-top:6px;">
               <button class="strip-btn mute-btn" style="background:#b45309; color:#fff;">MUTE</button>
               <button class="strip-btn active" style="background:#fbbf24; color:#000;">LR</button>
             </div>
@@ -1382,7 +1434,7 @@ masterGainControl.addEventListener("input", updateMasterGain);
 outputMode.addEventListener("change", updateMasterGain);
 muteOutputButton.addEventListener("click", () => { outputMuted = !outputMuted; updateOutputMute(); });
 
-/* Script interaksi tombol Mute & Solo pada Digital Mixer */
+/* Interaksi Tombol Mute & Solo pada Digital Mixer */
 document.querySelectorAll(".strip-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     btn.classList.toggle("active");
