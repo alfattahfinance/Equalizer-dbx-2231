@@ -302,9 +302,8 @@ function renderEchoPage() {
 function renderEcho() {
   renderEchoPage();
 }
-
 /* =========================================================
-   DIGITAL MIXER PAGE
+   DIGITAL MIXER PAGE (FIXED & FULLY INTERACTIVE)
    ========================================================= */
 
 function renderMixerPage() {
@@ -314,45 +313,45 @@ function renderMixerPage() {
 
   page.innerHTML = `
     <div class="mixer-console">
-      <div class="mixer-top-console">
+      <div class="mixer-top-console" style="display: grid; grid-template-columns: 1fr; gap: 12px; background: #040609; border: 1px solid #21262d; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
         
-        <!-- LAYAR TFT UTAMA (MIDAS / X32 PROFESSIONAL STYLE) -->
+        <!-- LAYAR TFT UTAMA -->
         <div class="mixer-tft-screen">
           <div class="tft-header">
             <span id="tftSectionTitle">CONFIG / PREAMP INTERFACE</span>
             <span style="color: #10b981;">● DSP: 48kHz / 32-bit</span>
           </div>
 
-          <!-- Tab Menu Layar Atas -->
-          <div style="display: flex; gap: 4px; background: #0f172a; padding: 4px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #1e293b;">
-            <button style="background: #0284c7; color: #fff; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px;">HOME</button>
-            <button style="background: #1e293b; color: #94a3b8; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px;">METERS</button>
-            <button style="background: #1e293b; color: #94a3b8; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px;">ROUTING</button>
-            <button style="background: #1e293b; color: #94a3b8; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px;">SETUP</button>
-            <button style="background: #1e293b; color: #94a3b8; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px;">LIBRARY</button>
-            <button style="background: #1e293b; color: #94a3b8; border: none; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px;">EFFECTS</button>
+          <!-- Tab Menu Layar Atas (Dibuat sebagai tombol interaktif) -->
+          <div style="display: flex; gap: 4px; background: #0f172a; padding: 4px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #1e293b; overflow-x: auto;">
+            <button class="tft-tab active" data-tab="home" style="background: #0284c7; color: #fff; border: 1px solid #38bdf8; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">HOME</button>
+            <button class="tft-tab" data-tab="meters" style="background: #1e293b; color: #94a3b8; border: 1px solid #334155; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">METERS</button>
+            <button class="tft-tab" data-tab="routing" style="background: #1e293b; color: #94a3b8; border: 1px solid #334155; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">ROUTING</button>
+            <button class="tft-tab" data-tab="setup" style="background: #1e293b; color: #94a3b8; border: 1px solid #334155; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">SETUP</button>
+            <button class="tft-tab" data-tab="library" style="background: #1e293b; color: #94a3b8; border: 1px solid #334155; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">LIBRARY</button>
+            <button class="tft-tab" data-tab="effects" style="background: #1e293b; color: #94a3b8; border: 1px solid #334155; font-size: 9px; font-weight: bold; padding: 4px 8px; border-radius: 3px; cursor: pointer;">EFFECTS</button>
           </div>
 
           <!-- Tampilan Utama Konten Layar -->
-          <div style="background: #020408; border: 1px solid #1e293b; border-radius: 4px; height: 110px; padding: 8px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="background: #020408; border: 1px solid #1e293b; border-radius: 4px; height: 105px; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;">
             <div id="tftContentArea" style="font-size: 11px; color: #38bdf8; line-height: 1.4;">
               <div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div>
               <div style="margin-top: 6px; color: #94a3b8;">Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>
             </div>
             <div style="font-size: 9px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 4px; display: flex; justify-content: space-between;">
-              <span>CH 01: Lead Vocal</span>
+              <span id="tftActiveChannel">CH 01: Lead Vocal</span>
               <span>Gate/Comp/EQ/Insert Active</span>
             </div>
           </div>
 
-          <!-- 6 Encoders Fisik di Bawah Layar -->
-          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; background: #090d16; padding: 6px; border-radius: 4px; border: 1px solid #1e293b;">
-            <div style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">GAIN<span style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">+12dB</span></div>
-            <div style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">HPF<span style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">80Hz</span></div>
-            <div style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">THRESH<span style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">-18dB</span></div>
-            <div style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">RATIO<span style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">3:1</span></div>
-            <div style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">FREQUENCY<span style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">2.5kHz</span></div>
-            <div style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace;">MIX/SEND<span style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">0.0dB</span></div>
+          <!-- 6 Encoders Fisik di Bawah Layar (Interaktif) -->
+          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 6px; background: #090d16; padding: 4px; border-radius: 4px; border: 1px solid #1e293b;">
+            <div class="tft-encoder-knob" data-enc="gain" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace; cursor: pointer;">GAIN<span id="enc1Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">+12dB</span></div>
+            <div class="tft-encoder-knob" data-enc="hpf" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace; cursor: pointer;">HPF<span id="enc2Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">80Hz</span></div>
+            <div class="tft-encoder-knob" data-enc="thresh" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace; cursor: pointer;">THRESH<span id="enc3Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">-18dB</span></div>
+            <div class="tft-encoder-knob" data-enc="ratio" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace; cursor: pointer;">RATIO<span id="enc4Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">3:1</span></div>
+            <div class="tft-encoder-knob" data-enc="freq" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace; cursor: pointer;">FREQ<span id="enc5Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">2.5kHz</span></div>
+            <div class="tft-encoder-knob" data-enc="mix" style="background: linear-gradient(180deg, #1e293b, #0f172a); border: 1px solid #475569; border-radius: 4px; text-align: center; padding: 4px 2px; font-size: 8px; color: #cbd5e1; font-family: monospace; cursor: pointer;">MIX<span id="enc6Val" style="display: block; color: #38bdf8; font-weight: bold; font-size: 9px; margin-top: 2px;">0.0dB</span></div>
           </div>
         </div>
 
@@ -512,12 +511,109 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =========================================================
-   DIGITAL MIXER LOGIC & INTERACTIVITY
+   DIGITAL MIXER LOGIC & INTERACTIVITY (FIXED)
    ========================================================= */
 
 function initDigitalMixerFunctions() {
   if (!mixerPage) return;
 
+  const tftSectionTitle = mixerPage.querySelector("#tftSectionTitle");
+  const tftContentArea = mixerPage.querySelector("#tftContentArea");
+
+  // 1. Logika Tombol Section Select (CONFIG, GATE, DYNAMICS, EQ, SENDS, MAIN)
+  const consoleBtns = mixerPage.querySelectorAll(".mixer-control-section .console-btn");
+
+  const sectionData = {
+    config: {
+      title: "CONFIG / PREAMP INTERFACE",
+      content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 6px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif.</div>"
+    },
+    gate: {
+      title: "NOISE GATE / EXPANDER PROCESSOR",
+      content: "<div><b>Threshold:</b> -45 dB | <b>Ratio:</b> 1:2.5 | <b>Attack:</b> 5ms | <b>Hold:</b> 20ms</div><div style='margin-top: 6px; color: #94a3b8;'>Meredam kebisingan latar belakang saat sinyal input kecil.</div>"
+    },
+    dynamics: {
+      title: "DYNAMICS / COMPRESSOR PROCESSOR",
+      content: "<div><b>Threshold:</b> -18 dB | <b>Ratio:</b> 3:1 | <b>Attack:</b> 15ms | <b>Release:</b> 300ms</div><div style='margin-top: 6px; color: #94a3b8;'>Mengontrol rentang dinamis agar suara vokal/musik lebih stabil.</div>"
+    },
+    eq: {
+      title: "CHANNEL PARAMETRIC EQUALIZER",
+      content: "<div><b>Low Cut (HPF):</b> 80Hz | <b>Band 1 (Low):</b> 100Hz (+2dB) | <b>Band 2 (Mid):</b> 2.5kHz (-3dB) | <b>Band 3 (High):</b> 10kHz (+4dB)</div><div style='margin-top: 6px; color: #94a3b8;'>Pemrosesan filter frekuensi parametrik 4-band pada kanal terpilih.</div>"
+    },
+    sends: {
+      title: "BUS SENDS & FX ROUTING",
+      content: "<div><b>Bus 1 (Echo Send):</b> -6.0 dB | <b>Bus 2 (Reverb Send):</b> -12.0 dB | <b>Tap:</b> Post-Fader</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan pengiriman sinyal (aux/effects send) ke prosesor eksternal.</div>"
+    },
+    main: {
+      title: "MAIN FOH OUTPUT & MATRIX",
+      content: "<div><b>Main L/R:</b> Active | <b>Matrix 1/2:</b> Feed Live | <b>Master Limiter:</b> -0.5 dB</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan keluaran utama (Main Bus) menuju sound system lapangan.</div>"
+    }
+  };
+
+  consoleBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      consoleBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const sectionKey = btn.dataset.section;
+      if (sectionData[sectionKey] && tftSectionTitle && tftContentArea) {
+        tftSectionTitle.textContent = sectionData[sectionKey].title;
+        tftContentArea.innerHTML = sectionData[sectionKey].content;
+      }
+    });
+  });
+
+  // 2. Logika Tab Menu Layar Atas (HOME, METERS, ROUTING, SETUP, LIBRARY, EFFECTS)
+  const tftTabs = mixerPage.querySelectorAll(".tft-tab");
+  tftTabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tftTabs.forEach(t => {
+        t.classList.remove("active");
+        t.style.background = "#1e293b";
+        t.style.color = "#94a3b8";
+        t.style.borderColor = "#334155";
+      });
+      tab.classList.add("active");
+      tab.style.background = "#0284c7";
+      tab.style.color = "#fff";
+      tab.style.borderColor = "#38bdf8";
+
+      const tabName = tab.dataset.tab;
+      if (tftContentArea) {
+        if (tabName === "meters") {
+          tftContentArea.innerHTML = "<div style='color:#10b981;'><b>RTA & Multi-Channel Meters Active:</b> Menampilkan grafik tingkat sinyal real-time seluruh bus input/output.</div>";
+        } else if (tabName === "routing") {
+          tftContentArea.innerHTML = "<div style='color:#f59e0b;'><b>Signal Routing Matrix:</b> USB Audio, Analog Inputs, dan Aux Assign.</div>";
+        } else if (tabName === "effects") {
+          tftContentArea.innerHTML = "<div style='color:#38bdf8;'><b>FX Rack 1-4:</b> Dual Digital Delay, Vintage Room Reverb, Graphic EQ Insert.</div>";
+        } else if (tabName === "setup") {
+          tftContentArea.innerHTML = "<div style='color:#a855f7;'><b>Console Setup & Preferences:</b> Sample Rate 48kHz, Word Clock Internal, OSC Net.</div>";
+        } else if (tabName === "library") {
+          tftContentArea.innerHTML = "<div style='color:#ec4899;'><b>Preset Library:</b> Recall saved channel strips and effects patches.</div>";
+        } else {
+          tftContentArea.innerHTML = "<div><b>System Home View:</b> Status DSP Normal, Firmware v4.02.</div>";
+        }
+      }
+    });
+  });
+
+  // 3. Logika Interaksi 6 Encoders Fisik di Bawah Layar
+  const encoders = mixerPage.querySelectorAll(".tft-encoder-knob");
+  encoders.forEach(enc => {
+    enc.addEventListener("click", () => {
+      const spanValue = enc.querySelector("span");
+      if (spanValue) {
+        spanValue.style.color = "#f59e0b";
+        setTimeout(() => spanValue.style.color = "#38bdf8", 300);
+      }
+      if (tftContentArea) {
+        tftContentArea.innerHTML += `<div style='font-size:9px; color:#fbbf24; margin-top:2px;'>Encoder [${enc.textContent.trim().split('\n')[0]}] disesuaikan.</div>`;
+        tftContentArea.scrollTop = tftContentArea.scrollHeight;
+      }
+    });
+  });
+
+  // 4. Interaksi fader kanal & tombol bawah
   const channelStrips = mixerPage.querySelectorAll(".console-channel-strip");
   channelStrips.forEach(strip => {
     const faderInput = strip.querySelector("input[type='range']");
@@ -546,7 +642,7 @@ function initDigitalMixerFunctions() {
       });
     }
   });
-
+}
   // Logika Tombol Section Select (CONFIG, GATE, DYNAMICS, EQ, SENDS, MAIN)
   const consoleBtns = mixerPage.querySelectorAll(".mixer-control-section .console-btn");
   const tftSectionTitle = mixerPage.querySelector("#tftSectionTitle");
