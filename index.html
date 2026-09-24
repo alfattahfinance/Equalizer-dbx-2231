@@ -597,39 +597,38 @@ function createBands(channel) {
       sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));
     });
 
-    // Fitur Klik Track Kosong: Naik / Turun 1 langkah (step = 0.5)
-    trackContainer.addEventListener("click", (e) => {
-      // Jika yang disentuh pas di atas jempol slider, abaikan agar tidak dobel event
+       // Fitur Klik Track Kosong: Naik / Turun 1 langkah (0.5 dB)
+    band.addEventListener("click", (e) => {
       if (e.target === slider) return;
+      const rect = band.getBoundingClientRect();
+      const clickY = e.clientY - rect.top;
+      
+      // Batasi area klik persis di sepanjang jalur track (antara 15px dari atas sampai 35px dari bawah)
+      const trackTop = 15;
+      const trackBottom = band.clientHeight - 35;
+      
+      if (clickY < trackTop || clickY > trackBottom) return;
 
-      const rect = trackContainer.getBoundingClientRect();
-      const clickY = e.clientY - rect.top; // Posisi klik dari atas (0 di atas / +15dB, bawah di 165px / -15dB)
-      const trackHeight = rect.height;
+      const trackHeight = trackBottom - trackTop;
+      const ratio = Math.max(0, Math.min(1, (clickY - trackTop) / trackHeight));
       
-      // Hitung persentase posisi klik dari atas (0.0 di atas, 1.0 di bawah)
-      const ratio = Math.max(0, Math.min(1, clickY / trackHeight));
-      
-      // Karena arah fader vertikal dibalik (rtl dengan min=-15, max=15):
-      // Atas = +15, Bawah = -15
       const currentVal = parseFloat(slider.value);
-      const step = parseFloat(slider.step) || 0.5;
-
-      // Jika klik di atas posisi jempol saat ini -> Naik 1 step. Jika di bawah -> Turun 1 step.
-      // Posisi rasio 0.0 setara dengan max (+15), rasio 1.0 setara dengan min (-15)
+      const step = 0.5;
       const clickedVal = 15 - (ratio * 30);
 
       let newVal = currentVal;
       if (clickedVal > currentVal) {
-        newVal = Math.min(parseFloat(slider.max), currentVal + step);
+        newVal = Math.min(15, currentVal + step);
       } else {
-        newVal = Math.max(parseFloat(slider.min), currentVal - step);
+        newVal = Math.max(-15, currentVal - step);
       }
 
       slider.value = String(newVal);
-      value.textContent = newVal.toFixed(1);
+      updateVisual(newVal);
       syncAudioControlsFromUI();
       sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));
     });
+
 
     trackContainer.appendChild(slider);
     band.append(frequencyLabel, trackContainer, value);
