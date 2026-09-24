@@ -120,7 +120,7 @@ function renderEcho() {
 }
 
 /* =========================================================
-   DIGITAL MIXER PAGE
+   DIGITAL MIXER PAGE (DENGAN KONTEN SECTION SELECT DINAMIS)
    ========================================================= */
 
 function renderMixerPage() {
@@ -133,30 +133,248 @@ function renderMixerPage() {
       <div class="mixer-top-console">
         <div class="mixer-tft-screen">
           <div class="tft-header">
-            <span>M32/X32 DIGITAL CONSOLE INTERFACE</span>
+            <span id="tftSectionTitle">CONFIG / PREAMP INTERFACE</span>
             <span style="color: #10b981;">● ONLINE LINKED</span>
           </div>
-          <div class="tft-body">
-            <div class="rta-display-box" id="mixerRtaBars"></div>
-            <div class="mixer-screen-info">
-              <div><b>Scene:</b> Main Live FOH</div>
-              <div><b>DSP Load:</b> 14%</div>
-              <div><b>Sample Rate:</b> 48kHz</div>
+          <div class="tft-body" style="grid-template-columns: 1fr;">
+            <!-- Area Konten Dinamis Berdasarkan Section Select -->
+            <div id="tftContentArea" style="background: #020408; border: 1px solid #111827; border-radius: 4px; padding: 8px; font-size: 11px; color: #38bdf8; overflow-y: auto;">
+              <!-- Default: CONFIG -->
+              <div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div>
+              <div style="margin-top: 6px; color: #94a3b8;">Atur parameter input gain dan sumber sinyal kanal aktif.</div>
             </div>
           </div>
         </div>
         <div class="mixer-control-section">
           <div style="font-size: 10px; font-weight: bold; color: #38bdf8; margin-bottom: 4px;">SECTION SELECT</div>
           <div class="section-grid-btns">
-            <button class="console-btn active">CONFIG</button>
-            <button class="console-btn">GATE</button>
-            <button class="console-btn">DYNAMICS</button>
-            <button class="console-btn">EQ</button>
-            <button class="console-btn">SENDS</button>
-            <button class="console-btn">MAIN</button>
+            <button class="console-btn active" data-section="config">CONFIG</button>
+            <button class="console-btn" data-section="gate">GATE</button>
+            <button class="console-btn" data-section="dynamics">DYNAMICS</button>
+            <button class="console-btn" data-section="eq">EQ</button>
+            <button class="console-btn" data-section="sends">SENDS</button>
+            <button class="console-btn" data-section="main">MAIN</button>
           </div>
         </div>
       </div>
+
+      <div class="mixer-desk-surface">
+        <!-- CH 1 -->
+        <div class="console-channel-strip">
+          <div class="strip-label-box">CH 1: MIC</div>
+          <div class="strip-knobs-area">
+            <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+            <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+          </div>
+          <div class="fader-readout">0.0 dB</div>
+          <div class="fader-panel-area">
+            <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+            <div class="vert-led-meter">
+              <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+            </div>
+          </div>
+          <div class="strip-action-buttons" style="margin-top:8px;">
+            <button class="console-action-btn mute">MUTE</button>
+            <button class="console-action-btn solo">SOLO</button>
+          </div>
+        </div>
+
+        <!-- CH 2 -->
+        <div class="console-channel-strip">
+          <div class="strip-label-box">CH 2: MUSIC</div>
+          <div class="strip-knobs-area">
+            <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+            <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+          </div>
+          <div class="fader-readout">0.0 dB</div>
+          <div class="fader-panel-area">
+            <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+            <div class="vert-led-meter">
+              <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+            </div>
+          </div>
+          <div class="strip-action-buttons" style="margin-top:8px;">
+            <button class="console-action-btn mute">MUTE</button>
+            <button class="console-action-btn solo">SOLO</button>
+          </div>
+        </div>
+
+        <!-- CH 3 -->
+        <div class="console-channel-strip">
+          <div class="strip-label-box">CH 3: AUX</div>
+          <div class="strip-knobs-area">
+            <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+            <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+          </div>
+          <div class="fader-readout">0.0 dB</div>
+          <div class="fader-panel-area">
+            <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+            <div class="vert-led-meter">
+              <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+            </div>
+          </div>
+          <div class="strip-action-buttons" style="margin-top:8px;">
+            <button class="console-action-btn mute">MUTE</button>
+            <button class="console-action-btn solo">SOLO</button>
+          </div>
+        </div>
+
+        <!-- CH 4 -->
+        <div class="console-channel-strip">
+          <div class="strip-label-box">CH 4: FX</div>
+          <div class="strip-knobs-area">
+            <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+            <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+          </div>
+          <div class="fader-readout">0.0 dB</div>
+          <div class="fader-panel-area">
+            <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+            <div class="vert-led-meter">
+              <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+            </div>
+          </div>
+          <div class="strip-action-buttons" style="margin-top:8px;">
+            <button class="console-action-btn mute">MUTE</button>
+            <button class="console-action-btn solo">SOLO</button>
+          </div>
+        </div>
+
+        <!-- MASTER L/R -->
+        <div class="console-channel-strip master-strip">
+          <div class="strip-label-box">MASTER L/R</div>
+          <div class="strip-knobs-area" style="border-color: #78350f;">
+            <div class="knob-row"><span>LIMIT</span><span>ON</span></div>
+            <div class="knob-row"><span>PROC</span><select><option>EQ+ECHO</option><option>BYPASS</option></select></div>
+          </div>
+          <div class="fader-readout">0.0 dB</div>
+          <div class="fader-panel-area">
+            <div class="fader-slot"><input type="range" min="-50" max="6" step="0.5" value="0"></div>
+            <div class="vert-led-meter">
+              <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
+            </div>
+          </div>
+          <div class="strip-action-buttons" style="margin-top:8px;">
+            <button class="console-action-btn mute" style="background:#b45309; color:#fff;">MUTE</button>
+            <button class="console-action-btn active" style="background:#fbbf24; color:#000;">LR</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  pageContainer.appendChild(page);
+  mixerPage = page;
+  
+  initDigitalMixerFunctions();
+  return page;
+}
+
+/* =========================================================
+   FUNGSI INTERAKTIF DIGITAL MIXER CONSOLE (PERBAIKAN SECTION SELECT)
+   ========================================================= */
+
+function initDigitalMixerFunctions() {
+  // 1. Kontrol Fader, Mute, Solo & LED Meter Vertikal
+  const channelStrips = mixerPage ? mixerPage.querySelectorAll(".console-channel-strip") : [];
+  channelStrips.forEach(strip => {
+    const faderInput = strip.querySelector("input[type='range']");
+    const readout = strip.querySelector(".fader-readout");
+    const ledSpans = strip.querySelectorAll(".vert-led-meter span");
+    const muteBtn = strip.querySelector(".console-action-btn.mute");
+    const soloBtn = strip.querySelector(".console-action-btn.solo");
+
+    if (faderInput && readout) {
+      faderInput.addEventListener("input", () => {
+        const val = parseFloat(faderInput.value);
+        readout.textContent = (val > 0 ? "+" : "") + val.toFixed(1) + " dB";
+      });
+    }
+
+    if (muteBtn) {
+      muteBtn.addEventListener("click", () => {
+        muteBtn.classList.toggle("active");
+        const isMuted = muteBtn.classList.contains("active");
+        if (faderInput) faderInput.disabled = isMuted;
+      });
+    }
+
+    if (soloBtn) {
+      soloBtn.addEventListener("click", () => {
+        soloBtn.classList.toggle("active");
+      });
+    }
+
+    if (faderInput && ledSpans.length > 0) {
+      setInterval(() => {
+        if (mixerPage && mixerPage.style.display !== "none") {
+          const faderVal = parseFloat(faderInput.value);
+          if (faderVal < -30 || (muteBtn && muteBtn.classList.contains("active"))) {
+            ledSpanLoop(ledSpans, 0);
+            return;
+          }
+          const activeSegments = Math.min(ledSpans.length, Math.max(1, Math.floor((faderVal + 40) / 5) + Math.floor(Math.random() * 3)));
+          ledSpanLoop(ledSpans, activeSegments);
+        }
+      }, 150);
+    }
+  });
+
+  // 2. Logika Section Select (CONFIG, GATE, DYNAMICS, EQ, SENDS, MAIN)
+  const consoleBtns = mixerPage ? mixerPage.querySelectorAll(".mixer-control-section .console-btn") : [];
+  const tftSectionTitle = mixerPage ? mixerPage.querySelector("#tftSectionTitle") : null;
+  const tftContentArea = mixerPage ? mixerPage.querySelector("#tftContentArea") : null;
+
+  const sectionData = {
+    config: {
+      title: "CONFIG / PREAMP INTERFACE",
+      content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 6px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif.</div>"
+    },
+    gate: {
+      title: "NOISE GATE / EXPANDER PROCESSOR",
+      content: "<div><b>Threshold:</b> -45 dB | <b>Ratio:</b> 1:2.5 | <b>Attack:</b> 5ms | <b>Hold:</b> 20ms</div><div style='margin-top: 6px; color: #94a3b8;'>Meredam kebisingan latar belakang saat sinyal input kecil.</div>"
+    },
+    dynamics: {
+      title: "DYNAMICS / COMPRESSOR PROCESSOR",
+      content: "<div><b>Threshold:</b> -18 dB | <b>Ratio:</b> 3:1 | <b>Attack:</b> 15ms | <b>Release:</b> 300ms</div><div style='margin-top: 6px; color: #94a3b8;'>Mengontrol rentang dinamis agar suara vokal/musik lebih stabil.</div>"
+    },
+    eq: {
+      title: "CHANNEL PARAMETRIC EQUALIZER",
+      content: "<div><b>Low Cut (HPF):</b> 80Hz | <b>Band 1 (Low):</b> 100Hz (+2dB) | <b>Band 2 (Mid):</b> 2.5kHz (-3dB) | <b>Band 3 (High):</b> 10kHz (+4dB)</div><div style='margin-top: 6px; color: #94a3b8;'>Pemrosesan filter frekuensi parametrik 4-band pada kanal terpilih.</div>"
+    },
+    sends: {
+      title: "BUS SENDS & FX ROUTING",
+      content: "<div><b>Bus 1 (Echo Send):</b> -6.0 dB | <b>Bus 2 (Reverb Send):</b> -12.0 dB | <b>Tap:</b> Post-Fader</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan pengiriman sinyal (aux/effects send) ke prosesor eksternal.</div>"
+    },
+    main: {
+      title: "MAIN FOH OUTPUT & MATRIX",
+      content: "<div><b>Main L/R:</b> Active | <b>Matrix 1/2:</b> Feed Live | <b>Master Limiter:</b> -0.5 dB</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan keluaran utama (Main Bus) menuju sound system lapangan.</div>"
+    }
+  };
+
+  consoleBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      consoleBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const sectionKey = btn.dataset.section;
+      if (sectionData[sectionKey] && tftSectionTitle && tftContentArea) {
+        tftSectionTitle.textContent = sectionData[sectionKey].title;
+        tftContentArea.innerHTML = sectionData[sectionKey].content;
+      }
+    });
+  });
+}
+
+function ledSpanLoop(spans, count) {
+  spans.forEach((span, idx) => {
+    const targetIdx = spans.length - 1 - idx;
+    if (targetIdx < count) {
+      span.classList.add("on");
+    } else {
+      span.classList.remove("on");
+    }
+  });
+}
 
       <div class="mixer-desk-surface">
         <!-- CH 1 -->
