@@ -313,3 +313,100 @@ document.addEventListener("DOMContentLoaded", () => {
   renderMixer();
   showPage("equalizer");
 });
+
+/* =========================================================
+   FUNGSI INTERAKTIF DIGITAL MIXER CONSOLE
+   ========================================================= */
+
+function initDigitalMixerFunctions() {
+  // 1. Animasi RTA Spectrum di Layar TFT Mixer
+  const mixerRtaBars = document.getElementById("mixerRtaBars");
+  if (mixerRtaBars && mixerRtaBars.children.length === 0) {
+    for (let i = 0; i < 20; i++) {
+      const bar = document.createElement("div");
+      bar.style.flex = "1";
+      bar.style.height = Math.floor(Math.random() * 80 + 15) + "%";
+      bar.style.background = "linear-gradient(to top, #0284c7, #38bdf8)";
+      bar.style.borderRadius = "1px";
+      mixerRtaBars.appendChild(bar);
+    }
+    setInterval(() => {
+      if (mixerPage && mixerPage.style.display !== "none") {
+        [...mixerRtaBars.children].forEach(bar => {
+          bar.style.height = Math.floor(Math.random() * 85 + 10) + "%";
+        });
+      }
+    }, 120);
+  }
+
+  // 2. Kontrol Fader & Tampilan Nilai dB pada Channel Strip & Master
+  const channelStrips = document.querySelectorAll(".console-channel-strip");
+  channelStrips.forEach(strip => {
+    const faderInput = strip.querySelector("input[type='range']");
+    const readout = strip.querySelector(".fader-readout");
+    const ledSpans = strip.querySelectorAll(".vert-led-meter span");
+    const muteBtn = strip.querySelector(".console-action-btn.mute");
+    const soloBtn = strip.querySelector(".console-action-btn.solo");
+
+    if (faderInput && readout) {
+      faderInput.addEventListener("input", () => {
+        const val = parseFloat(faderInput.value);
+        readout.textContent = (val > 0 ? "+" : "") + val.toFixed(1) + " dB";
+      });
+    }
+
+    // Tombol Mute & Solo Interaktif
+    if (muteBtn) {
+      muteBtn.addEventListener("click", () => {
+        muteBtn.classList.toggle("active");
+        const isMuted = muteBtn.classList.contains("active");
+        if (faderInput) faderInput.disabled = isMuted;
+      });
+    }
+
+    if (soloBtn) {
+      soloBtn.addEventListener("click", () => {
+        soloBtn.classList.toggle("active");
+      });
+    }
+
+    // Simulasi LED Meter Vertikal Dinamis Berdasarkan Posisi Fader
+    if (faderInput && ledSpans.length > 0) {
+      setInterval(() => {
+        if (mixerPage && mixerPage.style.display !== "none") {
+          const faderVal = parseFloat(faderInput.value);
+          // Jika fader terlalu rendah atau di-mute, matikan LED
+          if (faderVal < -30 || (muteBtn && muteBtn.classList.contains("active"))) {
+            ledSpanLoop(ledSpans, 0);
+            return;
+          }
+          // Hitung jumlah lampu LED yang menyala berdasarkan besar fader
+          const activeSegments = Math.min(ledSpans.length, Math.max(1, Math.floor((faderVal + 40) / 5) + Math.floor(Math.random() * 3)));
+          ledSpanLoop(ledSpans, activeSegments);
+        }
+      }, 150);
+    }
+  });
+
+  // 3. Tombol Section Select di Panel Kanan Layar TFT
+  const consoleBtns = document.querySelectorAll(".mixer-control-section .console-btn");
+  consoleBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      consoleBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+}
+
+function ledSpanLoop(spans, count) {
+  spans.forEach((span, idx) => {
+    // Urutan dari bawah ke atas
+    const targetIdx = spans.length - 1 - idx;
+    if (targetIdx < count) {
+      span.classList.add("on");
+    } else {
+      span.classList.remove("on");
+    }
+  });
+}
+
