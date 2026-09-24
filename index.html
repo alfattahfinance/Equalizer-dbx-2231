@@ -1470,6 +1470,24 @@ document.querySelectorAll(".strip-btn").forEach(btn => {
 });
 
 refreshInputDevices();
+    // Animasi RTA Spectrum di Layar Mixer Digital
+const mixerRtaBars = document.getElementById("mixerRtaBars");
+if (mixerRtaBars && mixerRtaBars.children.length === 0) {
+  for (let i = 0; i < 20; i++) {
+    const bar = document.createElement("div");
+    bar.style.flex = "1";
+    bar.style.height = Math.floor(Math.random() * 80 + 15) + "%";
+    bar.style.background = "linear-gradient(to top, #0284c7, #38bdf8)";
+    bar.style.borderRadius = "1px";
+    mixerRtaBars.appendChild(bar);
+  }
+  setInterval(() => {
+    [...mixerRtaBars.children].forEach(bar => {
+      bar.style.height = Math.floor(Math.random() * 85 + 10) + "%";
+    });
+  }, 120);
+}
+
   </script>
 </body>
 </html>
