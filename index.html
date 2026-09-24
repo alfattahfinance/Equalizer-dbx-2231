@@ -695,12 +695,12 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
 
             <!-- Tab Menu Layar Atas -->
             <div class="tft-top-tabs">
-              <button class="tft-tab active">HOME</button>
-              <button class="tft-tab">METERS</button>
-              <button class="tft-tab">ROUTING</button>
-              <button class="tft-tab">SETUP</button>
-              <button class="tft-tab">LIBRARY</button>
-              <button class="tft-tab">EFFECTS</button>
+              <button class="tft-tab active" data-tft-tab="home">HOME</button>
+              <button class="tft-tab" data-tft-tab="meters">METERS</button>
+              <button class="tft-tab" data-tft-tab="routing">ROUTING</button>
+              <button class="tft-tab" data-tft-tab="setup">SETUP</button>
+              <button class="tft-tab" data-tft-tab="library">LIBRARY</button>
+              <button class="tft-tab" data-tft-tab="effects">EFFECTS</button>
             </div>
 
             <!-- Tampilan Utama Konten Layar -->
@@ -709,7 +709,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
                 <div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div>
                 <div style="margin-top: 6px; color: #94a3b8;">Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>
               </div>
-              <div style="font-size: 9px; color: #64748b; border-top: 1px solid #1e293b; paddingTop: 4px; display: flex; justify-content: space-between;">
+              <div style="font-size: 9px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 4px; display: flex; justify-content: space-between;">
                 <span>CH 01: Lead Vocal</span>
                 <span>Gate/Comp/EQ/Insert Active</span>
               </div>
@@ -919,7 +919,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
 "use strict";
 
 /* =========================================================
-   NAVIGASI TIGA TAB (EQUALIZER, ECHO, DIGITAL MIXER)
+   NAVIGASI TIGA TAB UTAMA (EQUALIZER, ECHO, DIGITAL MIXER)
 ========================================================= */
 const tabEqBtn = document.getElementById("tabEqBtn");
 const tabEchoBtn = document.getElementById("tabEchoBtn");
@@ -1650,15 +1650,16 @@ document.querySelectorAll(".console-action-btn").forEach(btn => {
   });
 });
 
-/* Logika Tombol Section Select (CONFIG, GATE, DYNAMICS, EQ, SENDS, MAIN) */
-const consoleBtns = document.querySelectorAll(".mixer-control-section .console-btn");
+/* =========================================================
+   LOGIKA TFT DISPLAY & TOMBOL KONTROL DIGITAL MIXER
+========================================================= */
 const tftSectionTitle = document.getElementById("tftSectionTitle");
 const tftContentArea = document.getElementById("tftContentArea");
 
 const sectionData = {
   config: {
     title: "CONFIG / PREAMP INTERFACE",
-    content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 6px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif.</div>"
+    content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 6px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>"
   },
   gate: {
     title: "NOISE GATE / EXPANDER PROCESSOR",
@@ -1682,15 +1683,59 @@ const sectionData = {
   }
 };
 
+// 1. Logika Tombol Section Select (Kanan Layar TFT)
+const consoleBtns = document.querySelectorAll(".mixer-control-section .console-btn");
 consoleBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     consoleBtns.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    const sectionKey = btn.textContent.toLowerCase().trim();
+    const sectionKey = btn.getAttribute("data-section");
     if (sectionData[sectionKey] && tftSectionTitle && tftContentArea) {
       tftSectionTitle.textContent = sectionData[sectionKey].title;
       tftContentArea.innerHTML = sectionData[sectionKey].content;
+    }
+  });
+});
+
+// 2. Logika Tombol Tab Menu Layar Atas TFT (HOME, METERS, ROUTING, SETUP, LIBRARY, EFFECTS)
+const tftTabs = document.querySelectorAll(".tft-top-tabs .tft-tab");
+const tftTabPages = {
+  home: {
+    title: "HOME / OVERVIEW VIEW",
+    content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 6px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>"
+  },
+  meters: {
+    title: "METERS / RTA ANALYZER",
+    content: "<div><b>RTA Display:</b> Active 31-Band Real-Time Analyzer | <b>Peak Hold:</b> 2.0s</div><div style='margin-top: 6px; color: #94a3b8;'>Memantau spektrum frekuensi audio secara langsung (Real-Time).</div>"
+  },
+  routing: {
+    title: "ROUTING & USB INTERFACE",
+    content: "<div><b>Input Source:</b> Card / USB Stream 1-8 | <b>Outputs:</b> Main L/R & Aux 1-4</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan jalur sinyal fisik dan digital pada console mixer.</div>"
+  },
+  setup: {
+    title: "SYSTEM SETUP & PREFERENCES",
+    content: "<div><b>Sample Rate:</b> 48 kHz | <b>Word Clock:</b> Internal | <b>OSC IP:</b> 192.168.1.100</div><div style='margin-top: 6px; color: #94a3b8;'>Konfigurasi sistem perangkat keras console digital mixer.</div>"
+  },
+  library: {
+    title: "SCENE & PRESET LIBRARY",
+    content: "<div><b>Loaded Scene:</b> #01 Live Default | <b>Snippets:</b> All Parameters</div><div style='margin-top: 6px; color: #94a3b8;'>Simpan dan muat konfigurasi mixing seluruh acara panggung.</div>"
+  },
+  effects: {
+    title: "FX RACK & PROCESSOR",
+    content: "<div><b>FX 1:</b> Vintage Room Reverb | <b>FX 2:</b> Dual Digital Delay | <b>FX 3:</b> Graphic EQ</div><div style='margin-top: 6px; color: #94a3b8;'>Manajemen efek internal console kelas studio profesional.</div>"
+  }
+};
+
+tftTabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    tftTabs.forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+
+    const tabText = tab.textContent.toLowerCase().trim();
+    if (tftTabPages[tabText] && tftSectionTitle && tftContentArea) {
+      tftSectionTitle.textContent = tftTabPages[tabText].title;
+      tftContentArea.innerHTML = tftTabPages[tabText].content;
     }
   });
 });
