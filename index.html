@@ -31,14 +31,39 @@ header, .topbar {
 }
 .actions button:hover, .actions button.active { background: #00d9ff; color: #000; border-color: #00d9ff; }
 
-/* TIGA TAB NAVIGASI UTAMA */
-.mode-switch-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-.tab-btn { background: #1a222d; color: #94a3b8; border: 1px solid #3a414b; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; transition: all 0.2s; }
-.tab-btn.active { background: #2563eb; color: #fff; border-color: #3b82f6; box-shadow: 0 0 10px rgba(37, 99, 235, 0.4); }
+/* =========================================================
+   TIGA TAB NAVIGASI UTAMA
+========================================================= */
+.mode-switch-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.tab-btn {
+  background: #1a222d;
+  color: #94a3b8;
+  border: 1px solid #3a414b;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: center;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.4);
+}
+
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
-/* RACK & CHANNEL */
+/* =========================================================
+   RACK & CHANNEL CONTAINER (EQUALIZER)
+========================================================= */
 .rack { background: #14181f; border: 1px solid #3a414b; border-radius: 8px; padding: 12px; }
 .rack-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #2a323d; padding-bottom: 8px; }
 .model { font-size: 14px; font-weight: bold; color: #f59e0b; }
@@ -49,13 +74,17 @@ header, .topbar {
 .channel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .channel-title-group { display: flex; align-items: center; gap: 8px; }
 
+/* LED Indikator */
 .status-led { width: 8px; height: 8px; border-radius: 50%; background: #252b35; border: 1px solid #485260; display: inline-block; }
 .status-led.active-led { background: #10b981; border-color: #34d399; box-shadow: 0 0 6px #10b981; }
-.status-led.bypass-led { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #f87171; }
+.status-led.bypass-led { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #ef4444; }
+.status-led.test-led { background: #f59e0b; border-color: #fbbf24; box-shadow: 0 0 6px #f59e0b; }
+
 .channel-title { font-size: 12px; font-weight: bold; color: #38bdf8; }
 .channel-controls { display: flex; gap: 6px; align-items: center; }
 .small-button { background: #252b35; color: #cbd5e1; border: 1px solid #485260; padding: 3px 8px; font-size: 10px; border-radius: 3px; display: flex; align-items: center; gap: 4px; }
 .small-button.active { background: #ef4444; color: #fff; border-color: #f87171; }
+.small-button.test-button.active { background: #f59e0b; color: #000; }
 
 .control-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; background: #101216; padding: 8px; border-radius: 6px; margin-bottom: 8px; align-items: center; }
 .control label { display: block; font-size: 9px; color: #94a3b8; margin-bottom: 3px; }
@@ -78,44 +107,282 @@ header, .topbar {
 .eq { display: grid; grid-template-columns: repeat(31, 38px); gap: 4px; min-width: max-content; }
 .band { background: #101216; border: 1px solid #2a323d; border-radius: 4px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; height: 230px; position: relative; }
 .band-frequency { font-size: 8px; color: #94a3b8; margin-bottom: 4px; text-align: center; }
-.band input[type="range"] { writing-mode: vertical-lr; direction: rtl; width: 16px; height: 165px; accent-color: #38bdf8; cursor: pointer; position: relative; z-index: 2; }
-.slider-track-container { position: relative; height: 165px; width: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+
+.band input[type="range"] {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 16px;
+  height: 165px;
+  accent-color: #38bdf8;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+.slider-track-container {
+  position: relative;
+  height: 165px;
+  width: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
 .band-value { font-size: 8px; color: #38bdf8; margin-top: 4px; font-family: monospace; text-align: center; }
 .scale { display: flex; justify-content: space-between; font-size: 9px; color: #64748b; padding: 2px 4px; }
 
-/* ALESIS FX */
-.echo-panel-box { background: #161a22; border: 1px solid #3a414b; border-radius: 8px; padding: 20px; }
-.echo-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.echo-onoff-btn { background: #252b35; color: #fff; border: 1px solid #485260; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px; }
-.echo-onoff-btn.active { background: #10b981; border-color: #34d399; color: #000; box-shadow: 0 0 8px #10b981; }
+/* =========================================================
+   PANEL ALESIS (EFFECTS PROCESSOR)
+========================================================= */
+.echo-panel-box {
+  background: #161a22;
+  border: 1px solid #3a414b;
+  border-radius: 8px;
+  padding: 20px;
+}
+.echo-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.echo-onoff-btn {
+  background: #252b35; color: #fff; border: 1px solid #485260; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px;
+}
+.echo-onoff-btn.active {
+  background: #10b981; border-color: #34d399; color: #000; box-shadow: 0 0 8px #10b981;
+}
 .echo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .echo-control-card { background: #101216; border: 1px solid #2a323d; padding: 15px; border-radius: 6px; }
 .echo-control-card label { display: block; font-size: 11px; color: #38bdf8; margin-bottom: 6px; font-weight: bold; }
 .echo-control-card input[type="range"] { width: 100%; accent-color: #38bdf8; margin-bottom: 6px; }
 .echo-val { font-size: 11px; color: #f59e0b; font-family: monospace; text-align: right; }
 
-/* AUDIO & BLUETOOTH PANEL */
+/* =========================================================
+   DIGITAL MIXER CONSOLE
+========================================================= */
+.mixer-console {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+.mixer-top-console {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+  background: #040609;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.mixer-tft-screen {
+  background: #05080c;
+  border: 2px solid #2d3748;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 4px 10px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.tft-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1e293b;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #38bdf8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tft-top-tabs {
+  display: flex;
+  gap: 3px;
+  background: #0f172a;
+  padding: 3px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  border: 1px solid #1e293b;
+  overflow-x: auto;
+}
+
+.tft-tab {
+  background: #1e293b;
+  color: #94a3b8;
+  border: none;
+  font-size: 8px;
+  font-weight: bold;
+  padding: 3px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.tft-tab.active { background: #0284c7; color: #fff; }
+
+.tft-main-viewport {
+  background: #020408;
+  border: 1px solid #1e293b;
+  border-radius: 4px;
+  min-height: 95px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.tft-content-screen { font-size: 10px; color: #38bdf8; line-height: 1.3; }
+.tft-interactive-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
+.tft-interactive-item { background: #0d121c; border: 1px solid #1e293b; padding: 4px; border-radius: 4px; font-size: 9px; }
+.tft-interactive-item label { display: block; color: #94a3b8; margin-bottom: 2px; font-size: 8px; }
+.tft-interactive-item input[type="range"] { width: 100%; accent-color: #38bdf8; }
+.tft-interactive-item select { width: 100%; background: #161f30; color: #fff; border: 1px solid #334155; font-size: 9px; padding: 2px; border-radius: 3px; }
+.tft-interactive-item button { width: 100%; background: #0284c7; color: #fff; border: none; padding: 3px; font-size: 8px; font-weight: bold; border-radius: 3px; }
+.tft-interactive-item button.active-action { background: #10b981; }
+
+.tft-encoders-bar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin-top: 6px;
+  background: #090d16;
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid #1e293b;
+}
+
+.tft-encoder-knob {
+  background: linear-gradient(180deg, #1e293b, #0f172a);
+  border: 1px solid #475569;
+  border-radius: 4px;
+  text-align: center;
+  padding: 3px 1px;
+  font-size: 7px;
+  color: #cbd5e1;
+  font-family: monospace;
+}
+
+.tft-encoder-knob span { display: block; color: #38bdf8; font-weight: bold; font-size: 8px; margin-top: 1px; }
+
+.mixer-control-section {
+  background: #11161d;
+  border: 1px solid #21262d;
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.section-grid-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+
+.console-btn {
+  background: #1f2937; color: #cbd5e1; border: 1px solid #374151; font-size: 9px; font-weight: bold; padding: 6px 2px; border-radius: 3px; text-align: center;
+}
+.console-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+
+.mixer-desk-surface { display: grid; grid-template-columns: repeat(4, 1fr) 1.25fr; gap: 10px; overflow-x: auto; }
+
+.console-channel-strip {
+  background: linear-gradient(180deg, #161b22, #0d1117);
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.console-channel-strip.master-strip { background: linear-gradient(180deg, #221a10, #110c05); border-color: #d97706; }
+
+.strip-label-box {
+  background: #0b0f15; border: 1px solid #21262d; border-radius: 4px; width: 100%; padding: 5px; text-align: center; margin-bottom: 8px; font-size: 11px; font-weight: bold; color: #38bdf8; letter-spacing: 0.5px;
+}
+.master-strip .strip-label-box { color: #fbbf24; border-color: #78350f; background: #140d04; }
+
+.strip-knobs-area {
+  width: 100%; background: #080c10; border: 1px solid #1f2937; border-radius: 4px; padding: 6px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px;
+}
+.knob-row { display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: #94a3b8; }
+.knob-row select { background: #111827; color: #fff; border: 1px solid #374151; font-size: 9px; padding: 2px; border-radius: 3px; }
+
+.fader-panel-area { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.vert-led-meter {
+  display: flex; flex-direction: column; gap: 2px; width: 8px; height: 190px; background: #020408; border: 1px solid #1f2937; padding: 3px 1px; border-radius: 3px;
+}
+.vert-led-meter span { flex: 1; background: #111827; border-radius: 1px; }
+.vert-led-meter span.green.on { background: #10b981 !important; box-shadow: 0 0 4px #10b981; }
+.vert-led-meter span.yellow.on { background: #f59e0b !important; box-shadow: 0 0 4px #f59e0b; }
+.vert-led-meter span.red.on { background: #ef4444 !important; box-shadow: 0 0 4px #ef4444; }
+
+.fader-slot { position: relative; height: 190px; width: 28px; display: flex; justify-content: center; align-items: center; background: #05070a; border: 1px solid #1f2937; border-radius: 4px; }
+.fader-slot input[type="range"] { writing-mode: vertical-lr; direction: rtl; width: 18px; height: 175px; accent-color: #38bdf8; cursor: pointer; }
+.master-strip .fader-slot input[type="range"] { accent-color: #fbbf24; }
+
+.fader-readout { font-size: 10px; font-family: monospace; color: #38bdf8; margin-bottom: 6px; font-weight: bold; }
+.master-strip .fader-readout { color: #fbbf24; }
+
+.strip-action-buttons { display: flex; gap: 4px; width: 100%; }
+.console-action-btn { flex: 1; background: #21262d; color: #cbd5e1; border: 1px solid #374151; padding: 6px 2px; font-size: 9px; font-weight: bold; border-radius: 3px; text-align: center; }
+.console-action-btn.mute.active { background: #ef4444; color: #fff; border-color: #f87171; }
+.console-action-btn.solo.active { background: #f59e0b; color: #000; border-color: #fbbf24; }
+
+/* Audio & Bluetooth Panel */
 .audio-panel { background: #1b2027; border: 1px solid #3a414b; border-radius: 8px; padding: 12px; margin-top: 14px; }
 .audio-panel h3 { margin: 0 0 10px 0; font-size: 12px; color: #38bdf8; }
 .audio-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
-.bt-panel { width: 100%; background: #101216; padding: 10px; border-radius: 6px; border: 1px solid #2a323d; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.bt-panel {
+  width: 100%; background: #101216; padding: 10px; border-radius: 6px; border: 1px solid #2a323d; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+}
 .bt-info { font-size: 10px; color: #94a3b8; }
 #connectBtButton { background: #3b82f6; color: white; border: 1px solid #60a5fa; padding: 6px 14px; border-radius: 4px; font-weight: bold; }
 #connectBtButton.connected { background: #10b981; border-color: #34d399; }
-.audio-actions button, .file-button { background: #252b35; color: #fff; border: 1px solid #485260; padding: 6px 12px; font-size: 11px; border-radius: 4px; font-weight: bold; display: inline-flex; align-items: center; cursor: pointer; }
+
+.audio-actions button, .file-button {
+  background: #252b35; color: #fff; border: 1px solid #485260; padding: 6px 12px; font-size: 11px; border-radius: 4px; font-weight: bold; display: inline-flex; align-items: center; cursor: pointer;
+}
 .audio-actions button:hover, .file-button:hover { background: #334155; }
 .audio-actions button.active { background: #10b981; border-color: #34d399; color: #000; }
+
 .playlist-container { width: 100%; background: #101216; border: 1px solid #2a323d; border-radius: 6px; padding: 8px; margin: 8px 0; max-height: 100px; overflow-y: auto; font-size: 10px; color: #94a3b8; }
 .playlist-item { display: flex; justify-content: space-between; padding: 3px 6px; border-bottom: 1px solid #1e293b; cursor: pointer; }
 .playlist-item:hover { background: #1e293b; color: #fff; }
 .playlist-item.playing { color: #38bdf8; font-weight: bold; }
+
 .output-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #101216; padding: 8px; border-radius: 6px; margin-top: 8px; }
 .output-control label { display: block; font-size: 9px; color: #94a3b8; margin-bottom: 3px; }
 .output-control input[type="range"] { width: 100%; accent-color: #f59e0b; }
 .master-value { font-size: 10px; color: #f59e0b; font-family: monospace; text-align: center; }
+.output-control select { width: 100%; background: #1e293b; color: #fff; border: 1px solid #485260; padding: 4px; font-size: 11px; border-radius: 4px; }
 #muteOutputButton.active { background: #ef4444 !important; color: #fff !important; border-color: #f87171; }
-.audio-status, .status { font-size: 10px; color: #94a3b8; margin-top: 4px; }
+
+.device-status, .feedback-status, .audio-status, .status { font-size: 10px; color: #94a3b8; margin-top: 4px; }
 .footer { text-align: center; font-size: 10px; color: #64748b; margin-top: 15px; }
+
+@media (max-width: 768px) {
+  .control-row, .output-panel, .echo-grid { grid-template-columns: 1fr; }
+}
+
+.tft-visual-meters { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.tft-meter-row { display: flex; align-items: center; gap: 8px; font-size: 9px; font-family: monospace; color: #94a3b8; }
+.tft-meter-bar { flex-grow: 1; height: 8px; background: #090d16; border: 1px solid #1e293b; border-radius: 2px; display: flex; gap: 1px; padding: 1px; }
+.tft-meter-bar span { flex: 1; background: #111827; border-radius: 1px; }
+.tft-curve-box { display: flex; justify-content: space-around; align-items: flex-end; height: 40px; background: #03060a; border: 1px solid #1e293b; border-radius: 3px; padding: 2px 4px; margin-top: 4px; }
+.tft-curve-bar { width: 8px; background: #0284c7; border-radius: 2px 2px 0 0; transition: height 0.2s; }
   </style>
 </head>
 
@@ -165,6 +432,7 @@ header, .topbar {
               </div>
               <div class="channel-controls">
                 <button class="small-button bypass-button"><span class="status-led bypass-led"></span> BYPASS</button>
+                <button class="small-button test-button"><span class="status-led test-led"></span> TEST</button>
               </div>
             </div>
             <div class="control-row">
@@ -210,6 +478,7 @@ header, .topbar {
               </div>
               <div class="channel-controls">
                 <button class="small-button bypass-button"><span class="status-led bypass-led"></span> BYPASS</button>
+                <button class="small-button test-button"><span class="status-led test-led"></span> TEST</button>
               </div>
             </div>
             <div class="control-row">
@@ -249,35 +518,38 @@ header, .topbar {
       </section>
     </div>
 
-    <!-- KONTEN TAB 2: ALESIS FX -->
+    <!-- KONTEN TAB 2: ALESIS FX PROCESSOR -->
     <div class="tab-content" id="tabEchoContent">
       <div class="echo-panel-box">
         <div class="echo-header-row">
           <div>
             <h3 style="color: #38bdf8; margin:0 0 4px 0;">ALESIS DIGITAL EFFECTS PROCESSOR</h3>
-            <p style="font-size: 11px; color: #94a3b8; margin:0;">Prosesor Efek Studio (Reverb & Delay).</p>
+            <p style="font-size: 11px; color: #94a3b8; margin:0;">Prosesor Efek Studio (Reverb & Delay) di antara Mixer dan Equalizer.</p>
           </div>
           <button class="echo-onoff-btn" id="echoToggleBtn">ALESIS FX: OFF</button>
         </div>
         
         <div class="echo-grid">
           <div class="echo-control-card">
-            <label>DELAY TIME</label>
+            <label>DELAY TIME (Waktu Pantulan)</label>
             <input type="range" id="echoDelay" min="0.05" max="1.0" step="0.05" value="0.3">
             <div class="echo-val" id="echoDelayVal">0.30 detik</div>
           </div>
+          
           <div class="echo-control-card">
-            <label>FEEDBACK</label>
+            <label>FEEDBACK (Pengulangan)</label>
             <input type="range" id="echoFeedback" min="0.0" max="0.9" step="0.05" value="0.4">
             <div class="echo-val" id="echoFeedbackVal">40%</div>
           </div>
+
           <div class="echo-control-card">
-            <label>ROOM DAMPING</label>
+            <label>ROOM DAMPING / TONE</label>
             <input type="range" id="echoDamping" min="1000" max="15000" step="500" value="5000">
             <div class="echo-val" id="echoDampingVal">5000 Hz</div>
           </div>
+
           <div class="echo-control-card">
-            <label>EFFECTS MIX</label>
+            <label>EFFECTS MIX (Wet / Dry)</label>
             <input type="range" id="echoMix" min="0.0" max="1.0" step="0.05" value="0.3">
             <div class="echo-val" id="echoMixVal">30%</div>
           </div>
@@ -287,45 +559,195 @@ header, .topbar {
 
     <!-- KONTEN TAB 3: DIGITAL MIXER CONSOLE -->
     <div class="tab-content" id="tabMixerContent">
-      <div class="mixer-console" style="background:#0d1117; border:1px solid #30363d; border-radius:12px; padding:16px;">
-        <h3 style="color:#38bdf8; margin-top:0;">DIGITAL MIXER CONSOLE (INPUT & PLAYER)</h3>
+      <div class="mixer-console">
         
-        <div class="bt-panel">
-          <div>
-            <strong>KONEKSI HARDWARE ESP32</strong>
-            <div id="btStatus" class="bt-info">Bluetooth terputus.</div>
+        <!-- BAGIAN LAYAR UTAMA & KONTROL ATAS -->
+        <div class="mixer-top-console">
+          
+          <!-- LAYAR TFT UTAMA -->
+          <div class="mixer-tft-screen">
+            <div class="tft-header">
+              <span id="tftSectionTitle">CONFIG / PREAMP INTERFACE</span>
+              <span style="color: #10b981;">● DSP: 48kHz / 32-bit</span>
+            </div>
+
+            <div class="tft-top-tabs">
+              <button class="tft-tab active" data-tft-tab="home">HOME</button>
+              <button class="tft-tab" data-tft-tab="meters">METERS</button>
+              <button class="tft-tab" data-tft-tab="routing">ROUTING</button>
+              <button class="tft-tab" data-tft-tab="setup">SETUP</button>
+              <button class="tft-tab" data-tft-tab="library">LIBRARY</button>
+              <button class="tft-tab" data-tft-tab="effects">EFFECTS</button>
+            </div>
+
+            <div class="tft-main-viewport">
+              <div class="tft-content-screen" id="tftContentArea"></div>
+              <div style="font-size: 8px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 3px; display: flex; justify-content: space-between;">
+                <span id="tftFooterChannel">CH 01: Lead Vocal</span>
+                <span id="tftFooterStatus">Gate/Comp/EQ Active</span>
+              </div>
+            </div>
+
+            <div class="tft-encoders-bar">
+              <div class="tft-encoder-knob">GAIN<span id="enc1Val">+12dB</span></div>
+              <div class="tft-encoder-knob">HPF<span id="enc2Val">80Hz</span></div>
+              <div class="tft-encoder-knob">THRESH<span id="enc3Val">-18dB</span></div>
+              <div class="tft-encoder-knob">RATIO<span id="enc4Val">3:1</span></div>
+              <div class="tft-encoder-knob">FREQUENCY<span id="enc5Val">2.5kHz</span></div>
+              <div class="tft-encoder-knob">MIX/SEND<span id="enc6Val">0.0dB</span></div>
+            </div>
           </div>
-          <button id="connectBtButton">SAMBUNGKAN ESP32</button>
+
+          <div class="mixer-control-section">
+            <div style="font-size: 10px; font-weight: bold; color: #38bdf8; margin-bottom: 4px;">SECTION SELECT</div>
+            <div class="section-grid-btns">
+              <button class="console-btn active" data-section="config">CONFIG</button>
+              <button class="console-btn" data-section="gate">GATE</button>
+              <button class="console-btn" data-section="dynamics">DYNAMICS</button>
+              <button class="console-btn" data-section="eq">EQ</button>
+              <button class="console-btn" data-section="sends">SENDS</button>
+              <button class="console-btn" data-section="main">MAIN</button>
+            </div>
+          </div>
         </div>
 
-        <div class="audio-actions" style="margin-top: 12px;">
-          <label class="file-button">PILIH FILE AUDIO (MP3/WAV)<input id="audioFilesInput" type="file" accept="audio/*" multiple hidden></label>
-          <button id="startAudioButton" style="background:#10b981; color:#000;">▶️ PLAY MIXER</button>
-          <button id="stopAudioButton" style="background:#ef4444; color:#fff;">⏹️ STOP AUDIO</button>
-        </div>
-
-        <div class="playlist-container" id="playlistContainer">
-          <div style="text-align: center; padding: 6px; color: #64748b;">Belum ada file audio dipilih di Mixer.</div>
-        </div>
-
-        <div class="output-panel" style="margin-top: 12px;">
-          <div class="output-control">
-            <label for="masterGainControl">MASTER OUTPUT</label>
-            <input id="masterGainControl" type="range" min="-30" max="0" step="1" value="-3">
-            <div id="masterGainValue" class="master-value">-3 dB</div>
+        <!-- PERMUKAAN KONSOLE -->
+        <div class="mixer-desk-surface">
+          <div class="console-channel-strip">
+            <div class="strip-label-box">CH 1: MIC</div>
+            <div class="strip-knobs-area">
+              <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+              <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            </div>
+            <div class="fader-readout">0.0 dB</div>
+            <div class="fader-panel-area">
+              <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+              <div class="vert-led-meter" id="mixerMeter1"></div>
+            </div>
+            <div class="strip-action-buttons" style="margin-top:8px;">
+              <button class="console-action-btn mute">MUTE</button>
+              <button class="console-action-btn solo">SOLO</button>
+            </div>
           </div>
-          <div class="output-control">
-            <label>KONTROL OUTPUT</label>
-            <button id="muteOutputButton" style="width:100%; margin-top:2px;">MUTE OUTPUT</button>
+
+          <div class="console-channel-strip">
+            <div class="strip-label-box">CH 2: MUSIC</div>
+            <div class="strip-knobs-area">
+              <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+              <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            </div>
+            <div class="fader-readout">0.0 dB</div>
+            <div class="fader-panel-area">
+              <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+              <div class="vert-led-meter" id="mixerMeter2"></div>
+            </div>
+            <div class="strip-action-buttons" style="margin-top:8px;">
+              <button class="console-action-btn mute">MUTE</button>
+              <button class="console-action-btn solo">SOLO</button>
+            </div>
+          </div>
+
+          <div class="console-channel-strip">
+            <div class="strip-label-box">CH 3: AUX</div>
+            <div class="strip-knobs-area">
+              <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+              <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            </div>
+            <div class="fader-readout">0.0 dB</div>
+            <div class="fader-panel-area">
+              <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+              <div class="vert-led-meter" id="mixerMeter3"></div>
+            </div>
+            <div class="strip-action-buttons" style="margin-top:8px;">
+              <button class="console-action-btn mute">MUTE</button>
+              <button class="console-action-btn solo">SOLO</button>
+            </div>
+          </div>
+
+          <div class="console-channel-strip">
+            <div class="strip-label-box">CH 4: FX</div>
+            <div class="strip-knobs-area">
+              <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>
+              <div class="knob-row"><span>HPF</span><select><option>OFF</option><option>80Hz</option></select></div>
+            </div>
+            <div class="fader-readout">0.0 dB</div>
+            <div class="fader-panel-area">
+              <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
+              <div class="vert-led-meter" id="mixerMeter4"></div>
+            </div>
+            <div class="strip-action-buttons" style="margin-top:8px;">
+              <button class="console-action-btn mute">MUTE</button>
+              <button class="console-action-btn solo">SOLO</button>
+            </div>
+          </div>
+
+          <div class="console-channel-strip master-strip">
+            <div class="strip-label-box">MASTER L/R</div>
+            <div class="strip-knobs-area" style="border-color: #78350f;">
+              <div class="knob-row"><span>LIMIT</span><span>ON</span></div>
+              <div class="knob-row"><span>PROC</span><select><option>EQ+ALESIS</option><option>BYPASS</option></select></div>
+            </div>
+            <div class="fader-readout">0.0 dB</div>
+            <div class="fader-panel-area">
+              <div class="fader-slot"><input type="range" min="-50" max="6" step="0.5" value="0"></div>
+              <div class="vert-led-meter" id="mixerMeterMaster"></div>
+            </div>
+            <div class="strip-action-buttons" style="margin-top:8px;">
+              <button class="console-action-btn mute" style="background:#b45309; color:#fff;">MUTE</button>
+              <button class="console-action-btn active" style="background:#fbbf24; color:#000;">LR</button>
+            </div>
           </div>
         </div>
-        <div id="audioStatus" class="audio-status" style="margin-top: 8px;">Status: Mixer siap menerima input.</div>
       </div>
     </div>
 
-    <div id="status" class="status" style="margin-top:10px;">Status: sistem siap digunakan.</div>
+    <!-- PANEL AUDIO & BLUETOOTH -->
+    <section class="audio-panel">
+      <h3>AUDIO PLAYER, MIXER & BLUETOOTH ESP32</h3>
+
+      <div class="bt-panel">
+        <div>
+          <strong>KONEKSI HARDWARE ESP32</strong>
+          <div id="btStatus" class="bt-info">Bluetooth terputus.</div>
+        </div>
+        <button id="connectBtButton">SAMBUNGKAN ESP32</button>
+      </div>
+
+      <div class="audio-actions">
+        <button id="startMicButton">MIC INPUT</button>
+        <label class="file-button">PILIH BANYAK FILE AUDIO<input id="audioFilesInput" type="file" accept="audio/*" multiple hidden></label>
+        <button id="startAudioButton">START PLAYLIST</button>
+        <button id="stopAudioButton">STOP AUDIO</button>
+      </div>
+
+      <div class="playlist-container" id="playlistContainer">
+        <div style="text-align: center; padding: 6px; color: #64748b;">Belum ada file audio dipilih.</div>
+      </div>
+
+      <div class="output-panel">
+        <div class="output-control">
+          <label for="masterGainControl">MASTER OUTPUT</label>
+          <input id="masterGainControl" type="range" min="-30" max="0" step="1" value="-6">
+          <div id="masterGainValue" class="master-value">-6 dB</div>
+        </div>
+        <div class="output-control">
+          <label for="outputMode">OUTPUT MODE</label>
+          <select id="outputMode">
+            <option value="safe" selected>SAFE MODE</option>
+            <option value="normal">NORMAL MODE</option>
+          </select>
+          <button id="muteOutputButton" style="width:100%; margin-top:8px;">MUTE OUTPUT</button>
+        </div>
+      </div>
+
+      <div id="feedbackStatus" class="feedback-status">Alur Sinyal: [MIXER CH 1-2] ➡️ [ALESIS FX] ➡️ [EQUALIZER GQX-3102] ➡️ [OUTPUT]</div>
+      <div id="audioStatus" class="audio-status">Audio belum aktif.</div>
+    </section>
+
+    <div id="status" class="status">Status: sistem siap digunakan.</div>
     <div class="footer">Equalizer & Alesis FX Online • Web/PWA • Bluetooth ESP32 Ready</div>
   </main>
+
   <script>
 "use strict";
 
@@ -691,7 +1113,6 @@ function rebuildAudioRouting() {
     audioChannels[1].inputGain.disconnect();
   } catch (e) {}
 
-  // Alur Rute: Mixer Input ➡️ (Alesis FX Opsional) ➡️ Equalizer Ch 1 & 2 ➡️ Master Output ➡️ Speaker/Destination
   if (isAlesisFxEnabled) {
     mixerInputGain.connect(alesisDryNode);
     alesisDryNode.connect(audioChannels[0].inputGain);
@@ -773,7 +1194,6 @@ function playCurrentBuffer() {
   activeSourceNode = audioContext.createBufferSource();
   activeSourceNode.buffer = buffer;
 
-  // Sinyal masuk ke Mixer Input ➡️ Alesis ➡️ Equalizer ➡️ Speaker HP/Bluetooth
   activeSourceNode.connect(mixerInputGain);
 
   activeSourceNode.start(0);
@@ -1237,7 +1657,5 @@ function startRealMeters() {
   updateAllMeters();
 }
   </script>
-
-  
 </body>
 </html>
