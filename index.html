@@ -513,9 +513,8 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
 @media (max-width: 768px) {
   .control-row, .output-panel, .echo-grid { grid-template-columns: 1fr; }
 }
-    /* =========================================================
-   STYLING VISUAL ELEMEN DALAM LAYAR TFT
-========================================================= */
+
+/* STYLING VISUAL ELEMEN DALAM LAYAR TFT */
 .tft-visual-meters {
   display: flex;
   flex-direction: column;
@@ -566,7 +565,6 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
   border-radius: 2px 2px 0 0;
   transition: height 0.2s;
 }
-
   </style>
 </head>
 
@@ -1723,10 +1721,7 @@ document.querySelectorAll(".console-action-btn").forEach(btn => {
 });
 
 /* =========================================================
-   LOGIKA TFT DISPLAY & TOMBOL KONTROL DIGITAL MIXER
-========================================================= */
-/* =========================================================
-   KONTEN VISUAL INTERAKTIF LAYAR TFT
+   LOGIKA TFT DISPLAY & KONTROL DIGITAL MIXER
 ========================================================= */
 const tftSectionTitle = document.getElementById("tftSectionTitle");
 const tftContentArea = document.getElementById("tftContentArea");
@@ -1826,6 +1821,23 @@ const tftTabPages = {
   }
 };
 
+// 1. Logika Tombol Section Select (Kanan Layar TFT)
+const consoleBtns = document.querySelectorAll(".mixer-control-section .console-btn");
+consoleBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    consoleBtns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const sectionKey = btn.getAttribute("data-section");
+    if (sectionData[sectionKey] && tftSectionTitle && tftContentArea) {
+      tftSectionTitle.textContent = sectionData[sectionKey].title;
+      tftContentArea.innerHTML = sectionData[sectionKey].content;
+    }
+  });
+});
+
+// 2. Logika Tombol Tab Atas TFT (Diperbaiki dengan mendefinisikan tftTabs)
+const tftTabs = document.querySelectorAll(".tft-top-tabs .tft-tab");
 tftTabs.forEach(tab => {
   tab.addEventListener("click", () => {
     tftTabs.forEach(t => t.classList.remove("active"));
