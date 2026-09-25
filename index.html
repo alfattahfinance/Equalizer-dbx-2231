@@ -1594,13 +1594,24 @@ window.addEventListener("mixer:ui-update", event => {
 });
 
 /* =========================================================
-   LOGIKA TFT DISPLAY & TOMBOL KONTROL DIGITAL MIXER
+   LOGIKA TFT DISPLAY & TOMBOL KONTROL DIGITAL MIXER (INTERAKTIF)
 ========================================================= */
 const tftSectionTitle = document.getElementById("tftSectionTitle");
 const tftContentArea = document.getElementById("tftContentArea");
 const tftTabs = document.querySelectorAll(".tft-tab");
+const consoleSectionBtns = document.querySelectorAll(".mixer-control-section .console-btn");
 
-const sectionData = {
+// Helper untuk memperbarui 6 encoder fisik di bawah layar TFT
+function updateEncoders(data) {
+  const encoderBoxes = document.querySelectorAll(".tft-encoder-knob");
+  encoderBoxes.forEach((box, index) => {
+    if (data[index]) {
+      box.innerHTML = `${data[index].name}<span id="enc${index+1}Val">${data[index].val}</span>`;
+    }
+  });
+}
+
+const consoleData = {
   config: {
     title: "CONFIG / PREAMP INTERFACE",
     content: `
@@ -1609,14 +1620,24 @@ const sectionData = {
         <div class="tft-meter-row"><span>CH 1</span><div class="tft-meter-bar"><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="yellow"></span><span class="yellow"></span><span class="red"></span></div><span>-12dB</span></div>
         <div class="tft-meter-row"><span>CH 2</span><div class="tft-meter-bar"><span class="green"></span><span class="green"></span><span class="green"></span><span class="yellow"></span><span class="yellow"></span><span class="red"></span><span class="red"></span></div><span>-18dB</span></div>
       </div>
-    `
+    `,
+    encoders: [
+      { name: "GAIN", val: "+12dB" }, { name: "HPF", val: "80Hz" },
+      { name: "POLARITY", val: "NORM" }, { name: "DELAY", val: "0.0ms" },
+      { name: "WIDTH", val: "100%" }, { name: "TRIM", val: "0.0dB" }
+    ]
   },
   gate: {
     title: "NOISE GATE / EXPANDER PROCESSOR",
     content: `
       <div><b>Thresh:</b> -45 dB | <b>Ratio:</b> 1:2.5 | <b>Attack:</b> 5ms</div>
       <div style="font-size:9px; color:#10b981; margin-top:4px;">● Status: GATE ACTIVE (Meredam noise latar belakang)</div>
-    `
+    `,
+    encoders: [
+      { name: "THRESH", val: "-45dB" }, { name: "RATIO", val: "1:2.5" },
+      { name: "ATTACK", val: "5ms" }, { name: "HOLD", val: "20ms" },
+      { name: "RELEASE", val: "300ms" }, { name: "KEY FILTER", val: "OFF" }
+    ]
   },
   dynamics: {
     title: "DYNAMICS / COMPRESSOR PROCESSOR",
@@ -1630,7 +1651,12 @@ const sectionData = {
         <div class="tft-curve-bar" style="height: 20px;"></div>
         <div class="tft-curve-bar" style="height: 30px;"></div>
       </div>
-    `
+    `,
+    encoders: [
+      { name: "THRESH", val: "-18dB" }, { name: "RATIO", val: "3:1" },
+      { name: "ATTACK", val: "10ms" }, { name: "RELEASE", val: "300ms" },
+      { name: "MAKEUP", val: "+2.0dB" }, { name: "KNEE", val: "3 (Soft)" }
+    ]
   },
   eq: {
     title: "CHANNEL PARAMETRIC EQUALIZER",
@@ -1643,14 +1669,24 @@ const sectionData = {
         <div class="tft-curve-bar" style="height: 35px; background:#38bdf8;"></div>
         <div class="tft-curve-bar" style="height: 15px; background:#38bdf8;"></div>
       </div>
-    `
+    `,
+    encoders: [
+      { name: "LOW FREQ", val: "100Hz" }, { name: "LOW GAIN", val: "+2.0dB" },
+      { name: "MID FREQ", val: "2.5kHz" }, { name: "MID GAIN", val: "-3.0dB" },
+      { name: "HIGH FREQ", val: "10kHz" }, { name: "HIGH GAIN", val: "+4.0dB" }
+    ]
   },
   sends: {
     title: "BUS SENDS & FX ROUTING",
     content: `
       <div><b>Bus 1 (Echo Send):</b> -6.0 dB | <b>Bus 2 (Reverb):</b> -12.0 dB</div>
       <div style="font-size:9px; color:#f59e0b; margin-top:4px;">Routing Mode: Post-Fader Direct Send</div>
-    `
+    `,
+    encoders: [
+      { name: "SEND 1", val: "-6.0dB" }, { name: "SEND 2", val: "-12.0dB" },
+      { name: "SEND 3", val: "-inf" }, { name: "SEND 4", val: "-inf" },
+      { name: "PAN/BAL", val: "C (0)" }, { name: "MODE", val: "POST-F" }
+    ]
   },
   main: {
     title: "MAIN FOH OUTPUT & MATRIX",
@@ -1660,12 +1696,17 @@ const sectionData = {
         <div class="tft-meter-row"><span>MAIN L</span><div class="tft-meter-bar"><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="yellow"></span><span class="yellow"></span><span class="red"></span></div><span>-3dB</span></div>
         <div class="tft-meter-row"><span>MAIN R</span><div class="tft-meter-bar"><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="yellow"></span><span class="yellow"></span><span class="red"></span></div><span>-6dB</span></div>
       </div>
-    `
+    `,
+    encoders: [
+      { name: "MAIN LEVEL", val: "0.0dB" }, { name: "LIMITER", val: "-0.5dB" },
+      { name: "BAL/PAN", val: "CENTER" }, { name: "MONO SUM", val: "OFF" },
+      { name: "MATRIX 1", val: "-inf" }, { name: "MATRIX 2", val: "-inf" }
+    ]
   }
 };
 
-const tftTabPages = {
-  home: sectionData.config,
+const tftPages = {
+  home: consoleData.config,
   meters: {
     title: "METERS / RTA SPECTRUM ANALYZER",
     content: `
@@ -1678,44 +1719,67 @@ const tftTabPages = {
         <div class="tft-curve-bar" style="height: 30px; background:#f59e0b;"></div>
         <div class="tft-curve-bar" style="height: 18px; background:#10b981;"></div>
       </div>
-    `
+    `,
+    encoders: [
+      { name: "RTA SOURCE", val: "POST-EQ" }, { name: "DECAY", val: "Fast" },
+      { name: "PEAK HOLD", val: "3.0s" }, { name: "ZOOM", val: "1x" },
+      { name: "WEIGHT", val: "A-EQ" }, { name: "VIEW", val: "31-BAND" }
+    ]
   },
-  routing: sectionData.sends,
+  routing: consoleData.sends,
   setup: {
     title: "SYSTEM SETUP & HARDWARE PREFERENCES",
-    content: "<div><b>Sample Rate:</b> 48 kHz | <b>Word Clock:</b> Internal | <b>ESP32 BLE:</b> Connected</div><div style='margin-top: 4px; color: #94a3b8;'>Konfigurasi sistem hardware digital mixer console siap pakai.</div>"
+    content: "<div><b>Sample Rate:</b> 48 kHz | <b>Word Clock:</b> Internal | <b>ESP32 BLE:</b> Connected</div><div style='margin-top: 4px; color: #94a3b8;'>Konfigurasi sistem hardware digital mixer console siap pakai.</div>",
+    encoders: [
+      { name: "CLOCK", val: "INTERNAL" }, { name: "SAMPLE", val: "48kHz" },
+      { name: "BUFFER", val: "512smpl" }, { name: "MIDI CH", val: "1" },
+      { name: "BLE LINK", val: "ACTIVE" }, { name: "BRIGHTNESS", val: "85%" }
+    ]
   },
   library: {
     title: "SCENE & PRESET LIBRARY",
-    content: "<div><b>Loaded Scene:</b> #01 Live Default | <b>Snippets:</b> All Parameters</div><div style='margin-top: 4px; color: #94a3b8;'>Simpan dan muat konfigurasi mixing seluruh acara panggung.</div>"
+    content: "<div><b>Loaded Scene:</b> #01 Live Default | <b>Snippets:</b> All Parameters</div><div style='margin-top: 4px; color: #94a3b8;'>Simpan dan muat konfigurasi mixing seluruh acara panggung.</div>",
+    encoders: [
+      { name: "SCENE", val: "#01" }, { name: "RECALL", val: "SAFE" },
+      { name: "STORE", val: "READY" }, { name: "SNIPPET", val: "ALL" },
+      { name: "USB BACKUP", val: "READY" }, { name: "AUTO SAVE", val: "ON" }
+    ]
   },
   effects: {
     title: "FX RACK & PROCESSOR",
-    content: "<div><b>FX 1:</b> Vintage Room Reverb | <b>FX 2:</b> Dual Digital Delay</div><div style='margin-top: 4px; color: #94a3b8;'>Manajemen efek internal console kelas studio profesional.</div>"
+    content: "<div><b>FX 1:</b> Vintage Room Reverb | <b>FX 2:</b> Dual Digital Delay</div><div style='margin-top: 4px; color: #94a3b8;'>Manajemen efek internal console kelas studio profesional.</div>",
+    encoders: [
+      { name: "FX TYPE 1", val: "REVERB" }, { name: "TIME 1", val: "2.2s" },
+      { name: "FX TYPE 2", val: "DELAY" }, { name: "TIME 2", val: "350ms" },
+      { name: "MIX 1", val: "25%" }, { name: "MIX 2", val: "30%" }
+    ]
   }
 };
 
-document.querySelectorAll(".mixer-control-section .console-btn").forEach(btn => {
+// Event listener untuk tombol section kanan (config, gate, dynamics, eq, sends, main)
+consoleSectionBtns.forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".mixer-control-section .console-btn").forEach(b => b.classList.remove("active"));
+    consoleSectionBtns.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     const sectionKey = btn.getAttribute("data-section");
-    if (sectionData[sectionKey] && tftSectionTitle && tftContentArea) {
-      tftSectionTitle.textContent = sectionData[sectionKey].title;
-      tftContentArea.innerHTML = sectionData[sectionKey].content;
+    if (consoleData[sectionKey] && tftSectionTitle && tftContentArea) {
+      tftSectionTitle.textContent = consoleData[sectionKey].title;
+      tftContentArea.innerHTML = consoleData[sectionKey].content;
+      updateEncoders(consoleData[sectionKey].encoders);
     }
   });
 });
 
+// Event listener untuk tab layar atas (home, meters, routing, setup, library, effects)
 tftTabs.forEach(tab => {
   tab.addEventListener("click", () => {
     tftTabs.forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
-
     const tabKey = tab.getAttribute("data-tft-tab");
-    if (tftTabPages[tabKey] && tftSectionTitle && tftContentArea) {
-      tftSectionTitle.textContent = tftTabPages[tabKey].title;
-      tftContentArea.innerHTML = tftTabPages[tabKey].content;
+    if (tftPages[tabKey] && tftSectionTitle && tftContentArea) {
+      tftSectionTitle.textContent = tftPages[tabKey].title;
+      tftContentArea.innerHTML = tftPages[tabKey].content;
+      updateEncoders(tftPages[tabKey].encoders);
     }
   });
 });
