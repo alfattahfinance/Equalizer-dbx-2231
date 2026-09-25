@@ -1213,7 +1213,7 @@ function initializeAudioGraph() {
   if (audioGraphReady) { 
     updateMasterGain(); 
     updateOutputMute(); 
-    startRealMeters(); // Pastikan meter berjalan
+    startRealMeters(); 
     return; 
   }
 
@@ -1254,7 +1254,7 @@ function initializeAudioGraph() {
   audioGraphReady = true;
   updateMasterGain();
   updateOutputMute();
-  startRealMeters(); // Menyalakan animasi meter otomatis
+  startRealMeters();
 }
 
 function rebuildAudioRouting() {
@@ -1594,14 +1594,13 @@ window.addEventListener("mixer:ui-update", event => {
 });
 
 /* =========================================================
-   LOGIKA TFT DISPLAY & TOMBOL KONTROL DIGITAL MIXER (INTERAKTIF)
+   LOGIKA TFT DISPLAY & TOMBOL KONTROL DIGITAL MIXER (TERINTEGRASI)
 ========================================================= */
 const tftSectionTitle = document.getElementById("tftSectionTitle");
 const tftContentArea = document.getElementById("tftContentArea");
 const tftTabs = document.querySelectorAll(".tft-tab");
 const consoleSectionBtns = document.querySelectorAll(".mixer-control-section .console-btn");
 
-// Helper untuk memperbarui 6 encoder fisik di bawah layar TFT
 function updateEncoders(data) {
   const encoderBoxes = document.querySelectorAll(".tft-encoder-knob");
   encoderBoxes.forEach((box, index) => {
@@ -1756,7 +1755,6 @@ const tftPages = {
   }
 };
 
-// Event listener untuk tombol section kanan (config, gate, dynamics, eq, sends, main)
 consoleSectionBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     consoleSectionBtns.forEach(b => b.classList.remove("active"));
@@ -1770,7 +1768,6 @@ consoleSectionBtns.forEach(btn => {
   });
 });
 
-// Event listener untuk tab layar atas (home, meters, routing, setup, library, effects)
 tftTabs.forEach(tab => {
   tab.addEventListener("click", () => {
     tftTabs.forEach(t => t.classList.remove("active"));
@@ -1852,7 +1849,7 @@ function startRealMeters() {
       clip.classList.toggle("on", peak >= 0.95);
     });
 
-    // 2. UPDATE METER VERTIKAL DIGITAL MIXER (CH 1-4 & MASTER) SESUAI INPUT NYATA
+    // 2. UPDATE METER VERTIKAL DIGITAL MIXER (CH 1-4 & MASTER) NYATA SESUAI INPUT
     const mixerMeters = [
       document.querySelectorAll("#mixerMeter1 span"),
       document.querySelectorAll("#mixerMeter2 span"),
@@ -1870,7 +1867,6 @@ function startRealMeters() {
       }
 
       let rms = 0;
-      // Mengambil data dari analizer CH 1 atau CH 2 secara bergantian/gabungan untuk kanal 1-4 dan Master
       const sourceAnalyzerIdx = mIdx < 4 ? (mIdx % 2) : 0; 
       
       if (audioChannels[sourceAnalyzerIdx] && audioChannels[sourceAnalyzerIdx].analyser) {
