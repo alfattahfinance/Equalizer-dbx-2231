@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#111827">
-  <meta name="description" content="GQX-3102 Equalizer, Echo & Digital Mixer Console + ESP32 BLE">
+  <meta name="description" content="GQX-3102 Equalizer, Alesis FX & Digital Mixer Console + ESP32 BLE">
   <link rel="manifest" href="manifest.json">
 
   <title>GQX-3102 Equalizer & Digital Mixer Online</title>
@@ -78,7 +78,7 @@ header, .topbar {
 .status-led { width: 8px; height: 8px; border-radius: 50%; background: #252b35; border: 1px solid #485260; display: inline-block; }
 .status-led.active-led { background: #10b981; border-color: #34d399; box-shadow: 0 0 6px #10b981; }
 .status-led.bypass-led { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #ef4444; }
-.status-led.test-led { background: #f59e0b; border-color: #fbbf24; box-shadow: 0 0 6px #f59e0b; }
+.status-led.test-led { background: #f59e0b; border-color: #fbbf24; box-shadow: 0 0 6px #fbbf24; }
 
 .channel-title { font-size: 12px; font-weight: bold; color: #38bdf8; }
 .channel-controls { display: flex; gap: 6px; align-items: center; }
@@ -133,7 +133,7 @@ header, .topbar {
 .scale { display: flex; justify-content: space-between; font-size: 9px; color: #64748b; padding: 2px 4px; }
 
 /* =========================================================
-   PANEL ECHO PROCESSOR
+   PANEL ALESIS (EFFECTS PROCESSOR)
 ========================================================= */
 .echo-panel-box {
   background: #161a22;
@@ -358,6 +358,11 @@ header, .topbar {
 .audio-actions button:hover, .file-button:hover { background: #334155; }
 .audio-actions button.active { background: #10b981; border-color: #34d399; color: #000; }
 
+.playlist-container { width: 100%; background: #101216; border: 1px solid #2a323d; border-radius: 6px; padding: 8px; margin: 8px 0; max-height: 100px; overflow-y: auto; font-size: 10px; color: #94a3b8; }
+.playlist-item { display: flex; justify-content: space-between; padding: 3px 6px; border-bottom: 1px solid #1e293b; cursor: pointer; }
+.playlist-item:hover { background: #1e293b; color: #fff; }
+.playlist-item.playing { color: #38bdf8; font-weight: bold; }
+
 audio { width: 100%; height: 35px; margin: 8px 0; }
 .output-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #101216; padding: 8px; border-radius: 6px; margin-top: 8px; }
 .output-control label { display: block; font-size: 9px; color: #94a3b8; margin-bottom: 3px; }
@@ -377,10 +382,6 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
 .tft-meter-row { display: flex; align-items: center; gap: 8px; font-size: 9px; font-family: monospace; color: #94a3b8; }
 .tft-meter-bar { flex-grow: 1; height: 8px; background: #090d16; border: 1px solid #1e293b; border-radius: 2px; display: flex; gap: 1px; padding: 1px; }
 .tft-meter-bar span { flex: 1; background: #111827; border-radius: 1px; }
-.tft-meter-bar span.green.on { background: #10b981; }
-.tft-meter-bar span.yellow.on { background: #f59e0b; }
-.tft-meter-bar span.red.on { background: #ef4444; }
-
 .tft-curve-box { display: flex; justify-content: space-around; align-items: flex-end; height: 40px; background: #03060a; border: 1px solid #1e293b; border-radius: 3px; padding: 2px 4px; margin-top: 4px; }
 .tft-curve-bar { width: 8px; background: #0284c7; border-radius: 2px 2px 0 0; transition: height 0.2s; }
   </style>
@@ -391,7 +392,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
     <header class="topbar">
       <div>
         <div class="brand">AUDIO PROCESSOR ONLINE</div>
-        <div class="subtitle">GQX-3102 Equalizer, Echo & Digital Mixer Console + ESP32 BLE</div>
+        <div class="subtitle">GQX-3102 Equalizer, Alesis FX & Digital Mixer Console + ESP32 BLE</div>
       </div>
       <div class="actions">
         <button id="saveButton">SAVE</button>
@@ -403,7 +404,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
     <!-- TIGA TAB NAVIGASI UTAMA -->
     <nav class="mode-switch-bar">
       <button class="tab-btn active" id="tabEqBtn">🎛️ EQUALIZER</button>
-      <button class="tab-btn" id="tabEchoBtn">🔊 ECHO PROCESSOR</button>
+      <button class="tab-btn" id="tabEchoBtn">🔊 ALESIS FX</button>
       <button class="tab-btn" id="tabMixerBtn">🎚️ DIGITAL MIXER</button>
     </nav>
 
@@ -518,15 +519,15 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
       </section>
     </div>
 
-    <!-- KONTEN TAB 2: ECHO PROCESSOR -->
+    <!-- KONTEN TAB 2: ALESIS FX PROCESSOR -->
     <div class="tab-content" id="tabEchoContent">
       <div class="echo-panel-box">
         <div class="echo-header-row">
           <div>
-            <h3 style="color: #38bdf8; margin:0 0 4px 0;">DIGITAL ECHO & REVERB PROCESSOR</h3>
-            <p style="font-size: 11px; color: #94a3b8; margin:0;">Atur parameter efek pantulan suara yang terhubung langsung ke output EQ.</p>
+            <h3 style="color: #38bdf8; margin:0 0 4px 0;">ALESIS DIGITAL EFFECTS PROCESSOR</h3>
+            <p style="font-size: 11px; color: #94a3b8; margin:0;">Prosesor Efek Studio (Reverb & Delay) di antara Mixer dan Equalizer.</p>
           </div>
-          <button class="echo-onoff-btn" id="echoToggleBtn">ECHO: OFF</button>
+          <button class="echo-onoff-btn" id="echoToggleBtn">ALESIS FX: OFF</button>
         </div>
         
         <div class="echo-grid">
@@ -537,19 +538,19 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
           </div>
           
           <div class="echo-control-card">
-            <label>FEEDBACK (Pengulangan Echo)</label>
+            <label>FEEDBACK (Pengulangan)</label>
             <input type="range" id="echoFeedback" min="0.0" max="0.9" step="0.05" value="0.4">
             <div class="echo-val" id="echoFeedbackVal">40%</div>
           </div>
 
           <div class="echo-control-card">
-            <label>REVERB / ROOM DAMPING</label>
+            <label>ROOM DAMPING / TONE</label>
             <input type="range" id="echoDamping" min="1000" max="15000" step="500" value="5000">
             <div class="echo-val" id="echoDampingVal">5000 Hz</div>
           </div>
 
           <div class="echo-control-card">
-            <label>ECHO MIX (Wet / Dry)</label>
+            <label>EFFECTS MIX (Wet / Dry)</label>
             <input type="range" id="echoMix" min="0.0" max="1.0" step="0.05" value="0.3">
             <div class="echo-val" id="echoMixVal">30%</div>
           </div>
@@ -583,9 +584,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
 
             <!-- Tampilan Utama Konten Layar (Interaktif) -->
             <div class="tft-main-viewport">
-              <div class="tft-content-screen" id="tftContentArea">
-                <!-- Konten interaktif akan dimuat secara dinamis oleh JavaScript -->
-              </div>
+              <div class="tft-content-screen" id="tftContentArea"></div>
               <div style="font-size: 8px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 3px; display: flex; justify-content: space-between;">
                 <span id="tftFooterChannel">CH 01: Lead Vocal</span>
                 <span id="tftFooterStatus">Gate/Comp/EQ Active</span>
@@ -705,7 +704,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             <div class="strip-label-box">MASTER L/R</div>
             <div class="strip-knobs-area" style="border-color: #78350f;">
               <div class="knob-row"><span>LIMIT</span><span>ON</span></div>
-              <div class="knob-row"><span>PROC</span><select><option>EQ+ECHO</option><option>BYPASS</option></select></div>
+              <div class="knob-row"><span>PROC</span><select><option>EQ+ALESIS</option><option>BYPASS</option></select></div>
             </div>
             <div class="fader-readout">0.0 dB</div>
             <div class="fader-panel-area">
@@ -726,7 +725,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
 
     <!-- PANEL AUDIO ENGINE & BLUETOOTH BERSAMA -->
     <section class="audio-panel">
-      <h3>AUDIO ENGINE & BLUETOOTH ESP32</h3>
+      <h3>AUDIO PLAYER, MIXER & BLUETOOTH ESP32</h3>
 
       <div class="bt-panel">
         <div>
@@ -740,7 +739,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
         <div class="input-device-panel" style="width:100%; background:#101216; padding:8px; border-radius:6px; border:1px solid #2a323d; margin-bottom:8px;">
           <div class="input-device-row" style="display:flex; justify-content:space-between; align-items:flex-end; gap:8px;">
             <div>
-              <label for="inputDeviceSelect">INPUT DEVICE / MIXER FISIK</label>
+              <label for="inputDeviceSelect">INPUT DEVICE / MIC EXTERNAL</label>
               <select id="inputDeviceSelect" style="display:block; background:#1e293b; color:#fff; border:1px solid #485260; padding:4px; font-size:11px; border-radius:4px; width:220px; margin-top:4px;">
                 <option value="">Default microphone</option>
               </select>
@@ -751,9 +750,14 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
         </div>
         
         <button id="startMicButton">MIC INPUT</button>
-        <label class="file-button">PILIH FILE AUDIO<input id="audioFile" type="file" accept="audio/*" hidden></label>
-        <button id="startAudioButton">START AUDIO</button>
+        <label class="file-button">PILIH BANYAK FILE AUDIO<input id="audioFilesInput" type="file" accept="audio/*" multiple hidden></label>
+        <button id="startAudioButton">START PLAYLIST</button>
         <button id="stopAudioButton">STOP AUDIO</button>
+      </div>
+
+      <!-- Playlist Container -->
+      <div class="playlist-container" id="playlistContainer">
+        <div style="text-align: center; padding: 6px; color: #64748b;">Belum ada file audio dipilih. Klik "PILIH BANYAK FILE AUDIO".</div>
       </div>
 
       <audio id="audioPlayer" controls></audio>
@@ -774,12 +778,12 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
         </div>
       </div>
 
-      <div id="feedbackStatus" class="feedback-status">Pengaman output aktif. Gunakan headset saat pengujian mikrofon.</div>
+      <div id="feedbackStatus" class="feedback-status">Alur Sinyal: [MIXER CH 1-2] ➡️ [ALESIS FX] ➡️ [EQUALIZER GQX-3102] ➡️ [OUTPUT]</div>
       <div id="audioStatus" class="audio-status">Audio belum aktif.</div>
     </section>
 
     <div id="status" class="status">Status: sistem siap digunakan.</div>
-    <div class="footer">Equalizer & Echo Online • Web/PWA • Bluetooth ESP32 Ready</div>
+    <div class="footer">Equalizer & Alesis FX Online • Web/PWA • Bluetooth ESP32 Ready</div>
   </main>
 
   <script>
@@ -820,7 +824,6 @@ window.channelState = [
             window.addEventListener("mixer:dsp-control", event => {
                 if (event && event.detail) this.applyControl(event.detail);
             });
-            console.log("[DSP BRIDGE] initialized");
         },
         applyFeedback(packet) {
             if (!packet) return;
@@ -873,7 +876,7 @@ window.channelState = [
 })();
 
 /* =========================================================
-   1. INISIALISASI ELEMEN LED METER VERTIKAL MIXER SECARA OTOMATIS
+   INISIALISASI ELEMEN LED METER VERTIKAL MIXER
 ========================================================= */
 function initMixerVerticalMeters() {
   const meterIds = ["mixerMeter1", "mixerMeter2", "mixerMeter3", "mixerMeter4", "mixerMeterMaster"];
@@ -893,7 +896,7 @@ function initMixerVerticalMeters() {
 initMixerVerticalMeters();
 
 /* =========================================================
-   NAVIGASI TIGA TAB UTAMA (EQUALIZER, ECHO, DIGITAL MIXER)
+   NAVIGASI TIGA TAB UTAMA
 ========================================================= */
 const tabEqBtn = document.getElementById("tabEqBtn");
 const tabEchoBtn = document.getElementById("tabEchoBtn");
@@ -903,39 +906,22 @@ const tabEchoContent = document.getElementById("tabEchoContent");
 const tabMixerContent = document.getElementById("tabMixerContent");
 
 tabEqBtn.addEventListener("click", () => {
-  tabEqBtn.classList.add("active");
-  tabEchoBtn.classList.remove("active");
-  tabMixerBtn.classList.remove("active");
-  tabEqContent.classList.add("active");
-  tabEchoContent.classList.remove("active");
-  tabMixerContent.classList.remove("active");
+  tabEqBtn.classList.add("active"); tabEchoBtn.classList.remove("active"); tabMixerBtn.classList.remove("active");
+  tabEqContent.classList.add("active"); tabEchoContent.classList.remove("active"); tabMixerContent.classList.remove("active");
 });
-
 tabEchoBtn.addEventListener("click", () => {
-  tabEchoBtn.classList.add("active");
-  tabEqBtn.classList.remove("active");
-  tabMixerBtn.classList.remove("active");
-  tabEchoContent.classList.add("active");
-  tabEqContent.classList.remove("active");
-  tabMixerContent.classList.remove("active");
+  tabEchoBtn.classList.add("active"); tabEqBtn.classList.remove("active"); tabMixerBtn.classList.remove("active");
+  tabEchoContent.classList.add("active"); tabEqContent.classList.remove("active"); tabMixerContent.classList.remove("active");
 });
-
 tabMixerBtn.addEventListener("click", () => {
-  tabMixerBtn.classList.add("active");
-  tabEqBtn.classList.remove("active");
-  tabEchoBtn.classList.remove("active");
-  tabMixerContent.classList.add("active");
-  tabEqContent.classList.remove("active");
-  tabEchoContent.classList.remove("active");
+  tabMixerBtn.classList.add("active"); tabEqBtn.classList.remove("active"); tabEchoBtn.classList.remove("active");
+  tabMixerContent.classList.add("active"); tabEqContent.classList.remove("active"); tabEchoContent.classList.remove("active");
 });
 
 /* =========================================================
    WEB BLUETOOTH API KE ESP32
 ========================================================= */
-let bleDevice = null;
-let bleServer = null;
-let eqCharacteristic = null;
-
+let bleDevice = null, bleServer = null, eqCharacteristic = null;
 const ESP32_SERVICE_UUID = "12345678-1234-1234-1234-123456789abc";
 const ESP32_CHAR_UUID    = "abcdef01-2345-6789-0123-456789abcdef";
 
@@ -943,22 +929,15 @@ const connectBtButton = document.getElementById("connectBtButton");
 const btStatus = document.getElementById("btStatus");
 
 connectBtButton.addEventListener("click", async () => {
-  if (!navigator.bluetooth) {
-    alert("Web Bluetooth API tidak didukung browser ini.");
-    return;
-  }
+  if (!navigator.bluetooth) { alert("Web Bluetooth API tidak didukung browser ini."); return; }
   try {
     if (!bleDevice || !bleDevice.gatt.connected) {
       btStatus.textContent = "Memindai perangkat ESP32...";
-      bleDevice = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: [ESP32_SERVICE_UUID]
-      });
+      bleDevice = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: [ESP32_SERVICE_UUID] });
       bleDevice.addEventListener('gattserverdisconnected', onBleDisconnected);
       bleServer = await bleDevice.gatt.connect();
       const service = await bleServer.getPrimaryService(ESP32_SERVICE_UUID);
       eqCharacteristic = await service.getCharacteristic(ESP32_CHAR_UUID);
-
       connectBtButton.textContent = "PUTUSKAN ESP32";
       connectBtButton.classList.add("connected");
       btStatus.textContent = "Terhubung ke: " + (bleDevice.name || "ESP32 Device");
@@ -977,24 +956,17 @@ function onBleDisconnected() {
   connectBtButton.textContent = "SAMBUNGKAN ESP32";
   connectBtButton.classList.remove("connected");
   btStatus.textContent = "Bluetooth terputus.";
-  eqCharacteristic = null;
-  bleServer = null;
-  setStatus("Koneksi Bluetooth ESP32 terputus.");
+  eqCharacteristic = null; bleServer = null;
 }
 
 async function sendDataToESP32(dataString) {
   if (eqCharacteristic && bleDevice && bleDevice.gatt.connected) {
-    try {
-      const encoder = new TextEncoder();
-      await eqCharacteristic.writeValue(encoder.encode(dataString));
-    } catch (err) {
-      console.error("Gagal kirim data BLE:", err);
-    }
+    try { await eqCharacteristic.writeValue(new TextEncoder().encode(dataString)); } catch (err) {}
   }
 }
 
 /* =========================================================
-   DATA FREKUENSI & EQUALIZER
+   DATA FREKUENSI & EQUALIZER GRAFIK
 ========================================================= */
 const frequencies = [
   20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160,
@@ -1004,7 +976,6 @@ const frequencies = [
 ];
 
 const channels = [...document.querySelectorAll(".channel")];
-
 function setStatus(msg) { const el = document.getElementById("status"); if (el) el.textContent = "Status: " + msg; }
 function setAudioStatus(msg) { const el = document.getElementById("audioStatus"); if (el) el.textContent = msg; }
 function formatFrequency(v) { return Number.isInteger(v) ? String(v) : v.toFixed(1); }
@@ -1025,11 +996,7 @@ function createBands(channel) {
     trackContainer.className = "slider-track-container";
 
     const slider = document.createElement("input");
-    slider.type = "range";
-    slider.min = "-15";
-    slider.max = "15";
-    slider.step = "0.5";
-    slider.value = "0";
+    slider.type = "range"; slider.min = "-15"; slider.max = "15"; slider.step = "0.5"; slider.value = "0";
 
     const value = document.createElement("div");
     value.className = "band-value";
@@ -1041,36 +1008,6 @@ function createBands(channel) {
       sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));
     });
 
-    band.addEventListener("click", (e) => {
-      if (e.target === slider) return;
-      const rect = band.getBoundingClientRect();
-      const clickY = e.clientY - rect.top;
-      
-      const trackTop = 15;
-      const trackBottom = band.clientHeight - 35;
-      
-      if (clickY < trackTop || clickY > trackBottom) return;
-
-      const trackHeight = trackBottom - trackTop;
-      const ratio = Math.max(0, Math.min(1, (clickY - trackTop) / trackHeight));
-      
-      const currentVal = parseFloat(slider.value);
-      const step = 0.5;
-      const clickedVal = 15 - (ratio * 30);
-
-      let newVal = currentVal;
-      if (clickedVal > currentVal) {
-        newVal = Math.min(15, currentVal + step);
-      } else {
-        newVal = Math.max(-15, currentVal - step);
-      }
-
-      slider.value = String(newVal);
-      value.textContent = Number(newVal).toFixed(1);
-      syncAudioControlsFromUI();
-      sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));
-    });
-
     trackContainer.appendChild(slider);
     band.append(frequencyLabel, trackContainer, value);
     eq.appendChild(band);
@@ -1078,22 +1015,20 @@ function createBands(channel) {
 }
 
 /* =========================================================
-   AUDIO ENGINE & ECHO WEB AUDIO API ROUTING
+   AUDIO ENGINE & ROUTING URUTAN:
+   Mixer Input ➡️ Alesis FX ➡️ Equalizer GQX-3102 ➡️ Output
 ========================================================= */
 let audioContext = null, microphoneStream = null, activeSource = null, microphoneSource = null, audioElementSource = null;
-let splitterNode = null, mergerNode = null, masterGainNode = null, outputMuteGainNode = null;
-let delayNode = null, feedbackGainNode = null, filterNode = null, echoWetNode = null, echoDryNode = null;
+let mixerMergerNode = null, alesisDelayNode = null, alesisFeedbackNode = null, alesisFilterNode = null, alesisWetNode = null, alesisDryNode = null;
+let masterGainNode = null, outputMuteGainNode = null;
 
-let isEchoEnabled = false;
-let selectedInputDeviceId = "", audioGraphReady = false, selectedAudioUrl = null, meterAnimationId = null, outputMuted = false;
+let isAlesisFxEnabled = false;
+let selectedInputDeviceId = "", audioGraphReady = false, meterAnimationId = null, outputMuted = false;
+let playlistFiles = [], currentPlaylistIndex = 0, playlistObjectUrls = [];
 
-const audioChannels = [
-  { inputGain: null, highPass: null, filters: [], analyser: null, bypass: false },
-  { inputGain: null, highPass: null, filters: [], analyser: null, bypass: false }
-];
-
-const audioFile = document.getElementById("audioFile");
+const audioFilesInput = document.getElementById("audioFilesInput");
 const audioPlayer = document.getElementById("audioPlayer");
+const playlistContainer = document.getElementById("playlistContainer");
 const inputDeviceSelect = document.getElementById("inputDeviceSelect");
 const refreshInputDevicesButton = document.getElementById("refreshInputDevicesButton");
 const inputDeviceStatus = document.getElementById("inputDeviceStatus");
@@ -1121,9 +1056,8 @@ function createAudioContext() {
 }
 
 function dbToGain(db) { return Math.pow(10, db / 20); }
-function getMasterGainDb() { return Number(masterGainControl.value); }
 function getSafeMasterGainDb() {
-  const req = getMasterGainDb();
+  const req = Number(masterGainControl.value);
   return outputMode.value === "safe" ? Math.min(req, -6) : req;
 }
 
@@ -1156,13 +1090,61 @@ async function refreshInputDevices() {
       inputDeviceSelect.appendChild(option);
     });
     inputDeviceStatus.textContent = inputDevices.length + " perangkat input ditemukan.";
-  } catch (error) {
-    inputDeviceStatus.textContent = "Gagal membaca perangkat.";
-  }
+  } catch (error) { inputDeviceStatus.textContent = "Gagal membaca perangkat."; }
 }
 
 inputDeviceSelect.addEventListener("change", e => { selectedInputDeviceId = e.target.value; });
 refreshInputDevicesButton.addEventListener("click", refreshInputDevices);
+
+// Playlist multi-file handler
+audioFilesInput.addEventListener("change", e => {
+  const files = Array.from(e.target.files);
+  if (files.length === 0) return;
+  playlistFiles = files;
+  currentPlaylistIndex = 0;
+  renderPlaylistUI();
+  loadPlaylistTrack(currentPlaylistIndex);
+  setAudioStatus(playlistFiles.length + " file audio dimuat ke playlist.");
+});
+
+function renderPlaylistUI() {
+  playlistContainer.innerHTML = "";
+  playlistFiles.forEach((file, index) => {
+    const item = document.createElement("div");
+    item.className = "playlist-item" + (index === currentPlaylistIndex ? " playing" : "");
+    item.innerHTML = `<span>${index + 1}. ${file.name}</span>`;
+    item.addEventListener("click", () => {
+      currentPlaylistIndex = index;
+      renderPlaylistUI();
+      loadPlaylistTrack(currentPlaylistIndex);
+      if (audioGraphReady) audioPlayer.play();
+    });
+    playlistContainer.appendChild(item);
+  });
+}
+
+function loadPlaylistTrack(index) {
+  if (!playlistFiles[index]) return;
+  const file = playlistFiles[index];
+  const url = URL.createObjectURL(file);
+  playlistObjectUrls.push(url);
+  audioPlayer.src = url;
+  audioPlayer.load();
+}
+
+audioPlayer.addEventListener("ended", () => {
+  if (playlistFiles.length > 0) {
+    currentPlaylistIndex = (currentPlaylistIndex + 1) % playlistFiles.length;
+    renderPlaylistUI();
+    loadPlaylistTrack(currentPlaylistIndex);
+    audioPlayer.play();
+  }
+});
+
+const audioChannels = [
+  { inputGain: null, highPass: null, filters: [], analyser: null, bypass: false },
+  { inputGain: null, highPass: null, filters: [], analyser: null, bypass: false }
+];
 
 function buildEqualizerChannel(channelIndex) {
   const channel = channels[channelIndex];
@@ -1226,30 +1208,29 @@ function initializeAudioGraph() {
   buildEqualizerChannel(0);
   buildEqualizerChannel(1);
 
-  splitterNode = audioContext.createChannelSplitter(2);
-  mergerNode = audioContext.createChannelMerger(2);
+  mixerMergerNode = audioContext.createChannelMerger(2);
   masterGainNode = audioContext.createGain();
   outputMuteGainNode = audioContext.createGain();
 
-  delayNode = audioContext.createDelay(2.0);
-  delayNode.delayTime.value = Number(echoDelay.value);
+  alesisDelayNode = audioContext.createDelay(2.0);
+  alesisDelayNode.delayTime.value = Number(echoDelay.value);
 
-  feedbackGainNode = audioContext.createGain();
-  feedbackGainNode.gain.value = Number(echoFeedback.value);
+  alesisFeedbackNode = audioContext.createGain();
+  alesisFeedbackNode.gain.value = Number(echoFeedback.value);
 
-  filterNode = audioContext.createBiquadFilter();
-  filterNode.type = "lowpass";
-  filterNode.frequency.value = Number(echoDamping.value);
+  alesisFilterNode = audioContext.createBiquadFilter();
+  alesisFilterNode.type = "lowpass";
+  alesisFilterNode.frequency.value = Number(echoDamping.value);
 
-  echoWetNode = audioContext.createGain();
-  echoWetNode.gain.value = Number(echoMix.value);
+  alesisWetNode = audioContext.createGain();
+  alesisWetNode.gain.value = Number(echoMix.value);
 
-  echoDryNode = audioContext.createGain();
-  echoDryNode.gain.value = 1.0 - Number(echoMix.value);
+  alesisDryNode = audioContext.createGain();
+  alesisDryNode.gain.value = 1.0 - Number(echoMix.value);
 
-  delayNode.connect(filterNode);
-  filterNode.connect(feedbackGainNode);
-  feedbackGainNode.connect(delayNode);
+  alesisDelayNode.connect(alesisFilterNode);
+  alesisFilterNode.connect(alesisFeedbackNode);
+  alesisFeedbackNode.connect(alesisDelayNode);
 
   masterGainNode.gain.value = dbToGain(getSafeMasterGainDb());
   outputMuteGainNode.gain.value = outputMuted ? 0 : 1;
@@ -1266,67 +1247,68 @@ function initializeAudioGraph() {
 function rebuildAudioRouting() {
   if (!audioGraphReady) return;
 
-  try { mergerNode.disconnect(); } catch (e) {}
-  try { delayNode.disconnect(echoWetNode); } catch (e) {}
-  try { delayNode.disconnect(echoDryNode); } catch (e) {}
-  try { echoWetNode.disconnect(masterGainNode); } catch (e) {}
-  try { echoDryNode.disconnect(masterGainNode); } catch (e) {}
+  try { audioChannels[0].analyser.disconnect(); } catch (e) {}
+  try { audioChannels[1].analyser.disconnect(); } catch (e) {}
+  try { mixerMergerNode.disconnect(); } catch (e) {}
+  try { alesisDelayNode.disconnect(alesisWetNode); } catch (e) {}
+  try { mixerMergerNode.disconnect(alesisDryNode); } catch (e) {}
+  try { alesisWetNode.disconnect(); } catch (e) {}
+  try { alesisDryNode.disconnect(); } catch (e) {}
 
-  if (isEchoEnabled) {
-    mergerNode.connect(echoDryNode);
-    echoDryNode.connect(masterGainNode);
+  audioChannels[0].analyser.connect(mixerMergerNode, 0, 0);
+  audioChannels[1].analyser.connect(mixerMergerNode, 0, 1);
 
-    mergerNode.connect(delayNode);
-    delayNode.connect(echoWetNode);
-    echoWetNode.connect(masterGainNode);
+  if (isAlesisFxEnabled) {
+    mixerMergerNode.connect(alesisDryNode);
+    alesisDryNode.connect(masterGainNode);
+
+    mixerMergerNode.connect(alesisDelayNode);
+    alesisDelayNode.connect(alesisWetNode);
+    alesisWetNode.connect(masterGainNode);
   } else {
-    mergerNode.connect(masterGainNode);
+    mixerMergerNode.connect(masterGainNode);
   }
 }
 
 echoToggleBtn.addEventListener("click", () => {
-  isEchoEnabled = !isEchoEnabled;
-  if (isEchoEnabled) {
-    echoToggleBtn.textContent = "ECHO: ON";
+  isAlesisFxEnabled = !isAlesisFxEnabled;
+  if (isAlesisFxEnabled) {
+    echoToggleBtn.textContent = "ALESIS FX: ON";
     echoToggleBtn.classList.add("active");
-    setStatus("Efek Echo diaktifkan.");
+    setStatus("Prosesor Alesis FX diaktifkan.");
   } else {
-    echoToggleBtn.textContent = "ECHO: OFF";
+    echoToggleBtn.textContent = "ALESIS FX: OFF";
     echoToggleBtn.classList.remove("active");
-    setStatus("Efek Echo dimatikan.");
+    setStatus("Prosesor Alesis FX dimatikan.");
   }
   rebuildAudioRouting();
-  sendDataToESP32(JSON.stringify({ type: "echo_status", state: isEchoEnabled ? "ON" : "OFF" }));
 });
 
 echoDelay.addEventListener("input", () => {
   document.getElementById("echoDelayVal").textContent = Number(echoDelay.value).toFixed(2) + " detik";
-  if (delayNode && audioContext) delayNode.delayTime.setTargetAtTime(Number(echoDelay.value), audioContext.currentTime, 0.01);
-  sendDataToESP32(JSON.stringify({ type: "echo", param: "delay", val: echoDelay.value }));
+  if (alesisDelayNode && audioContext) alesisDelayNode.delayTime.setTargetAtTime(Number(echoDelay.value), audioContext.currentTime, 0.01);
 });
 
 echoFeedback.addEventListener("input", () => {
   document.getElementById("echoFeedbackVal").textContent = Math.round(echoFeedback.value * 100) + "%";
-  if (feedbackGainNode && audioContext) feedbackGainNode.gain.setTargetAtTime(Number(echoFeedback.value), audioContext.currentTime, 0.01);
-  sendDataToESP32(JSON.stringify({ type: "echo", param: "feedback", val: echoFeedback.value }));
+  if (alesisFeedbackNode && audioContext) alesisFeedbackNode.gain.setTargetAtTime(Number(echoFeedback.value), audioContext.currentTime, 0.01);
 });
 
 echoDamping.addEventListener("input", () => {
   document.getElementById("echoDampingVal").textContent = echoDamping.value + " Hz";
-  if (filterNode && audioContext) filterNode.frequency.setTargetAtTime(Number(echoDamping.value), audioContext.currentTime, 0.01);
+  if (alesisFilterNode && audioContext) alesisFilterNode.frequency.setTargetAtTime(Number(echoDamping.value), audioContext.currentTime, 0.01);
 });
 
 echoMix.addEventListener("input", () => {
   document.getElementById("echoMixVal").textContent = Math.round(echoMix.value * 100) + "%";
-  if (echoWetNode && echoDryNode && audioContext) {
-    echoWetNode.gain.setTargetAtTime(Number(echoMix.value), audioContext.currentTime, 0.01);
-    echoDryNode.gain.setTargetAtTime(1.0 - Number(echoMix.value), audioContext.currentTime, 0.01);
+  if (alesisWetNode && alesisDryNode && audioContext) {
+    alesisWetNode.gain.setTargetAtTime(Number(echoMix.value), audioContext.currentTime, 0.01);
+    alesisDryNode.gain.setTargetAtTime(1.0 - Number(echoMix.value), audioContext.currentTime, 0.01);
   }
 });
 
 function disconnectCurrentSource() {
   if (activeSource) { try { activeSource.disconnect(); } catch (e) {} activeSource = null; }
-  if (splitterNode) { try { splitterNode.disconnect(); } catch (e) {} }
   if (microphoneStream) { microphoneStream.getTracks().forEach(t => t.stop()); microphoneStream = null; }
   microphoneSource = null;
 }
@@ -1335,45 +1317,31 @@ function connectAudioSource(source, sourceType) {
   initializeAudioGraph();
   if (activeSource && activeSource !== source) { try { activeSource.disconnect(); } catch (e) {} }
   activeSource = source;
-  try { source.disconnect(); } catch (e) {}
 
   try {
     source.connect(audioChannels[0].inputGain);
     source.connect(audioChannels[1].inputGain);
   } catch (err) {
-    source.connect(splitterNode);
-    splitterNode.connect(audioChannels[0].inputGain, 0);
-    splitterNode.connect(audioChannels[1].inputGain, 0);
+    const splitter = audioContext.createChannelSplitter(2);
+    source.connect(splitter);
+    splitter.connect(audioChannels[0].inputGain, 0);
+    splitter.connect(audioChannels[1].inputGain, 0);
   }
-  setAudioStatus(sourceType + " aktif melewati EQ & Echo.");
+  setAudioStatus(sourceType + " aktif melewati jalur: Mixer ➡️ Alesis ➡️ EQ ➡️ Output.");
 }
 
-audioFile.addEventListener("change", e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  createAudioContext();
-  initializeAudioGraph();
-  if (!audioElementSource) audioElementSource = audioContext.createMediaElementSource(audioPlayer);
-  if (selectedAudioUrl) URL.revokeObjectURL(selectedAudioUrl);
-  selectedAudioUrl = URL.revokeObjectURL(file);
-  audioPlayer.src = selectedAudioUrl;
-  audioPlayer.load();
-  connectAudioSource(audioElementSource, "File audio");
-  setAudioStatus("File audio siap.");
-});
-
 startAudioButton.addEventListener("click", async () => {
-  if (!audioPlayer.src) { setAudioStatus("Pilih file audio dulu."); return; }
+  if (playlistFiles.length === 0) { setStatus("Pilih file audio playlist terlebih dahulu."); return; }
   try {
     createAudioContext();
     initializeAudioGraph();
     if (!audioElementSource) audioElementSource = audioContext.createMediaElementSource(audioPlayer);
     disconnectCurrentSource();
-    connectAudioSource(audioElementSource, "File audio");
+    connectAudioSource(audioElementSource, "Playlist Audio");
     await audioPlayer.play();
     startAudioButton.classList.add("active");
-    setAudioStatus("File audio diputar.");
-  } catch (err) { setAudioStatus("Gagal memutar."); }
+    setAudioStatus("Memutar playlist audio.");
+  } catch (err) { setAudioStatus("Gagal memutar audio."); }
 });
 
 startMicButton.addEventListener("click", async () => {
@@ -1529,7 +1497,7 @@ document.getElementById("loadButton").addEventListener("click", () => {
       channel.querySelectorAll(".band input").forEach((s, bIdx) => {
         s.value = item.bands?.[bIdx] ?? "0";
         const valDisplay = s.closest(".band").querySelector(".band-value");
-        if (valDisplay) valDisplay.textContent = Number(value).toFixed(1);
+        if (valDisplay) valDisplay.textContent = Number(s.value).toFixed(1);
       });
       updateValues(channel);
     });
@@ -1560,47 +1528,11 @@ outputMode.addEventListener("change", updateMasterGain);
 muteOutputButton.addEventListener("click", () => { outputMuted = !outputMuted; updateOutputMute(); });
 
 document.querySelectorAll(".console-action-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    btn.classList.toggle("active");
-  });
+  btn.addEventListener("click", () => { btn.classList.toggle("active"); });
 });
 
 /* =========================================================
-   UI SYNC LISTENER (WIPE FROM DSP BRIDGE)
-========================================================= */
-window.addEventListener("mixer:ui-update", event => {
-  const { channel, parameter, value, band } = event.detail;
-  const chIndex = channel - 1;
-  const channelEl = channels[chIndex];
-  if (!channelEl) return;
-
-  if (parameter === "FADER") {
-    const faderInput = channelEl.querySelector(".fader-slot input");
-    const readout = channelEl.querySelector(".fader-readout");
-    if (faderInput) faderInput.value = value;
-    if (readout) readout.textContent = Number(value).toFixed(1) + " dB";
-  } else if (parameter === "GAIN") {
-    const gainInput = channelEl.querySelector(".gain");
-    if (gainInput) gainInput.value = value;
-    updateValues(channelEl);
-  } else if (parameter === "MUTE") {
-    const muteBtn = channelEl.querySelector(".console-action-btn.mute");
-    if (muteBtn) muteBtn.classList.toggle("active", Boolean(value));
-  } else if (parameter === "SOLO") {
-    const soloBtn = channelEl.querySelector(".console-action-btn.solo");
-    if (soloBtn) soloBtn.classList.toggle("active", Boolean(value));
-  } else if (parameter === "EQ_BAND" && band !== null) {
-    const bandInputs = channelEl.querySelectorAll(".band input");
-    if (bandInputs[band]) {
-      bandInputs[band].value = value;
-      const valDisplay = bandInputs[band].closest(".band").querySelector(".band-value");
-      if (valDisplay) valDisplay.textContent = Number(value).toFixed(1);
-    }
-  }
-});
-
-/* =========================================================
-   LOGIKA INTERAKTIF TFT DISPLAY & HALAMAN LENGKAP
+   UI SYNC & TFT DISPLAY INTERAKTIF
 ========================================================= */
 const tftSectionTitle = document.getElementById("tftSectionTitle");
 const tftContentArea = document.getElementById("tftContentArea");
@@ -1618,9 +1550,7 @@ function updateEncoders(data) {
   });
 }
 
-// Basis data halaman interaktif untuk setiap tombol section dan tab atas
 const tftDatabase = {
-  // Tombol Section Samping
   config: {
     title: "CONFIG / PREAMP INTERFACE",
     footerCh: "CH 01: Lead Vocal",
@@ -1679,8 +1609,8 @@ const tftDatabase = {
     footerSt: "Post-Fader Send Active",
     content: `
       <div class="tft-interactive-grid">
-        <div class="tft-interactive-item"><label>Send 1 (Echo)</label><input type="range" min="-60" max="0" value="-6" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-6dB</span></div>
-        <div class="tft-interactive-item"><label>Send 2 (Reverb)</label><input type="range" min="-60" max="0" value="-12" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-12dB</span></div>
+        <div class="tft-interactive-item"><label>Send 1 (Alesis)</label><input type="range" min="-60" max="0" value="-6" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-6dB</span></div>
+        <div class="tft-interactive-item"><label>Send 2 (Aux)</label><input type="range" min="-60" max="0" value="-12" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-12dB</span></div>
         <div class="tft-interactive-item"><label>Send Mode</label><select><option>Post-Fader</option><option>Pre-Fader</option><option>Subgroup</option></select></div>
       </div>
     `,
@@ -1699,7 +1629,6 @@ const tftDatabase = {
     `,
     encoders: [{name:"MASTER", val:"0dB"}, {name:"LIMITER", val:"-0.5dB"}, {name:"BALANCE", val:"CENTER"}, {name:"MONO", val:"OFF"}, {name:"MATRIX 1", val:"-inf"}, {name:"MATRIX 2", val:"-inf"}]
   },
-  // Tab Atas Layar TFT
   home: {
     title: "HOME / OVERVIEW CONSOLE",
     footerCh: "SYSTEM OVERVIEW",
@@ -1732,12 +1661,12 @@ const tftDatabase = {
     footerSt: "USB Audio Interface Linked",
     content: `
       <div class="tft-interactive-grid">
-        <div class="tft-interactive-item"><label>Input 1 Source</label><select><option>Mic / Line 1</option><option>USB Stream L</option></select></div>
+        <div class="tft-interactive-item"><label>Input 1 Source</label><select><option>Playlist Audio</option><option>USB Stream L</option></select></div>
         <div class="tft-interactive-item"><label>Input 2 Source</label><select><option>Mic / Line 2</option><option>USB Stream R</option></select></div>
         <div class="tft-interactive-item"><label>Direct Out Tap</label><select><option>Post-Fader</option><option>Pre-EQ</option></select></div>
       </div>
     `,
-    encoders: [{name:"IN 1", val:"MIC 1"}, {name:"IN 2", val:"MIC 2"}, {name:"IN 3", val:"AUX 1"}, {name:"IN 4", val:"AUX 2"}, {name:"USB IN", val:"CH 1-2"}, {name:"OUT", val:"MAIN L/R"}]
+    encoders: [{name:"IN 1", val:"PLAYLIST"}, {name:"IN 2", val:"MIC 2"}, {name:"IN 3", val:"AUX 1"}, {name:"IN 4", val:"AUX 2"}, {name:"USB IN", val:"CH 1-2"}, {name:"OUT", val:"MAIN L/R"}]
   },
   setup: {
     title: "SYSTEM SETUP & HARDWARE PREFERENCES",
@@ -1768,11 +1697,11 @@ const tftDatabase = {
   effects: {
     title: "FX RACK & PROCESSOR",
     footerCh: "VIRTUAL FX RACK",
-    footerSt: "FX 1 & FX 2 Assigned",
+    footerSt: "Alesis FX Processor Assigned",
     content: `
       <div class="tft-interactive-grid">
-        <div class="tft-interactive-item"><label>FX 1 Type (Reverb)</label><select><option>Vintage Room</option><option>Plate Reverb</option><option>Arena Stadium</option></select></div>
-        <div class="tft-interactive-item"><label>FX 2 Type (Delay)</label><select><option>Dual Digital Delay</option><option>Stereo Chorus</option><option>Flanger</option></select></div>
+        <div class="tft-interactive-item"><label>Alesis Preset 1</label><select><option>Stage Reverb</option><option>Plate Reverb</option><option>Vocal Echo</option></select></div>
+        <div class="tft-interactive-item"><label>Alesis Preset 2</label><select><option>Stereo Chorus</option><option>Delay + Reverb</option><option>Flanger</option></select></div>
         <div class="tft-interactive-item"><label>FX Master Bypass</label><button onclick="this.classList.toggle('active-action'); this.textContent = this.classList.contains('active-action') ? 'FX ACTIVE' : 'BYPASSED'">FX ACTIVE</button></div>
       </div>
     `,
@@ -1780,7 +1709,6 @@ const tftDatabase = {
   }
 };
 
-// Fungsi untuk memuat halaman TFT secara dinamis
 function loadTftPage(key) {
   const data = tftDatabase[key];
   if (!data) return;
@@ -1791,33 +1719,27 @@ function loadTftPage(key) {
   updateEncoders(data.encoders);
 }
 
-// Event listener tombol section samping (config, gate, dynamics, eq, sends, main)
 consoleSectionBtns.forEach(btn => {
   btn.addEventListener("click", () => {
     consoleSectionBtns.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    const sectionKey = btn.getAttribute("data-section");
-    loadTftPage(sectionKey);
+    loadTftPage(btn.getAttribute("data-section"));
   });
 });
 
-// Event listener tab menu atas layar TFT (home, meters, routing, setup, library, effects)
 tftTabs.forEach(tab => {
   tab.addEventListener("click", () => {
     tftTabs.forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
-    const tabKey = tab.getAttribute("data-tft-tab");
-    loadTftPage(tabKey);
+    loadTftPage(tab.getAttribute("data-tft-tab"));
   });
 });
 
-// Load halaman default pertama kali
 loadTftPage("config");
-
 refreshInputDevices();
 
 /* =========================================================
-   LOGIKA GABUNGAN LED METER EQUALIZER & MIXER (RESPONSIF & AKURAT)
+   LOGIKA METER LED REAL-TIME
 ========================================================= */
 function startRealMeters() {
   if (meterAnimationId) return;
@@ -1831,11 +1753,9 @@ function startRealMeters() {
     const isMicActive = microphoneStream !== null;
     const isAudioRunning = audioContext && audioContext.state === "running" && (isPlayingFile || isMicActive);
 
-    // 1. UPDATE METER EQUALIZER (ATAS)
     audioChannels.forEach((audioChannel, index) => {
       const channel = channels[index];
       if (!channel) return;
-
       const meter = channel.querySelector(".meter");
       const clip = channel.querySelector(".clip");
       if (!meter || !clip) return;
@@ -1844,9 +1764,7 @@ function startRealMeters() {
         meter.innerHTML = "";
         for (let s = 0; s < 12; s++) {
           const seg = document.createElement("span");
-          if (s >= 9) seg.classList.add("red");
-          else if (s >= 7) seg.classList.add("yellow");
-          else seg.classList.add("green");
+          if (s >= 9) seg.classList.add("red"); else if (s >= 7) seg.classList.add("yellow"); else seg.classList.add("green");
           meter.appendChild(seg);
         }
         clip.classList.remove("on");
@@ -1856,8 +1774,7 @@ function startRealMeters() {
       const buffer = meterBuffers[index];
       audioChannel.analyser.getByteTimeDomainData(buffer);
 
-      let sum = 0;
-      let peak = 0;
+      let sum = 0, peak = 0;
       for (let i = 0; i < buffer.length; i++) {
         const sample = (buffer[i] - 128) / 128;
         sum += sample * sample;
@@ -1874,15 +1791,12 @@ function startRealMeters() {
         if (segmentIndex >= 9) segment.classList.add("red");
         else if (segmentIndex >= 7) segment.classList.add("yellow");
         else segment.classList.add("green");
-
         if (segmentIndex < level) segment.classList.add("on");
         meter.appendChild(segment);
       }
-
       clip.classList.toggle("on", peak >= 0.95);
     });
 
-    // 2. UPDATE METER VERTIKAL DIGITAL MIXER (CH 1-4 & MASTER) NYATA SESUAI INPUT
     const mixerMeters = [
       document.querySelectorAll("#mixerMeter1 span"),
       document.querySelectorAll("#mixerMeter2 span"),
@@ -1893,15 +1807,10 @@ function startRealMeters() {
 
     mixerMeters.forEach((meterSpans, mIdx) => {
       if (!meterSpans || meterSpans.length === 0) return;
-
-      if (!isAudioRunning) {
-        meterSpans.forEach(span => span.classList.remove("on"));
-        return;
-      }
+      if (!isAudioRunning) { meterSpans.forEach(span => span.classList.remove("on")); return; }
 
       let rms = 0;
       const sourceAnalyzerIdx = mIdx < 4 ? (mIdx % 2) : 0; 
-      
       if (audioChannels[sourceAnalyzerIdx] && audioChannels[sourceAnalyzerIdx].analyser) {
         try {
           const analyser = audioChannels[sourceAnalyzerIdx].analyser;
@@ -1920,18 +1829,12 @@ function startRealMeters() {
 
       meterSpans.forEach((span, idx) => {
         const reverseIdx = meterSpans.length - 1 - idx;
-        if (reverseIdx < activeCount) {
-          span.classList.add("on");
-        } else {
-          span.classList.remove("on");
-        }
+        if (reverseIdx < activeCount) span.classList.add("on"); else span.classList.remove("on");
       });
     });
   }
-
   updateAllMeters();
 }
-
   </script>
 </body>
 </html>
