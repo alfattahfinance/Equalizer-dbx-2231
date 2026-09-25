@@ -326,9 +326,28 @@ header, .topbar {
     <div id="status" class="status" style="margin-top:10px;">Status: sistem siap digunakan.</div>
     <div class="footer">Equalizer & Alesis FX Online • Web/PWA • Bluetooth ESP32 Ready</div>
   </main>
-
   <script>
 "use strict";
+
+/* =========================================================
+   INISIALISASI LED METER VERTIKAL MIXER
+========================================================= */
+function initMixerVerticalMeters() {
+  const meterIds = ["mixerMeter1", "mixerMeter2", "mixerMeter3", "mixerMeter4", "mixerMeterMaster"];
+  meterIds.forEach(id => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.innerHTML = "";
+    for (let i = 0; i < 10; i++) {
+      const span = document.createElement("span");
+      if (i < 2) span.className = "red";
+      else if (i < 4) span.className = "yellow";
+      else span.className = "green";
+      container.appendChild(span);
+    }
+  });
+}
+initMixerVerticalMeters();
 
 /* =========================================================
    NAVIGASI TIGA TAB UTAMA
@@ -360,25 +379,39 @@ let bleDevice = null, bleServer = null, eqCharacteristic = null;
 const ESP32_SERVICE_UUID = "12345678-1234-1234-1234-123456789abc";
 const ESP32_CHAR_UUID    = "abcdef01-2345-6789-0123-456789abcdef";
 
-document.getElementById("connectBtButton").addEventListener("click", async () => {
+const connectBtButton = document.getElementById("connectBtButton");
+const btStatus = document.getElementById("btStatus");
+
+connectBtButton.addEventListener("click", async () => {
   if (!navigator.bluetooth) { alert("Web Bluetooth API tidak didukung browser ini."); return; }
   try {
     if (!bleDevice || !bleDevice.gatt.connected) {
-      document.getElementById("btStatus").textContent = "Memindai ESP32...";
+      btStatus.textContent = "Memindai perangkat ESP32...";
       bleDevice = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: [ESP32_SERVICE_UUID] });
+      bleDevice.addEventListener('gattserverdisconnected', onBleDisconnected);
       bleServer = await bleDevice.gatt.connect();
       const service = await bleServer.getPrimaryService(ESP32_SERVICE_UUID);
       eqCharacteristic = await service.getCharacteristic(ESP32_CHAR_UUID);
-      document.getElementById("connectBtButton").textContent = "PUTUSKAN ESP32";
-      document.getElementById("connectBtButton").classList.add("connected");
-      document.getElementById("btStatus").textContent = "Terhubung: " + (bleDevice.name || "ESP32");
+      connectBtButton.textContent = "PUTUSKAN ESP32";
+      connectBtButton.classList.add("connected");
+      btStatus.textContent = "Terhubung ke: " + (bleDevice.name || "ESP32 Device");
+      setStatus("Bluetooth ESP32 terhubung.");
     } else {
       if (bleDevice.gatt.connected) bleDevice.gatt.disconnect();
+      onBleDisconnected();
     }
   } catch (error) {
-    document.getElementById("btStatus").textContent = "Koneksi dibatalkan.";
+    btStatus.textContent = "Koneksi gagal / dibatalkan.";
+    setStatus("Gagal menghubungkan Bluetooth.");
   }
 });
+
+function onBleDisconnected() {
+  connectBtButton.textContent = "SAMBUNGKAN ESP32";
+  connectBtButton.classList.remove("connected");
+  btStatus.textContent = "Bluetooth terputus.";
+  eqCharacteristic = null; bleServer = null;
+}
 
 async function sendDataToESP32(dataString) {
   if (eqCharacteristic && bleDevice && bleDevice.gatt.connected) {
@@ -397,8 +430,8 @@ const frequencies = [
 ];
 
 const channels = [...document.querySelectorAll(".channel")];
-function setStatus(msg) { document.getElementById("status").textContent = "Status: " + msg; }
-function setAudioStatus(msg) { document.getElementById("audioStatus").textContent = msg; }
+function setStatus(msg) { const el = document.getElementById("status"); if (el) el.textContent = "Status: " + msg; }
+function setAudioStatus(msg) { const el = document.getElementById("audioStatus"); if (el) el.textContent = msg; }
 function formatFrequency(v) { return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 
 function createBands(channel) {
@@ -408,28 +441,40 @@ function createBands(channel) {
   frequencies.forEach((frequency, index) => {
     const band = document.createElement("div");
     band.className = "band";
-    band.innerHTML = `
-      <div class="band-frequency">${formatFrequency(frequency)} Hz</div>
-      <div class="slider-track-container"><input type="range" min="-15" max="15" step="0.5" value="0"></div>
-      <div class="band-value">0.0</div>
-    `;
-    const slider = band.querySelector("input");
-    const value = band.querySelector(".band-value");
+
+    const frequencyLabel = document.createElement("div");
+    frequencyLabel.className = "band-frequency";
+    frequencyLabel.textContent = formatFrequency(frequency) + " Hz";
+
+    const trackContainer = document.createElement("div");
+    trackContainer.className = "slider-track-container";
+
+    const slider = document.createElement("input");
+    slider.type = "range"; slider.min = "-15"; slider.max = "15"; slider.step = "0.5"; slider.value = "0";
+
+    const value = document.createElement("div");
+    value.className = "band-value";
+    value.textContent = "0.0";
 
     slider.addEventListener("input", () => {
       value.textContent = Number(slider.value).toFixed(1);
       syncAudioControlsFromUI();
       sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));
     });
+
+    trackContainer.appendChild(slider);
+    band.append(frequencyLabel, trackContainer, value);
     eq.appendChild(band);
   });
 }
-channels.forEach(ch => createBands(ch));
 
 /* =========================================================
-   AUDIO ENGINE (MIXER ➡️ ALESIS FX ➡️ EQUALIZER ➡️ DESTINATION)
+   AUDIO ENGINE & ROUTING (DIPERBAIKI 100% TEMBUS KE HP)
 ========================================================= */
 let audioContext = null;
+let microphoneStream = null;
+let microphoneSource = null;
+
 let audioBuffers = [];
 let audioFileNames = [];
 let currentPlaylistIndex = 0;
@@ -439,107 +484,198 @@ let isPlaying = false;
 let mixerInputGain = null;
 let alesisDelayNode = null, alesisFeedbackNode = null, alesisFilterNode = null, alesisWetNode = null, alesisDryNode = null;
 let masterGainNode = null, outputMuteGainNode = null;
-let isAlesisFxEnabled = false, audioGraphReady = false, outputMuted = false;
 
-const audioChannels = [
-  { inputGain: null, highPass: null, filters: [], analyser: null, bypass: false },
-  { inputGain: null, highPass: null, filters: [], analyser: null, bypass: false }
-];
+let isAlesisFxEnabled = false;
+let audioGraphReady = false, meterAnimationId = null, outputMuted = false;
+
+const audioFilesInput = document.getElementById("audioFilesInput");
+const playlistContainer = document.getElementById("playlistContainer");
+const startMicButton = document.getElementById("startMicButton");
+const startAudioButton = document.getElementById("startAudioButton");
+const stopAudioButton = document.getElementById("stopAudioButton");
+const masterGainControl = document.getElementById("masterGainControl");
+const masterGainValue = document.getElementById("masterGainValue");
+const outputMode = document.getElementById("outputMode");
+const muteOutputButton = document.getElementById("muteOutputButton");
+
+const echoDelay = document.getElementById("echoDelay");
+const echoFeedback = document.getElementById("echoFeedback");
+const echoDamping = document.getElementById("echoDamping");
+const echoMix = document.getElementById("echoMix");
+const echoToggleBtn = document.getElementById("echoToggleBtn");
 
 function createAudioContext() {
   if (!audioContext) {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     audioContext = new AudioContextClass();
   }
-  if (audioContext.state === "suspended") {
-    audioContext.resume();
-  }
+  if (audioContext.state === "suspended") audioContext.resume();
   return audioContext;
 }
 
 function dbToGain(db) { return Math.pow(10, db / 20); }
+function getSafeMasterGainDb() {
+  const req = Number(masterGainControl.value);
+  return outputMode.value === "safe" ? Math.min(req, -3) : req;
+}
+
+function updateMasterGain() {
+  const appliedDb = getSafeMasterGainDb();
+  masterGainValue.textContent = appliedDb.toFixed(0) + " dB";
+  if (masterGainNode && audioContext) {
+    masterGainNode.gain.setTargetAtTime(dbToGain(appliedDb), audioContext.currentTime, 0.01);
+  }
+}
+
+function updateOutputMute() {
+  if (outputMuteGainNode && audioContext) {
+    outputMuteGainNode.gain.setTargetAtTime(outputMuted ? 0 : 1, audioContext.currentTime, 0.01);
+  }
+  muteOutputButton.textContent = outputMuted ? "UNMUTE OUTPUT" : "MUTE OUTPUT";
+  muteOutputButton.classList.toggle("active", outputMuted);
+}
+
+// Playlist multi-file handler menggunakan ArrayBuffer Decoding (Ampuh untuk HP)
+audioFilesInput.addEventListener("change", async e => {
+  const files = Array.from(e.target.files);
+  if (files.length === 0) return;
+
+  createAudioContext();
+  initializeAudioGraph();
+  audioBuffers = [];
+  audioFileNames = files.map(f => f.name);
+  setAudioStatus("Mendecode file audio ke Mixer...");
+
+  for (let file of files) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      audioBuffers.push(decodedBuffer);
+    } catch (err) {}
+  }
+
+  currentPlaylistIndex = 0;
+  renderPlaylistUI();
+  setAudioStatus(audioBuffers.length + " file siap diputar di Mixer.");
+});
+
+function renderPlaylistUI() {
+  playlistContainer.innerHTML = "";
+  audioFileNames.forEach((name, index) => {
+    const item = document.createElement("div");
+    item.className = "playlist-item" + (index === currentPlaylistIndex ? " playing" : "");
+    item.innerHTML = `<span>${index + 1}. ${name}</span>`;
+    item.addEventListener("click", () => {
+      currentPlaylistIndex = index;
+      renderPlaylistUI();
+      playCurrentBuffer();
+    });
+    playlistContainer.appendChild(item);
+  });
+}
+
+const audioChannels = [
+  { inputGain: null, highPass: null, filters: [], analyser: null, bypass: false },
+  { inputGain: null, highPass: null, filters: [], analyser: null, bypass: false }
+];
+
+function buildEqualizerChannel(channelIndex) {
+  const channel = channels[channelIndex];
+  const gainControl = channel.querySelector(".gain");
+  const hpfControl = channel.querySelector(".hpf");
+  const bandControls = [...channel.querySelectorAll(".band input[type='range']")];
+
+  const inputGain = audioContext.createGain();
+  const highPass = audioContext.createBiquadFilter();
+  const analyser = audioContext.createAnalyser();
+
+  inputGain.gain.value = dbToGain(Number(gainControl.value));
+  highPass.type = "highpass";
+  highPass.frequency.value = hpfControl.value === "off" ? 20 : Number(hpfControl.value);
+  highPass.Q.value = 0.707;
+  analyser.fftSize = 1024;
+
+  inputGain.connect(highPass);
+  let previousNode = highPass;
+  const filters = [];
+
+  bandControls.forEach((control, index) => {
+    const filter = audioContext.createBiquadFilter();
+    filter.type = "peaking";
+    filter.frequency.value = frequencies[index];
+    filter.Q.value = 1.4;
+    filter.gain.value = Number(control.value);
+    previousNode.connect(filter);
+    previousNode = filter;
+    filters.push(filter);
+  });
+
+  previousNode.connect(analyser);
+  audioChannels[channelIndex] = { inputGain, highPass, filters, analyser, bypass: false };
+
+  gainControl.addEventListener("input", () => {
+    inputGain.gain.setTargetAtTime(dbToGain(Number(gainControl.value)), audioContext.currentTime, 0.01);
+  });
+  hpfControl.addEventListener("change", () => {
+    highPass.frequency.setTargetAtTime(hpfControl.value === "off" ? 20 : Number(hpfControl.value), audioContext.currentTime, 0.01);
+  });
+  bandControls.forEach((control, index) => {
+    control.addEventListener("input", () => {
+      if (audioChannels[channelIndex].bypass) return;
+      filters[index].gain.setTargetAtTime(Number(control.value), audioContext.currentTime, 0.01);
+    });
+  });
+
+  return audioChannels[channelIndex];
+}
 
 function initializeAudioGraph() {
   createAudioContext();
-  if (audioGraphReady) return;
+  if (audioGraphReady) { 
+    updateMasterGain(); 
+    updateOutputMute(); 
+    startRealMeters(); 
+    return; 
+  }
 
-  // 1. Mixer Input Node
   mixerInputGain = audioContext.createGain();
   mixerInputGain.gain.value = 1.0;
 
-  // 2. Alesis FX Nodes
+  buildEqualizerChannel(0);
+  buildEqualizerChannel(1);
+
+  masterGainNode = audioContext.createGain();
+  outputMuteGainNode = audioContext.createGain();
+
   alesisDelayNode = audioContext.createDelay(2.0);
-  alesisDelayNode.delayTime.value = Number(document.getElementById("echoDelay").value);
-  
+  alesisDelayNode.delayTime.value = Number(echoDelay.value);
+
   alesisFeedbackNode = audioContext.createGain();
-  alesisFeedbackNode.gain.value = Number(document.getElementById("echoFeedback").value);
-  
+  alesisFeedbackNode.gain.value = Number(echoFeedback.value);
+
   alesisFilterNode = audioContext.createBiquadFilter();
-  alesisFilterNode.frequency.value = Number(document.getElementById("echoDamping").value);
-  
+  alesisFilterNode.type = "lowpass";
+  alesisFilterNode.frequency.value = Number(echoDamping.value);
+
   alesisWetNode = audioContext.createGain();
-  alesisWetNode.gain.value = Number(document.getElementById("echoMix").value);
-  
+  alesisWetNode.gain.value = Number(echoMix.value);
+
   alesisDryNode = audioContext.createGain();
-  alesisDryNode.gain.value = 1.0 - Number(document.getElementById("echoMix").value);
+  alesisDryNode.gain.value = 1.0 - Number(echoMix.value);
 
   alesisDelayNode.connect(alesisFilterNode);
   alesisFilterNode.connect(alesisFeedbackNode);
   alesisFeedbackNode.connect(alesisDelayNode);
 
-  // 3. Bangun Equalizer Channel 1 & 2
-  channels.forEach((channel, idx) => {
-    const gainCtrl = channel.querySelector(".gain");
-    const hpfCtrl = channel.querySelector(".hpf");
-    const bandControls = [...channel.querySelectorAll(".band input")];
-
-    const inputGain = audioContext.createGain();
-    const highPass = audioContext.createBiquadFilter();
-    const analyser = audioContext.createAnalyser();
-
-    inputGain.gain.value = dbToGain(Number(gainCtrl.value));
-    highPass.type = "highpass";
-    highPass.frequency.value = hpfCtrl.value === "off" ? 20 : Number(hpfCtrl.value);
-    analyser.fftSize = 1024;
-
-    inputGain.connect(highPass);
-    let prev = highPass;
-    const filters = [];
-
-    bandControls.forEach((ctl, fIdx) => {
-      const flt = audioContext.createBiquadFilter();
-      flt.type = "peaking";
-      flt.frequency.value = frequencies[fIdx];
-      flt.Q.value = 1.4;
-      flt.gain.value = Number(ctl.value);
-      prev.connect(flt);
-      prev = flt;
-      filters.push(flt);
-    });
-
-    prev.connect(analyser);
-    audioChannels[idx] = { inputGain, highPass, filters, analyser, bypass: false };
-
-    gainCtrl.addEventListener("input", () => {
-      inputGain.gain.setValueAtTime(dbToGain(Number(gainCtrl.value)), audioContext.currentTime);
-    });
-    hpfCtrl.addEventListener("change", () => {
-      highPass.frequency.setValueAtTime(hpfCtrl.value === "off" ? 20 : Number(hpfCtrl.value), audioContext.currentTime);
-    });
-  });
-
-  masterGainNode = audioContext.createGain();
-  masterGainNode.gain.value = dbToGain(Number(document.getElementById("masterGainControl").value));
-  
-  outputMuteGainNode = audioContext.createGain();
-  outputMuteGainNode.gain.value = 1.0;
+  masterGainNode.gain.value = dbToGain(getSafeMasterGainDb());
+  outputMuteGainNode.gain.value = outputMuted ? 0 : 1;
 
   rebuildAudioRouting();
-  
-  // Terhubung secara universal ke perangkat audio aktif (Speaker HP / Headset / Bluetooth)
   outputMuteGainNode.connect(audioContext.destination);
 
   audioGraphReady = true;
+  updateMasterGain();
+  updateOutputMute();
   startRealMeters();
 }
 
@@ -555,7 +691,7 @@ function rebuildAudioRouting() {
     audioChannels[1].inputGain.disconnect();
   } catch (e) {}
 
-  // Alur: Mixer Input ➡️ (Alesis FX Opsional) ➡️ Equalizer Ch 1 & 2 ➡️ Master Output ➡️ Destination
+  // Alur Rute: Mixer Input ➡️ (Alesis FX Opsional) ➡️ Equalizer Ch 1 & 2 ➡️ Master Output ➡️ Speaker/Destination
   if (isAlesisFxEnabled) {
     mixerInputGain.connect(alesisDryNode);
     alesisDryNode.connect(audioChannels[0].inputGain);
@@ -577,81 +713,55 @@ function rebuildAudioRouting() {
   masterGainNode.connect(outputMuteGainNode);
 }
 
-// Kontrol Alesis FX
-document.getElementById("echoToggleBtn").addEventListener("click", (e) => {
+echoToggleBtn.addEventListener("click", () => {
   isAlesisFxEnabled = !isAlesisFxEnabled;
-  e.target.textContent = isAlesisFxEnabled ? "ALESIS FX: ON" : "ALESIS FX: OFF";
-  e.target.classList.toggle("active", isAlesisFxEnabled);
+  if (isAlesisFxEnabled) {
+    echoToggleBtn.textContent = "ALESIS FX: ON";
+    echoToggleBtn.classList.add("active");
+    setStatus("Prosesor Alesis FX diaktifkan.");
+  } else {
+    echoToggleBtn.textContent = "ALESIS FX: OFF";
+    echoToggleBtn.classList.remove("active");
+    setStatus("Prosesor Alesis FX dimatikan.");
+  }
   rebuildAudioRouting();
 });
 
-document.getElementById("echoDelay").addEventListener("input", (e) => {
-  document.getElementById("echoDelayVal").textContent = Number(e.target.value).toFixed(2) + " detik";
-  if (alesisDelayNode && audioContext) alesisDelayNode.delayTime.setValueAtTime(Number(e.target.value), audioContext.currentTime);
+echoDelay.addEventListener("input", () => {
+  document.getElementById("echoDelayVal").textContent = Number(echoDelay.value).toFixed(2) + " detik";
+  if (alesisDelayNode && audioContext) alesisDelayNode.delayTime.setTargetAtTime(Number(echoDelay.value), audioContext.currentTime, 0.01);
 });
-document.getElementById("echoFeedback").addEventListener("input", (e) => {
-  document.getElementById("echoFeedbackVal").textContent = Math.round(e.target.value * 100) + "%";
-  if (alesisFeedbackNode && audioContext) alesisFeedbackNode.gain.setValueAtTime(Number(e.target.value), audioContext.currentTime);
+
+echoFeedback.addEventListener("input", () => {
+  document.getElementById("echoFeedbackVal").textContent = Math.round(echoFeedback.value * 100) + "%";
+  if (alesisFeedbackNode && audioContext) alesisFeedbackNode.gain.setTargetAtTime(Number(echoFeedback.value), audioContext.currentTime, 0.01);
 });
-document.getElementById("echoDamping").addEventListener("input", (e) => {
-  document.getElementById("echoDampingVal").textContent = e.target.value + " Hz";
-  if (alesisFilterNode && audioContext) alesisFilterNode.frequency.setValueAtTime(Number(e.target.value), audioContext.currentTime);
+
+echoDamping.addEventListener("input", () => {
+  document.getElementById("echoDampingVal").textContent = echoDamping.value + " Hz";
+  if (alesisFilterNode && audioContext) alesisFilterNode.frequency.setTargetAtTime(Number(echoDamping.value), audioContext.currentTime, 0.01);
 });
-document.getElementById("echoMix").addEventListener("input", (e) => {
-  document.getElementById("echoMixVal").textContent = Math.round(e.target.value * 100) + "%";
+
+echoMix.addEventListener("input", () => {
+  document.getElementById("echoMixVal").textContent = Math.round(echoMix.value * 100) + "%";
   if (alesisWetNode && alesisDryNode && audioContext) {
-    alesisWetNode.gain.setValueAtTime(Number(e.target.value), audioContext.currentTime);
-    alesisDryNode.gain.setValueAtTime(1.0 - Number(e.target.value), audioContext.currentTime);
+    alesisWetNode.gain.setTargetAtTime(Number(echoMix.value), audioContext.currentTime, 0.01);
+    alesisDryNode.gain.setTargetAtTime(1.0 - Number(echoMix.value), audioContext.currentTime, 0.01);
   }
 });
 
-// Input File Audio di Mixer
-document.getElementById("audioFilesInput").addEventListener("change", async (e) => {
-  const files = Array.from(e.target.files);
-  if (files.length === 0) return;
-  
-  createAudioContext();
-  initializeAudioGraph();
-  audioBuffers = [];
-  audioFileNames = files.map(f => f.name);
-
-  setAudioStatus("Mixer mendecode file audio...");
-
-  for (let file of files) {
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      audioBuffers.push(audioBuffer);
-    } catch (err) {}
-  }
-
-  currentPlaylistIndex = 0;
-  renderPlaylistUI();
-  setAudioStatus(audioBuffers.length + " file siap diputar di Mixer.");
-});
-
-function renderPlaylistUI() {
-  const container = document.getElementById("playlistContainer");
-  container.innerHTML = "";
-  audioFileNames.forEach((name, idx) => {
-    const item = document.createElement("div");
-    item.className = "playlist-item" + (idx === currentPlaylistIndex ? " playing" : "");
-    item.textContent = (idx + 1) + ". " + name;
-    item.addEventListener("click", () => {
-      currentPlaylistIndex = idx;
-      renderPlaylistUI();
-      playCurrentBuffer();
-    });
-    container.appendChild(item);
-  });
+function disconnectCurrentSource() {
+  if (activeSourceNode) { try { activeSourceNode.stop(); } catch (e) {} activeSourceNode = null; }
+  if (microphoneStream) { microphoneStream.getTracks().forEach(t => t.stop()); microphoneStream = null; }
+  microphoneSource = null;
 }
 
 function playCurrentBuffer() {
   if (audioBuffers.length === 0) {
-    alert("Pilih file audio terlebih dahulu di Mixer!");
+    setStatus("Pilih file audio terlebih dahulu di Mixer!");
     return;
   }
-  
+
   createAudioContext();
   initializeAudioGraph();
 
@@ -663,11 +773,12 @@ function playCurrentBuffer() {
   activeSourceNode = audioContext.createBufferSource();
   activeSourceNode.buffer = buffer;
 
-  // Sinyal masuk ke Mixer Input ➡️ Alesis ➡️ Equalizer ➡️ Audio Destination (Speaker/Headset/Bluetooth)
+  // Sinyal masuk ke Mixer Input ➡️ Alesis ➡️ Equalizer ➡️ Speaker HP/Bluetooth
   activeSourceNode.connect(mixerInputGain);
 
   activeSourceNode.start(0);
   isPlaying = true;
+  startAudioButton.classList.add("active");
   setAudioStatus("Memutar dari Mixer: " + audioFileNames[currentPlaylistIndex]);
 
   activeSourceNode.onended = () => {
@@ -679,17 +790,36 @@ function playCurrentBuffer() {
   };
 }
 
-document.getElementById("startAudioButton").addEventListener("click", () => {
+startAudioButton.addEventListener("click", async () => {
+  if (audioBuffers.length === 0) {
+    setStatus("Pilih file audio terlebih dahulu!");
+    return;
+  }
+  const ctx = createAudioContext();
+  if (ctx.state === "suspended") await ctx.resume();
   playCurrentBuffer();
 });
 
-document.getElementById("stopAudioButton").addEventListener("click", () => {
-  if (activeSourceNode) {
-    try { activeSourceNode.stop(); } catch (e) {}
-    activeSourceNode = null;
-  }
+startMicButton.addEventListener("click", async () => {
+  try {
+    const ctx = createAudioContext();
+    if (ctx.state === "suspended") await ctx.resume();
+    
+    initializeAudioGraph();
+    disconnectCurrentSource();
+    const constraints = { audio: { channelCount: 1, echoCancellation: false } };
+    microphoneStream = await navigator.mediaDevices.getUserMedia(constraints);
+    microphoneSource = audioContext.createMediaStreamSource(microphoneStream);
+    microphoneSource.connect(mixerInputGain);
+    setAudioStatus("Mikrofon aktif masuk ke Mixer.");
+  } catch (err) { setAudioStatus("Gagal mengakses mikrofon."); }
+});
+
+stopAudioButton.addEventListener("click", () => {
+  disconnectCurrentSource();
   isPlaying = false;
-  setAudioStatus("Mixer dihentikan.");
+  startAudioButton.classList.remove("active");
+  setAudioStatus("Audio dihentikan.");
 });
 
 function syncAudioControlsFromUI() {
@@ -700,40 +830,43 @@ function syncAudioControlsFromUI() {
     const gainCtrl = channel.querySelector(".gain");
     const hpfCtrl = channel.querySelector(".hpf");
     const bypassBtn = channel.querySelector(".bypass-button");
-    const bands = [...channel.querySelectorAll(".band input")];
+    const bands = [...channel.querySelectorAll(".band input[type='range']")];
 
-    ac.inputGain.gain.setValueAtTime(dbToGain(Number(gainCtrl.value)), audioContext.currentTime);
-    ac.highPass.frequency.setValueAtTime(hpfCtrl.value === "off" ? 20 : Number(hpfCtrl.value), audioContext.currentTime);
+    ac.inputGain.gain.setTargetAtTime(dbToGain(Number(gainCtrl.value)), audioContext.currentTime, 0.01);
+    ac.highPass.frequency.setTargetAtTime(hpfCtrl.value === "off" ? 20 : Number(hpfCtrl.value), audioContext.currentTime, 0.01);
     ac.bypass = bypassBtn.classList.contains("active");
 
     ac.filters.forEach((filter, bIdx) => {
       if (bands[bIdx]) {
-        filter.gain.setValueAtTime(ac.bypass ? 0 : Number(bands[bIdx].value), audioContext.currentTime);
+        filter.gain.setTargetAtTime(ac.bypass ? 0 : Number(bands[bIdx].value), audioContext.currentTime, 0.01);
       }
     });
   });
 }
 
-// Master & Mute
-document.getElementById("masterGainControl").addEventListener("input", (e) => {
-  const val = Number(e.target.value);
-  document.getElementById("masterGainValue").textContent = val + " dB";
-  if (masterGainNode && audioContext) {
-    masterGainNode.gain.setValueAtTime(dbToGain(val), audioContext.currentTime);
-  }
-});
+function updateValues(channel) {
+  const gain = channel.querySelector(".gain");
+  const gainVal = channel.querySelector(".gain-value");
+  if (gain && gainVal) gainVal.textContent = Number(gain.value).toFixed(1) + " dB";
+  channel.querySelectorAll(".band").forEach(b => {
+    const s = b.querySelector("input");
+    const v = b.querySelector(".band-value");
+    if (s && v) v.textContent = Number(s.value).toFixed(1);
+  });
+  syncAudioControlsFromUI();
+}
 
-let isMuted = false;
-document.getElementById("muteOutputButton").addEventListener("click", (e) => {
-  isMuted = !isMuted;
-  e.target.textContent = isMuted ? "UNMUTE OUTPUT" : "MUTE OUTPUT";
-  e.target.classList.toggle("active", isMuted);
-  if (outputMuteGainNode && audioContext) {
-    outputMuteGainNode.gain.setValueAtTime(isMuted ? 0 : 1.0, audioContext.currentTime);
-  }
-});
+function setRange(channel, range) {
+  const max = Number(range);
+  channel.querySelectorAll(".band input").forEach(s => {
+    s.min = String(-max); s.max = String(max);
+    if (Number(s.value) > max) s.value = String(max);
+    if (Number(s.value) < -max) s.value = String(-max);
+  });
+  channel.querySelector(".scale").innerHTML = `<span>+${max} dB</span><span>0 dB</span><span>-${max} dB</span>`;
+  updateValues(channel);
+}
 
-// Preset Equalizer
 function setPreset(type) {
   channels.forEach(channel => {
     channel.querySelector(".gain").value = "0";
@@ -742,69 +875,369 @@ function setPreset(type) {
       if (type === "vocal") {
         if (index >= 13 && index <= 21) val = 3;
         if (index <= 5) val = -2;
+        if (index >= 25) val = 2;
       } else if (type === "music") {
         if (index <= 5) val = 4;
         if (index >= 23) val = 3;
+        if (index >= 12 && index <= 18) val = -1;
       }
       slider.value = String(val);
-      slider.closest(".band").querySelector(".band-value").textContent = Number(slider.value).toFixed(1);
+      const valDisplay = slider.closest(".band").querySelector(".band-value");
+      if (valDisplay) valDisplay.textContent = Number(slider.value).toFixed(1);
     });
+    updateValues(channel);
   });
-  syncAudioControlsFromUI();
-  setStatus("Preset " + type.toUpperCase() + " aktif.");
+  setStatus(`Preset ${type.toUpperCase()} diterapkan.`);
 }
+
+channels.forEach((channel, idx) => {
+  createBands(channel);
+  channel.querySelector(".gain").addEventListener("input", () => updateValues(channel));
+  channel.querySelector(".range").addEventListener("change", e => setRange(channel, e.target.value));
+
+  const bypassBtn = channel.querySelector(".bypass-button");
+  const testBtn = channel.querySelector(".test-button");
+  const activeLed = document.getElementById(`ch${idx}_active_led`);
+
+  bypassBtn.addEventListener("click", () => {
+    bypassBtn.classList.toggle("active");
+    const bypassed = bypassBtn.classList.contains("active");
+    channel.querySelectorAll(".gain, .hpf, .range, .band input").forEach(c => c.disabled = bypassed);
+    syncAudioControlsFromUI();
+    if (bypassed) activeLed.classList.remove("active-led");
+    else activeLed.classList.add("active-led");
+    setStatus(bypassed ? "Bypass aktif." : "Bypass nonaktif.");
+  });
+
+  testBtn.addEventListener("click", () => {
+    testBtn.classList.toggle("active");
+    const testing = testBtn.classList.contains("active");
+    channel.querySelector(".gain").value = testing ? "6" : "0";
+    channel.querySelectorAll(".band input").forEach(s => {
+      s.value = testing ? "2" : "0";
+      const valDisplay = s.closest(".band").querySelector(".band-value");
+      if (valDisplay) valDisplay.textContent = Number(s.value).toFixed(1);
+    });
+    updateValues(channel);
+  });
+  updateValues(channel);
+});
 
 document.getElementById("flatButton").addEventListener("click", () => setPreset("flat"));
 document.getElementById("vocalButton").addEventListener("click", () => setPreset("vocal"));
 document.getElementById("musicButton").addEventListener("click", () => setPreset("music"));
 
-channels.forEach((channel) => {
-  channel.querySelector(".gain").addEventListener("input", () => {
-    channel.querySelector(".gain-value").textContent = Number(channel.querySelector(".gain").value).toFixed(1) + " dB";
-    syncAudioControlsFromUI();
-  });
-  channel.querySelector(".bypass-button").addEventListener("click", (e) => {
-    e.target.classList.toggle("active");
-    syncAudioControlsFromUI();
-  });
+masterGainControl.addEventListener("input", updateMasterGain);
+outputMode.addEventListener("change", updateMasterGain);
+muteOutputButton.addEventListener("click", () => { outputMuted = !outputMuted; updateOutputMute(); });
+
+document.querySelectorAll(".console-action-btn").forEach(btn => {
+  btn.addEventListener("click", () => { btn.classList.toggle("active"); });
 });
 
 /* =========================================================
-   ANIMASI METER LED
+   UI SYNC & TFT DISPLAY INTERAKTIF
+========================================================= */
+const tftSectionTitle = document.getElementById("tftSectionTitle");
+const tftContentArea = document.getElementById("tftContentArea");
+const tftFooterChannel = document.getElementById("tftFooterChannel");
+const tftFooterStatus = document.getElementById("tftFooterStatus");
+const tftTabs = document.querySelectorAll(".tft-tab");
+const consoleSectionBtns = document.querySelectorAll(".mixer-control-section .console-btn");
+
+function updateEncoders(data) {
+  const encoderBoxes = document.querySelectorAll(".tft-encoder-knob");
+  encoderBoxes.forEach((box, index) => {
+    if (data[index]) {
+      box.innerHTML = `${data[index].name}<span id="enc${index+1}Val">${data[index].val}</span>`;
+    }
+  });
+}
+
+const tftDatabase = {
+  config: {
+    title: "CONFIG / PREAMP INTERFACE",
+    footerCh: "CH 01: Lead Vocal",
+    footerSt: "Preamp & Phantom Active",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>Analog Gain (+12dB)</label><input type="range" min="0" max="60" value="12" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>12dB</span></div>
+        <div class="tft-interactive-item"><label>Phantom 48V</label><button class="active-action" onclick="this.classList.toggle('active-action'); this.textContent = this.classList.contains('active-action') ? 'ON' : 'OFF'">ON</button></div>
+        <div class="tft-interactive-item"><label>Phase Invert</label><button onclick="this.classList.toggle('active-action'); this.textContent = this.classList.contains('active-action') ? 'INVERT' : 'NORMAL'">NORMAL</button></div>
+      </div>
+    `,
+    encoders: [{name:"GAIN", val:"+12dB"}, {name:"HPF", val:"80Hz"}, {name:"POLARITY", val:"NORM"}, {name:"DELAY", val:"0.0ms"}, {name:"WIDTH", val:"100%"}, {name:"TRIM", val:"0.0dB"}]
+  },
+  gate: {
+    title: "NOISE GATE / EXPANDER PROCESSOR",
+    footerCh: "CH 01: Lead Vocal",
+    footerSt: "Expander Active",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>Threshold (-45dB)</label><input type="range" min="-80" max="0" value="-45" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-45dB</span></div>
+        <div class="tft-interactive-item"><label>Ratio (1:2.5)</label><input type="range" min="1" max="10" step="0.5" value="2.5" oninput="this.parentElement.querySelector('span').textContent='1:'+this.value"><span>1:2.5</span></div>
+        <div class="tft-interactive-item"><label>Gate Status</label><button class="active-action" onclick="this.classList.toggle('active-action'); this.textContent = this.classList.contains('active-action') ? 'ACTIVE' : 'BYPASS'">ACTIVE</button></div>
+      </div>
+    `,
+    encoders: [{name:"THRESH", val:"-45dB"}, {name:"RATIO", val:"1:2.5"}, {name:"ATTACK", val:"5ms"}, {name:"HOLD", val:"20ms"}, {name:"RELEASE", val:"300ms"}, {name:"FILTER", val:"OFF"}]
+  },
+  dynamics: {
+    title: "DYNAMICS / COMPRESSOR PROCESSOR",
+    footerCh: "CH 01: Lead Vocal",
+    footerSt: "Peak Compressor Active",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>Threshold (-18dB)</label><input type="range" min="-60" max="0" value="-18" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-18dB</span></div>
+        <div class="tft-interactive-item"><label>Ratio (3:1)</label><input type="range" min="1" max="20" value="3" oninput="this.parentElement.querySelector('span').textContent=this.value+':1'"><span>3:1</span></div>
+        <div class="tft-interactive-item"><label>Makeup Gain</label><input type="range" min="0" max="24" value="2" oninput="this.parentElement.querySelector('span').textContent='+'+this.value+'dB'"><span>+2dB</span></div>
+      </div>
+    `,
+    encoders: [{name:"THRESH", val:"-18dB"}, {name:"RATIO", val:"3:1"}, {name:"ATTACK", val:"10ms"}, {name:"RELEASE", val:"300ms"}, {name:"MAKEUP", val:"+2dB"}, {name:"KNEE", val:"Soft"}]
+  },
+  eq: {
+    title: "CHANNEL PARAMETRIC EQUALIZER",
+    footerCh: "CH 01: Lead Vocal",
+    footerSt: "4-Band Parametric Active",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>Low Gain (+2dB)</label><input type="range" min="-15" max="15" value="2" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>+2dB</span></div>
+        <div class="tft-interactive-item"><label>Mid Gain (-3dB)</label><input type="range" min="-15" max="15" value="-3" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-3dB</span></div>
+        <div class="tft-interactive-item"><label>High Gain (+4dB)</label><input type="range" min="-15" max="15" value="4" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>+4dB</span></div>
+      </div>
+    `,
+    encoders: [{name:"LOW FREQ", val:"100Hz"}, {name:"LOW GAIN", val:"+2dB"}, {name:"MID FREQ", val:"2.5kHz"}, {name:"MID GAIN", val:"-3dB"}, {name:"HIGH FREQ", val:"10kHz"}, {name:"HIGH GAIN", val:"+4dB"}]
+  },
+  sends: {
+    title: "BUS SENDS & FX ROUTING",
+    footerCh: "CH 01: Lead Vocal",
+    footerSt: "Post-Fader Send Active",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>Send 1 (Alesis)</label><input type="range" min="-60" max="0" value="-6" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-6dB</span></div>
+        <div class="tft-interactive-item"><label>Send 2 (Aux)</label><input type="range" min="-60" max="0" value="-12" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-12dB</span></div>
+        <div class="tft-interactive-item"><label>Send Mode</label><select><option>Post-Fader</option><option>Pre-Fader</option><option>Subgroup</option></select></div>
+      </div>
+    `,
+    encoders: [{name:"SEND 1", val:"-6dB"}, {name:"SEND 2", val:"-12dB"}, {name:"SEND 3", val:"-inf"}, {name:"SEND 4", val:"-inf"}, {name:"PAN", val:"C (0)"}, {name:"MODE", val:"POST"}]
+  },
+  main: {
+    title: "MAIN FOH OUTPUT & MATRIX",
+    footerCh: "MASTER FOH",
+    footerSt: "Limiter Active",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>Main FOH Level</label><input type="range" min="-50" max="6" value="0" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>0dB</span></div>
+        <div class="tft-interactive-item"><label>Brickwall Limiter</label><input type="range" min="-20" max="0" value="-0.5" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-0.5dB</span></div>
+        <div class="tft-interactive-item"><label>Mono Sum</label><button onclick="this.classList.toggle('active-action'); this.textContent = this.classList.contains('active-action') ? 'MONO ON' : 'OFF'">OFF</button></div>
+      </div>
+    `,
+    encoders: [{name:"MASTER", val:"0dB"}, {name:"LIMITER", val:"-0.5dB"}, {name:"BALANCE", val:"CENTER"}, {name:"MONO", val:"OFF"}, {name:"MATRIX 1", val:"-inf"}, {name:"MATRIX 2", val:"-inf"}]
+  },
+  home: {
+    title: "HOME / OVERVIEW CONSOLE",
+    footerCh: "SYSTEM OVERVIEW",
+    footerSt: "All Channels Operational",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>Global Mute All</label><button onclick="this.classList.toggle('active-action');">MUTE ALL</button></div>
+        <div class="tft-interactive-item"><label>DSP Engine Clock</label><select><option>48 kHz / 32-bit</option><option>44.1 kHz / 24-bit</option></select></div>
+        <div class="tft-interactive-item"><label>Talkback Mic</label><button onclick="this.classList.toggle('active-action');">TALK ON</button></div>
+      </div>
+    `,
+    encoders: [{name:"CH 1 LVL", val:"0dB"}, {name:"CH 2 LVL", val:"0dB"}, {name:"CH 3 LVL", val:"0dB"}, {name:"CH 4 LVL", val:"0dB"}, {name:"FX RET", val:"-6dB"}, {name:"MASTER", val:"0dB"}]
+  },
+  meters: {
+    title: "METERS / RTA SPECTRUM ANALYZER",
+    footerCh: "RTA SPECTRUM",
+    footerSt: "Real-time FFT Active",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>RTA Source</label><select><option>Post-EQ Main</option><option>Pre-DSP Input</option></select></div>
+        <div class="tft-interactive-item"><label>Peak Hold Time</label><select><option>3.0 Seconds</option><option>Infinite</option><option>Off</option></select></div>
+        <div class="tft-interactive-item"><label>Spectrum Zoom</label><input type="range" min="1" max="4" value="1" oninput="this.parentElement.querySelector('span').textContent=this.value+'x'"><span>1x</span></div>
+      </div>
+    `,
+    encoders: [{name:"SOURCE", val:"POST-EQ"}, {name:"DECAY", val:"Fast"}, {name:"PEAK HOLD", val:"3.0s"}, {name:"ZOOM", val:"1x"}, {name:"WEIGHT", val:"A-EQ"}, {name:"VIEW", val:"31-BAND"}]
+  },
+  routing: {
+    title: "ROUTING MATRIX & PATCHBAY",
+    footerCh: "IO PATCHBAY",
+    footerSt: "USB Audio Interface Linked",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>Input 1 Source</label><select><option>Playlist Audio</option><option>USB Stream L</option></select></div>
+        <div class="tft-interactive-item"><label>Input 2 Source</label><select><option>Mic / Line 2</option><option>USB Stream R</option></select></div>
+        <div class="tft-interactive-item"><label>Direct Out Tap</label><select><option>Post-Fader</option><option>Pre-EQ</option></select></div>
+      </div>
+    `,
+    encoders: [{name:"IN 1", val:"PLAYLIST"}, {name:"IN 2", val:"MIC 2"}, {name:"IN 3", val:"AUX 1"}, {name:"IN 4", val:"AUX 2"}, {name:"USB IN", val:"CH 1-2"}, {name:"OUT", val:"MAIN L/R"}]
+  },
+  setup: {
+    title: "SYSTEM SETUP & HARDWARE PREFERENCES",
+    footerCh: "HARDWARE PREF",
+    footerSt: "Firmware v2.4.1 Stable",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>Display Brightness</label><input type="range" min="20" max="100" value="85" oninput="this.parentElement.querySelector('span').textContent=this.value+'%'"><span>85%</span></div>
+        <div class="tft-interactive-item"><label>BLE ESP32 Link</label><button class="active-action" onclick="this.classList.toggle('active-action')">CONNECTED</button></div>
+        <div class="tft-interactive-item"><label>Audio Buffer Size</label><select><option>512 Samples</option><option>256 Samples</option><option>1024 Samples</option></select></div>
+      </div>
+    `,
+    encoders: [{name:"CLOCK", val:"INTERNAL"}, {name:"SAMPLE", val:"48kHz"}, {name:"BUFFER", val:"512smpl"}, {name:"MIDI CH", val:"1"}, {name:"BLE LINK", val:"ACTIVE"}, {name:"BRIGHTNESS", val:"85%"}]
+  },
+  library: {
+    title: "SCENE & PRESET LIBRARY",
+    footerCh: "SCENE MANAGER",
+    footerSt: "Auto-Save Enabled",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>Active Scene</label><select><option>#01 Live Stage Default</option><option>#02 Acoustic Cafe</option><option>#03 Karaoke Night</option></select></div>
+        <div class="tft-interactive-item"><label>Store Preset</label><button onclick="alert('Konfigurasi mixer berhasil disimpan ke Scene aktif!')">STORE SCENE</button></div>
+        <div class="tft-interactive-item"><label>Recall Safe</label><button class="active-action" onclick="this.classList.toggle('active-action')">SAFE ON</button></div>
+      </div>
+    `,
+    encoders: [{name:"SCENE", val:"#01"}, {name:"RECALL", val:"SAFE"}, {name:"STORE", val:"READY"}, {name:"SNIPPET", val:"ALL"}, {name:"USB BACKUP", val:"READY"}, {name:"AUTO SAVE", val:"ON"}]
+  },
+  effects: {
+    title: "FX RACK & PROCESSOR",
+    footerCh: "VIRTUAL FX RACK",
+    footerSt: "Alesis FX Processor Assigned",
+    content: `
+      <div class="tft-interactive-grid">
+        <div class="tft-interactive-item"><label>Alesis Preset 1</label><select><option>Stage Reverb</option><option>Plate Reverb</option><option>Vocal Echo</option></select></div>
+        <div class="tft-interactive-item"><label>Alesis Preset 2</label><select><option>Stereo Chorus</option><option>Delay + Reverb</option><option>Flanger</option></select></div>
+        <div class="tft-interactive-item"><label>FX Master Bypass</label><button onclick="this.classList.toggle('active-action'); this.textContent = this.classList.contains('active-action') ? 'FX ACTIVE' : 'BYPASSED'">FX ACTIVE</button></div>
+      </div>
+    `,
+    encoders: [{name:"FX TYPE 1", val:"REVERB"}, {name:"TIME 1", val:"2.2s"}, {name:"FX TYPE 2", val:"DELAY"}, {name:"TIME 2", val:"350ms"}, {name:"MIX 1", val:"25%"}, {name:"MIX 2", val:"30%"}]
+  }
+};
+
+function loadTftPage(key) {
+  const data = tftDatabase[key];
+  if (!data) return;
+  tftSectionTitle.textContent = data.title;
+  tftContentArea.innerHTML = data.content;
+  tftFooterChannel.textContent = data.footerCh;
+  tftFooterStatus.textContent = data.footerSt;
+  updateEncoders(data.encoders);
+}
+
+consoleSectionBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    consoleSectionBtns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    loadTftPage(btn.getAttribute("data-section"));
+  });
+});
+
+tftTabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    tftTabs.forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    loadTftPage(tab.getAttribute("data-tft-tab"));
+  });
+});
+
+loadTftPage("config");
+
+/* =========================================================
+   LOGIKA METER LED REAL-TIME
 ========================================================= */
 function startRealMeters() {
-  const buffers = [new Uint8Array(1024), new Uint8Array(1024)];
-  function update() {
-    requestAnimationFrame(update);
-    audioChannels.forEach((ac, idx) => {
-      const channel = channels[idx];
-      if (!channel || !ac.analyser || !isPlaying) return;
+  if (meterAnimationId) return;
+  const meterBuffers = [new Uint8Array(1024), new Uint8Array(1024)];
+  const vertMeterBuffers = [new Uint8Array(512), new Uint8Array(512), new Uint8Array(512), new Uint8Array(512), new Uint8Array(512)];
+  
+  function updateAllMeters() {
+    meterAnimationId = requestAnimationFrame(updateAllMeters);
+
+    const isAudioRunning = audioContext && audioContext.state === "running" && isPlaying;
+
+    audioChannels.forEach((audioChannel, index) => {
+      const channel = channels[index];
+      if (!channel) return;
       const meter = channel.querySelector(".meter");
       const clip = channel.querySelector(".clip");
-      if (!meter) return;
+      if (!meter || !clip) return;
 
-      ac.analyser.getByteTimeDomainData(buffers[idx]);
+      if (!isAudioRunning || !audioChannel.analyser) {
+        meter.innerHTML = "";
+        for (let s = 0; s < 12; s++) {
+          const seg = document.createElement("span");
+          if (s >= 9) seg.classList.add("red"); else if (s >= 7) seg.classList.add("yellow"); else seg.classList.add("green");
+          meter.appendChild(seg);
+        }
+        clip.classList.remove("on");
+        return;
+      }
+
+      const buffer = meterBuffers[index];
+      audioChannel.analyser.getByteTimeDomainData(buffer);
+
       let sum = 0, peak = 0;
-      for (let i = 0; i < buffers[idx].length; i++) {
-        let sample = (buffers[idx][i] - 128) / 128;
+      for (let i = 0; i < buffer.length; i++) {
+        const sample = (buffer[i] - 128) / 128;
         sum += sample * sample;
         if (Math.abs(sample) > peak) peak = Math.abs(sample);
       }
-      let rms = Math.sqrt(sum / buffers[idx].length);
-      let level = rms < 0.001 ? 0 : Math.max(1, Math.min(12, Math.round(rms * 25)));
+
+      let rms = Math.sqrt(sum / buffer.length);
+      const db = 20 * Math.log10(Math.max(rms, 0.0001));
+      const level = rms < 0.001 ? 0 : Math.max(1, Math.min(12, Math.round(((db + 50) / 50) * 12)));
 
       meter.innerHTML = "";
-      for (let s = 0; s < 12; s++) {
-        const span = document.createElement("span");
-        if (s >= 9) span.classList.add("red"); else if (s >= 7) span.classList.add("yellow"); else span.classList.add("green");
-        if (s < level) span.classList.add("on");
-        meter.appendChild(span);
+      for (let segmentIndex = 0; segmentIndex < 12; segmentIndex++) {
+        const segment = document.createElement("span");
+        if (segmentIndex >= 9) segment.classList.add("red");
+        else if (segmentIndex >= 7) segment.classList.add("yellow");
+        else segment.classList.add("green");
+        if (segmentIndex < level) segment.classList.add("on");
+        meter.appendChild(segment);
       }
       clip.classList.toggle("on", peak >= 0.95);
     });
+
+    const mixerMeters = [
+      document.querySelectorAll("#mixerMeter1 span"),
+      document.querySelectorAll("#mixerMeter2 span"),
+      document.querySelectorAll("#mixerMeter3 span"),
+      document.querySelectorAll("#mixerMeter4 span"),
+      document.querySelectorAll("#mixerMeterMaster span")
+    ];
+
+    mixerMeters.forEach((meterSpans, mIdx) => {
+      if (!meterSpans || meterSpans.length === 0) return;
+      if (!isAudioRunning) { meterSpans.forEach(span => span.classList.remove("on")); return; }
+
+      let rms = 0;
+      const sourceAnalyzerIdx = mIdx < 4 ? (mIdx % 2) : 0; 
+      if (audioChannels[sourceAnalyzerIdx] && audioChannels[sourceAnalyzerIdx].analyser) {
+        try {
+          const analyser = audioChannels[sourceAnalyzerIdx].analyser;
+          analyser.getByteTimeDomainData(vertMeterBuffers[mIdx]);
+          let sum = 0;
+          for (let i = 0; i < vertMeterBuffers[mIdx].length; i++) {
+            let sample = (vertMeterBuffers[mIdx][i] - 128) / 128;
+            sum += sample * sample;
+          }
+          rms = Math.sqrt(sum / vertMeterBuffers[mIdx].length);
+        } catch (e) { rms = 0; }
+      }
+
+      const db = 20 * Math.log10(Math.max(rms, 0.0001));
+      const activeCount = rms < 0.001 ? 0 : Math.max(1, Math.min(10, Math.round(((db + 50) / 50) * 10)));
+
+      meterSpans.forEach((span, idx) => {
+        const reverseIdx = meterSpans.length - 1 - idx;
+        if (reverseIdx < activeCount) span.classList.add("on"); else span.classList.remove("on");
+      });
+    });
   }
-  update();
+  updateAllMeters();
 }
   </script>
+
+  
 </body>
 </html>
