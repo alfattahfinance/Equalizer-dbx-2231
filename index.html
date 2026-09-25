@@ -1743,7 +1743,7 @@ tftTabs.forEach(tab => {
 
 refreshInputDevices();
 
-// Simulasi LED Meter Vertikal Mixer & Fader Bergerak
+// Simulasi LED Meter Vertikal Mixer Bergerak
 setInterval(() => {
   const mixerMeters = [
     document.querySelectorAll("#mixerMeter1 span"),
@@ -1755,9 +1755,8 @@ setInterval(() => {
   
   mixerMeters.forEach(meterSpans => {
     if (!meterSpans || meterSpans.length === 0) return;
-    const activeCount = Math.floor(Math.random() * 8) + 3; // Menyalakan 3 s.d 10 segmen LED
+    const activeCount = Math.floor(Math.random() * 8) + 3;
     meterSpans.forEach((span, idx) => {
-      // Indikator LED vertikal diisi dari bawah ke atas
       if (idx >= (meterSpans.length - activeCount)) {
         span.classList.add("on");
       } else {
