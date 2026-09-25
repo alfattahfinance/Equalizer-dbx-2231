@@ -513,6 +513,60 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
 @media (max-width: 768px) {
   .control-row, .output-panel, .echo-grid { grid-template-columns: 1fr; }
 }
+    /* =========================================================
+   STYLING VISUAL ELEMEN DALAM LAYAR TFT
+========================================================= */
+.tft-visual-meters {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+.tft-meter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  font-family: monospace;
+  color: #94a3b8;
+}
+.tft-meter-bar {
+  flex-grow: 1;
+  height: 8px;
+  background: #090d16;
+  border: 1px solid #1e293b;
+  border-radius: 2px;
+  display: flex;
+  gap: 1px;
+  padding: 1px;
+}
+.tft-meter-bar span {
+  flex: 1;
+  background: #111827;
+  border-radius: 1px;
+}
+.tft-meter-bar span.green.on { background: #10b981; }
+.tft-meter-bar span.yellow.on { background: #f59e0b; }
+.tft-meter-bar span.red.on { background: #ef4444; }
+
+.tft-curve-box {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 40px;
+  background: #03060a;
+  border: 1px solid #1e293b;
+  border-radius: 3px;
+  padding: 2px 4px;
+  margin-top: 4px;
+}
+.tft-curve-bar {
+  width: 8px;
+  background: #0284c7;
+  border-radius: 2px 2px 0 0;
+  transition: height 0.2s;
+}
+
   </style>
 </head>
 
