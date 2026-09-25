@@ -884,7 +884,7 @@ function createBands(channel) {
 }  
   
 /* =========================================================  
-   AUDIO ENGINE & ROUTING (MIXER ➡️ ALESIS FX ➡️ EQ ➡️ OUTPUT)  
+   AUDIO ENGINE & ROUTING (RESPONSIF TINGGI)  
 ========================================================= */  
 let audioContext = null;  
 let microphoneStream = null;  
@@ -944,13 +944,13 @@ function updateMasterGain() {
   const appliedDb = getSafeMasterGainDb();  
   masterGainValue.textContent = appliedDb.toFixed(0) + " dB";  
   if (masterGainNode && audioContext) {  
-    masterGainNode.gain.setTargetAtTime(dbToGain(appliedDb), audioContext.currentTime, 0.01);  
+    masterGainNode.gain.setTargetAtTime(dbToGain(appliedDb), audioContext.currentTime, 0.005);  
   }  
 }  
   
 function updateOutputMute() {  
   if (outputMuteGainNode && audioContext) {  
-    outputMuteGainNode.gain.setTargetAtTime(outputMuted ? 0 : 1, audioContext.currentTime, 0.01);  
+    outputMuteGainNode.gain.setTargetAtTime(outputMuted ? 0 : 1, audioContext.currentTime, 0.005);  
   }  
   muteOutputButton.textContent = outputMuted ? "UNMUTE OUTPUT" : "MUTE OUTPUT";  
   muteOutputButton.classList.toggle("active", outputMuted);  
@@ -1035,15 +1035,15 @@ function buildEqualizerChannel(channelIndex) {
   audioChannels[channelIndex] = { inputGain, highPass, filters, analyser, bypass: false };  
   
   gainControl.addEventListener("input", () => {  
-    inputGain.gain.setTargetAtTime(dbToGain(Number(gainControl.value)), audioContext.currentTime, 0.01);  
+    inputGain.gain.setTargetAtTime(dbToGain(Number(gainControl.value)), audioContext.currentTime, 0.005);  
   });  
   hpfControl.addEventListener("change", () => {  
-    highPass.frequency.setTargetAtTime(hpfControl.value === "off" ? 20 : Number(hpfControl.value), audioContext.currentTime, 0.01);  
+    highPass.frequency.setTargetAtTime(hpfControl.value === "off" ? 20 : Number(hpfControl.value), audioContext.currentTime, 0.005);  
   });  
   bandControls.forEach((control, index) => {  
     control.addEventListener("input", () => {  
       if (audioChannels[channelIndex].bypass) return;  
-      filters[index].gain.setTargetAtTime(Number(control.value), audioContext.currentTime, 0.01);  
+      filters[index].gain.setTargetAtTime(Number(control.value), audioContext.currentTime, 0.005);  
     });  
   });  
   
@@ -1059,7 +1059,6 @@ function initializeAudioGraph() {
     return;   
   }  
   
-  // Inisialisasi 4 Channel Mixer Strip & Master Strip  
   const stripElements = document.querySelectorAll(".console-channel-strip");  
   mixerStrips = [];  
   
@@ -1084,7 +1083,7 @@ function initializeAudioGraph() {
     if (fader) {  
       fader.addEventListener("input", () => {  
         const val = Number(fader.value);  
-        gainNode.gain.setTargetAtTime(dbToGain(val), audioContext.currentTime, 0.01);  
+        gainNode.gain.setTargetAtTime(dbToGain(val), audioContext.currentTime, 0.005);  
         if (readout) readout.textContent = val.toFixed(1) + " dB";  
       });  
     }  
@@ -1093,13 +1092,13 @@ function initializeAudioGraph() {
       muteBtn.addEventListener("click", () => {  
         muteBtn.classList.toggle("active");  
         const muted = muteBtn.classList.contains("active");  
-        muteNode.gain.setTargetAtTime(muted ? 0 : 1, audioContext.currentTime, 0.01);  
+        muteNode.gain.setTargetAtTime(muted ? 0 : 1, audioContext.currentTime, 0.005);  
       });  
     }  
   
     if (hpfSel) {  
       hpfSel.addEventListener("change", () => {  
-        hpfNode.frequency.setTargetAtTime(hpfSel.value === "off" ? 20 : Number(hpfSel.value), audioContext.currentTime, 0.01);  
+        hpfNode.frequency.setTargetAtTime(hpfSel.value === "off" ? 20 : Number(hpfSel.value), audioContext.currentTime, 0.005);  
       });  
     }  
   
@@ -1115,7 +1114,7 @@ function initializeAudioGraph() {
   if (masterFader) {  
     masterFader.addEventListener("input", () => {  
       const val = Number(masterFader.value);  
-      masterStripGain.gain.setTargetAtTime(dbToGain(val), audioContext.currentTime, 0.01);  
+      masterStripGain.gain.setTargetAtTime(dbToGain(val), audioContext.currentTime, 0.005);  
       if (masterReadout) masterReadout.textContent = val.toFixed(1) + " dB";  
     });  
   }  
@@ -1123,7 +1122,7 @@ function initializeAudioGraph() {
     masterMute.addEventListener("click", () => {  
       masterMute.classList.toggle("active");  
       const muted = masterMute.classList.contains("active");  
-      masterStripGain.gain.setTargetAtTime(muted ? 0 : 1, audioContext.currentTime, 0.01);  
+      masterStripGain.gain.setTargetAtTime(muted ? 0 : 1, audioContext.currentTime, 0.005);  
     });  
   }  
   
@@ -1133,7 +1132,6 @@ function initializeAudioGraph() {
   masterGainNode = audioContext.createGain();  
   outputMuteGainNode = audioContext.createGain();  
   
-  // Inisialisasi Alesis FX Nodes  
   alesisInputMerger = audioContext.createGain();  
   alesisDelayNode = audioContext.createDelay(2.0);  
   alesisDelayNode.delayTime.value = Number(echoDelay.value);  
@@ -1167,10 +1165,6 @@ function initializeAudioGraph() {
   startRealMeters();  
 }  
   
-/* =========================================================  
-   ALUR ROUTING AUDIO UTAMA:  
-   [Digital Mixer Ch 1-4] ➡️ [Alesis FX] ➡️ [Equalizer GQX-3102 Ch 1 & 2] ➡️ [Master Out]  
-========================================================= */  
 function rebuildAudioRouting() {  
   if (!audioGraphReady) return;  
   
@@ -1186,7 +1180,6 @@ function rebuildAudioRouting() {
     try { audioChannels[1].inputGain.disconnect(); } catch (e) {}  
   } catch (e) {}  
   
-  // Gabungkan semua channel mixer strip ke master strip  
   const mixerSubgroupMerger = audioContext.createGain();  
   mixerStrips.forEach((strip, sIdx) => {  
     if (sIdx < 4) {  
@@ -1197,7 +1190,6 @@ function rebuildAudioRouting() {
   mixerSubgroupMerger.connect(masterStripGain);  
   masterStripGain.connect(alesisInputMerger);  
   
-  // Rute melalui Alesis FX Processor atau langsung ke Equalizer  
   if (isAlesisFxEnabled) {  
     alesisInputMerger.connect(alesisDryNode);  
     alesisDryNode.connect(audioChannels[0].inputGain);  
@@ -1235,24 +1227,24 @@ echoToggleBtn.addEventListener("click", () => {
   
 echoDelay.addEventListener("input", () => {  
   document.getElementById("echoDelayVal").textContent = Number(echoDelay.value).toFixed(2) + " detik";  
-  if (alesisDelayNode && audioContext) alesisDelayNode.delayTime.setTargetAtTime(Number(echoDelay.value), audioContext.currentTime, 0.01);  
+  if (alesisDelayNode && audioContext) alesisDelayNode.delayTime.setTargetAtTime(Number(echoDelay.value), audioContext.currentTime, 0.005);  
 });  
   
 echoFeedback.addEventListener("input", () => {  
   document.getElementById("echoFeedbackVal").textContent = Math.round(echoFeedback.value * 100) + "%";  
-  if (alesisFeedbackNode && audioContext) alesisFeedbackNode.gain.setTargetAtTime(Number(echoFeedback.value), audioContext.currentTime, 0.01);  
+  if (alesisFeedbackNode && audioContext) alesisFeedbackNode.gain.setTargetAtTime(Number(echoFeedback.value), audioContext.currentTime, 0.005);  
 });  
   
 echoDamping.addEventListener("input", () => {  
   document.getElementById("echoDampingVal").textContent = echoDamping.value + " Hz";  
-  if (alesisFilterNode && audioContext) alesisFilterNode.frequency.setTargetAtTime(Number(echoDamping.value), audioContext.currentTime, 0.01);  
+  if (alesisFilterNode && audioContext) alesisFilterNode.frequency.setTargetAtTime(Number(echoDamping.value), audioContext.currentTime, 0.005);  
 });  
   
 echoMix.addEventListener("input", () => {  
   document.getElementById("echoMixVal").textContent = Math.round(echoMix.value * 100) + "%";  
   if (alesisWetNode && alesisDryNode && audioContext) {  
-    alesisWetNode.gain.setTargetAtTime(Number(echoMix.value), audioContext.currentTime, 0.01);  
-    alesisDryNode.gain.setTargetAtTime(1.0 - Number(echoMix.value), audioContext.currentTime, 0.01);  
+    alesisWetNode.gain.setTargetAtTime(Number(echoMix.value), audioContext.currentTime, 0.005);  
+    alesisDryNode.gain.setTargetAtTime(1.0 - Number(echoMix.value), audioContext.currentTime, 0.005);  
   }  
 });  
   
@@ -1279,7 +1271,6 @@ function playCurrentBuffer() {
   activeSourceNode = audioContext.createBufferSource();  
   activeSourceNode.buffer = buffer;  
   
-  // Masuk melalui Mixer Channel 2 (MUSIC)  
   activeSourceNode.connect(mixerStrips[1].hpf);  
   
   activeSourceNode.start(0);  
@@ -1316,7 +1307,6 @@ startMicButton.addEventListener("click", async () => {
     const constraints = { audio: { channelCount: 1, echoCancellation: false } };  
     microphoneStream = await navigator.mediaDevices.getUserMedia(constraints);  
     microphoneSource = audioContext.createMediaStreamSource(microphoneStream);  
-    // Masuk melalui Mixer Channel 1 (MIC)  
     microphoneSource.connect(mixerStrips[0].hpf);  
     setAudioStatus("Mikrofon aktif ➡️ Mixer Ch 1 ➡️ Alesis FX ➡️ Equalizer.");  
   } catch (err) { setAudioStatus("Gagal mengakses mikrofon."); }  
@@ -1339,13 +1329,13 @@ function syncAudioControlsFromUI() {
     const bypassBtn = channel.querySelector(".bypass-button");  
     const bands = [...channel.querySelectorAll(".band input[type='range']")];  
   
-    ac.inputGain.gain.setTargetAtTime(dbToGain(Number(gainCtrl.value)), audioContext.currentTime, 0.01);  
-    ac.highPass.frequency.setTargetAtTime(hpfCtrl.value === "off" ? 20 : Number(hpfCtrl.value), audioContext.currentTime, 0.01);  
+    ac.inputGain.gain.setTargetAtTime(dbToGain(Number(gainCtrl.value)), audioContext.currentTime, 0.005);  
+    ac.highPass.frequency.setTargetAtTime(hpfCtrl.value === "off" ? 20 : Number(hpfCtrl.value), audioContext.currentTime, 0.005);  
     ac.bypass = bypassBtn.classList.contains("active");  
   
     ac.filters.forEach((filter, bIdx) => {  
       if (bands[bIdx]) {  
-        filter.gain.setTargetAtTime(ac.bypass ? 0 : Number(bands[bIdx].value), audioContext.currentTime, 0.01);  
+        filter.gain.setTargetAtTime(ac.bypass ? 0 : Number(bands[bIdx].value), audioContext.currentTime, 0.005);  
       }  
     });  
   });  
@@ -1443,7 +1433,7 @@ document.querySelectorAll(".console-action-btn").forEach(btn => {
 });  
   
 /* =========================================================  
-   UI SYNC & TFT DISPLAY INTERAKTIF (DIPERBAIKI RESPONSIF)  
+   UI SYNC & TFT DISPLAY INTERAKTIF  
 ========================================================= */  
 const tftSectionTitle = document.getElementById("tftSectionTitle");  
 const tftContentArea = document.getElementById("tftContentArea");  
