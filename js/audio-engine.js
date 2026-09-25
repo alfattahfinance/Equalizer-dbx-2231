@@ -315,6 +315,114 @@ function renderPlaylistUI() {
     item.innerHTML = `<span>${index + 1}. ${file.name}</span>`;
     item.addEventListener("click", () => {
       selectAudioFile(index);
+  <script>
+"use strict";
+
+/* =========================================================
+   NAVIGASI TIGA TAB UTAMA
+========================================================= */
+const tabEqBtn = document.getElementById("tabEqBtn");
+const tabEchoBtn = document.getElementById("tabEchoBtn");
+const tabMixerBtn = document.getElementById("tabMixerBtn");
+const tabEqContent = document.getElementById("tabEqContent");
+const tabEchoContent = document.getElementById("tabEchoContent");
+const tabMixerContent = document.getElementById("tabMixerContent");
+
+tabEqBtn.addEventListener("click", () => {
+  tabEqBtn.classList.add("active"); tabEchoBtn.classList.remove("active"); tabMixerBtn.classList.remove("active");
+  tabEqContent.classList.add("active"); tabEchoContent.classList.remove("active"); tabMixerContent.classList.remove("active");
+});
+tabEchoBtn.addEventListener("click", () => {
+  tabEchoBtn.classList.add("active"); tabEqBtn.classList.remove("active"); tabMixerBtn.classList.remove("active");
+  tabEchoContent.classList.add("active"); tabEqContent.classList.remove("active"); tabMixerContent.classList.remove("active");
+});
+tabMixerBtn.addEventListener("click", () => {
+  tabMixerBtn.classList.add("active"); tabEqBtn.classList.remove("active"); tabEchoBtn.classList.remove("active");
+  tabMixerContent.classList.add("active"); tabEqContent.classList.remove("active"); tabEchoContent.classList.remove("active");
+});
+
+/* =========================================================
+   RENDER SLIDER EQUALIZER
+========================================================= */
+const frequencies = [20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000];
+const channelEl = document.querySelector(".channel");
+if (channelEl) {
+  const eqContainer = channelEl.querySelector(".eq");
+  frequencies.forEach(freq => {
+    const band = document.createElement("div");
+    band.className = "band";
+    band.innerHTML = `<div class="band-frequency">${freq}Hz</div><div class="slider-track-container"><input type="range" min="-15" max="15" step="0.5" value="0"></div><div class="band-value">0.0</div>`;
+    eqContainer.appendChild(band);
+  });
+}
+
+/* =========================================================
+   AUDIO ENGINE & OUTPUT ROUTING KHUSUS PONSEL
+========================================================= */
+let audioFiles = [];
+let currentAudioIndex = -1;
+let audioObjectUrls = [];
+let isMuted = false;
+
+const audioPlayer = document.getElementById("audioPlayer");
+const outputDeviceSelect = document.getElementById("outputDeviceSelect");
+
+// Memindai perangkat audio output (Speaker, Bluetooth, Headset)
+async function loadAudioOutputDevices() {
+  if (!navigator.mediaDevices?.enumerateDevices) return;
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const outputs = devices.filter(d => d.kind === "audiooutput");
+    outputDeviceSelect.innerHTML = '<option value="">Default Perangkat Sistem (Otomatis)</option>';
+    outputs.forEach((device, index) => {
+      const option = document.createElement("option");
+      option.value = device.deviceId;
+      option.textContent = device.label || `Output Audio ${index + 1}`;
+      outputDeviceSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.warn("Gagal memindai perangkat output:", err);
+  }
+}
+
+// Mengarahkan output elemen audio ke perangkat yang dipilih
+outputDeviceSelect.addEventListener("change", async () => {
+  const deviceId = outputDeviceSelect.value;
+  if (typeof audioPlayer.setSinkId === "function") {
+    try {
+      await audioPlayer.setSinkId(deviceId);
+      document.getElementById("readyStatus").textContent = "Output audio dialihkan ke perangkat terpilih.";
+    } catch (err) {
+      document.getElementById("readyStatus").textContent = "Gagal mengalihkan output audio.";
+    }
+  }
+});
+
+function selectAudioFile(index) {
+  if (index < 0 || index >= audioFiles.length) return;
+  const file = audioFiles[index];
+  audioPlayer.pause();
+  const url = URL.createObjectURL(file);
+  audioObjectUrls.push(url);
+  audioPlayer.src = url;
+  currentAudioIndex = index;
+  renderPlaylistUI();
+}
+
+function renderPlaylistUI() {
+  const container = document.getElementById("playlistContainer");
+  if (!container) return;
+  container.innerHTML = "";
+  if (audioFiles.length === 0) {
+    container.innerHTML = `<div style="text-align: center; padding: 6px; color: #64748b;">Belum ada file audio dipilih.</div>`;
+    return;
+  }
+  audioFiles.forEach((file, index) => {
+    const item = document.createElement("div");
+    item.className = "playlist-item" + (index === currentAudioIndex ? " playing" : "");
+    item.innerHTML = `<span>${index + 1}. ${file.name}</span>`;
+    item.addEventListener("click", () => {
+      selectAudioFile(index);
       audioPlayer.play();
     });
     container.appendChild(item);
@@ -337,12 +445,16 @@ document.getElementById("audioFile").addEventListener("change", (e) => {
   selectAudioFile(0);
 });
 
+// Langsung memutar audio melalui elemen standar agar pasti keluar di speaker HP
 document.getElementById("startButton").addEventListener("click", async () => {
-  const ctx = initAudioContext();
-  if (ctx.state === "suspended") await ctx.resume();
   if (audioPlayer.src) {
-    audioPlayer.play();
-    document.getElementById("readyStatus").textContent = "Memutar playlist audio melalui perangkat aktif.";
+    try {
+      audioPlayer.muted = isMuted;
+      await audioPlayer.play();
+      document.getElementById("readyStatus").textContent = "Memutar audio langsung ke speaker/perangkat aktif.";
+    } catch (err) {
+        alert("Gagal memutar audio. Pastikan file sudah dipilih.");
+    }
   } else {
     alert("Pilih file audio terlebih dahulu.");
   }
@@ -357,19 +469,18 @@ document.getElementById("stopButton").addEventListener("click", () => {
 document.getElementById("masterGain").addEventListener("input", (e) => {
   const val = Number(e.target.value);
   document.getElementById("masterValue").textContent = val + " dB";
-  if (masterGainNode && audioContext) {
-    masterGainNode.gain.setValueAtTime(Math.pow(10, val / 20), audioContext.currentTime);
-  }
+  // Mengontrol volume langsung via elemen audio standar HTML5
+  const linearGain = Math.pow(10, val / 20);
+  audioPlayer.volume = Math.min(Math.max(linearGain, 0), 1);
 });
 
 document.getElementById("muteOutput").addEventListener("click", () => {
   isMuted = !isMuted;
+  audioPlayer.muted = isMuted;
   const btn = document.getElementById("muteOutput");
   btn.classList.toggle("active", isMuted);
   btn.textContent = isMuted ? "UNMUTE OUTPUT" : "MUTE OUTPUT";
-  if (masterGainNode && audioContext) {
-    masterGainNode.gain.setValueAtTime(isMuted ? 0 : 1.0, audioContext.currentTime);
-  }
+  document.getElementById("readyStatus").textContent = isMuted ? "OUTPUT MUTED" : "OUTPUT ACTIVE";
 });
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -379,5 +490,6 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
   </script>
+
 </body>
 </html>
