@@ -77,7 +77,7 @@ header, .topbar {
 /* LED Indikator */
 .status-led { width: 8px; height: 8px; border-radius: 50%; background: #252b35; border: 1px solid #485260; display: inline-block; }
 .status-led.active-led { background: #10b981; border-color: #34d399; box-shadow: 0 0 6px #10b981; }
-.status-led.bypass-led { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #ef4444; }
+.status-led.bypass-led { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #f87171; }
 .status-led.test-led { background: #f59e0b; border-color: #fbbf24; box-shadow: 0 0 6px #f59e0b; }
 
 .channel-title { font-size: 12px; font-weight: bold; color: #38bdf8; }
@@ -1024,7 +1024,6 @@ let audioFiles = [];
 let currentAudioIndex = -1;
 let audioObjectUrls = [];
 
-// Mixer Channel Strips Node Controller State
 let mixerStrips = [
   { id: 'ch1', label: 'CH 1: MIC', gain: 0, fader: 0, muted: false, solo: false },
   { id: 'ch2', label: 'CH 2: MUSIC', gain: 0, fader: 0, muted: false, solo: false },
@@ -1038,7 +1037,7 @@ function buildMixerDeskUI() {
   if (!container) return;
   container.innerHTML = "";
 
-  mixerStrips.forEach((strip, index) => {
+  mixerStrips.forEach((strip) => {
     const isMaster = strip.id === 'master';
     const stripEl = document.createElement("div");
     stripEl.className = `console-channel-strip ${isMaster ? 'master-strip' : ''}`;
@@ -1062,7 +1061,6 @@ function buildMixerDeskUI() {
     `;
     container.appendChild(stripEl);
 
-    // Inisialisasi LED meter vertikal strip ini
     const meterContainer = stripEl.querySelector(`#mixerMeter_${strip.id}`);
     for (let i = 0; i < 10; i++) {
       const span = document.createElement("span");
@@ -1072,7 +1070,6 @@ function buildMixerDeskUI() {
       meterContainer.appendChild(span);
     }
 
-    // Event listener fader mixer
     const faderInput = stripEl.querySelector(`#fader_${strip.id}`);
     const readout = stripEl.querySelector(`#faderVal_${strip.id}`);
     faderInput.addEventListener("input", (e) => {
@@ -1083,7 +1080,6 @@ function buildMixerDeskUI() {
       }
     });
 
-    // Event listener Mute & Solo
     const muteBtn = stripEl.querySelector(`#mute_${strip.id}`);
     muteBtn.addEventListener("click", () => {
       muteBtn.classList.toggle("active");
@@ -1384,6 +1380,7 @@ document.addEventListener("DOMContentLoaded", () => {
 ========================================================= */
 const tftSectionTitle = document.getElementById("tftSectionTitle");
 const tftContentArea = document.getElementById("tftContentArea");
+const tftTabs = document.querySelectorAll(".tft-tab");
 
 const sectionData = {
   config: {
@@ -1391,8 +1388,8 @@ const sectionData = {
     content: `
       <div><b>Gain:</b> +12.0 dB | <b>Phantom:</b> +48V ON | <b>Phase:</b> Normal</div>
       <div class="tft-visual-meters" style="margin-top:4px;">
-        <div class="tft-meter-row"><span>CH 1</span><div class="tft-meter-bar"><span class="green on"></span><span class="green on"></span><span class="green on"></span><span class="green on"></span><span class="yellow on"></span><span class="yellow"></span><span class="red"></span></div><span>-12dB</span></div>
-        <div class="tft-meter-row"><span>CH 2</span><div class="tft-meter-bar"><span class="green on"></span><span class="green on"></span><span class="green on"></span><span class="yellow"></span><span class="yellow"></span><span class="red"></span><span class="red"></span></div><span>-18dB</span></div>
+        <div class="tft-meter-row"><span>CH 1</span><div class="tft-meter-bar"><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="yellow"></span><span class="yellow"></span><span class="red"></span></div><span>-12dB</span></div>
+        <div class="tft-meter-row"><span>CH 2</span><div class="tft-meter-bar"><span class="green"></span><span class="green"></span><span class="green"></span><span class="yellow"></span><span class="yellow"></span><span class="red"></span><span class="red"></span></div><span>-18dB</span></div>
       </div>
     `
   },
@@ -1447,9 +1444,9 @@ document.querySelectorAll(".mixer-control-section .console-btn").forEach(btn => 
   });
 });
 
-document.querySelectorAll(".tft-top-tabs .tft-tab").forEach(tab => {
+tftTabs.forEach(tab => {
   tab.addEventListener("click", () => {
-    document.querySelectorAll(".tft-top-tabs .tft-tab").forEach(t => t.classList.remove("active"));
+    tftTabs.forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
     const tabKey = tab.getAttribute("data-tft-tab");
     if (tftTabPages[tabKey] && tftSectionTitle && tftContentArea) {
@@ -1459,18 +1456,32 @@ document.querySelectorAll(".tft-top-tabs .tft-tab").forEach(tab => {
   });
 });
 
-// Animasi LED Meter Vertikal Mixer Aktif
+/* =========================================================
+   LOGIKA LED METER VERTIKAL MIXER (MATI TOTAL SAAT IDLE)
+========================================================= */
 setInterval(() => {
+  const audioPlayer = document.getElementById("audioPlayer");
+  const isPlayingFile = audioPlayer && !audioPlayer.paused && audioPlayer.currentTime > 0 && !audioPlayer.ended;
+  const isMicActive = microphoneStream !== null;
+  const isAudioRunning = audioContext && audioContext.state === "running" && (isPlayingFile || isMicActive);
+
   ['ch1', 'ch2', 'ch3', 'ch4', 'master'].forEach(id => {
     const container = document.getElementById(`mixerMeter_${id}`);
     if (!container) return;
     const spans = container.querySelectorAll("span");
-    const activeCount = Math.floor(Math.random() * 7) + 3;
-    spans.forEach((span, idx) => {
-      const reverseIdx = spans.length - 1 - idx;
-      if (reverseIdx < activeCount) span.classList.add("on");
-      else span.classList.remove("on");
-    });
+    
+    if (!isAudioRunning) {
+      // LED meter mati total saat tidak ada input/output audio aktif
+      spans.forEach(span => span.classList.remove("on"));
+    } else {
+      // LED meter menyala aktif bergerak hanya saat audio diputar
+      const activeCount = Math.floor(Math.random() * 7) + 3;
+      spans.forEach((span, idx) => {
+        const reverseIdx = spans.length - 1 - idx;
+        if (reverseIdx < activeCount) span.classList.add("on");
+        else span.classList.remove("on");
+      });
+    }
   });
 }, 180);
   </script>
