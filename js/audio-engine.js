@@ -49,20 +49,48 @@ header, .topbar {
 .channel-title-group { display: flex; align-items: center; gap: 8px; }
 .status-led { width: 8px; height: 8px; border-radius: 50%; background: #252b35; border: 1px solid #485260; display: inline-block; }
 .status-led.active-led { background: #10b981; border-color: #34d399; box-shadow: 0 0 6px #10b981; }
+.status-led.bypass-led { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #ef4444; }
 .channel-title { font-size: 12px; font-weight: bold; color: #38bdf8; }
+.channel-controls { display: flex; gap: 6px; align-items: center; }
+.small-button { background: #252b35; color: #cbd5e1; border: 1px solid #485260; padding: 3px 8px; font-size: 10px; border-radius: 3px; display: flex; align-items: center; gap: 4px; }
+.small-button.active { background: #ef4444; color: #fff; border-color: #f87171; }
+
 .control-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; background: #101216; padding: 8px; border-radius: 6px; margin-bottom: 8px; align-items: center; }
 .control label { display: block; font-size: 9px; color: #94a3b8; margin-bottom: 3px; }
 .control input[type="range"] { width: 100%; accent-color: #f59e0b; }
 .gain-value { font-size: 10px; color: #f59e0b; text-align: center; font-family: monospace; }
 .control select { width: 100%; background: #1e293b; color: #fff; border: 1px solid #485260; padding: 4px; font-size: 11px; border-radius: 4px; }
+
+.meter-area { display: flex; align-items: center; justify-content: space-between; background: #0d1015; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px; border: 1px solid #1e293b; }
+.meter-container-box { display: flex; flex-direction: column; gap: 3px; flex-grow: 1; margin-right: 15px; }
+.meter-scale-labels { display: flex; justify-content: space-between; font-size: 7px; color: #64748b; font-family: monospace; }
+.meter { display: flex; gap: 3px; height: 12px; align-items: center; }
+.meter span { flex: 1; height: 8px; background: #192231; border-radius: 1px; border: 1px solid #2a3441; }
+.meter span.green.on { background: #10b981; border-color: #34d399; box-shadow: 0 0 5px #10b981; }
+.meter span.yellow.on { background: #f59e0b; border-color: #fbbf24; box-shadow: 0 0 5px #f59e0b; }
+.meter span.red.on { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #ef4444; }
+.clip { font-size: 9px; font-weight: bold; color: #64748b; background: #161a22; padding: 3px 8px; border-radius: 3px; border: 1px solid #2a3441; }
+.clip.on { background: #ef4444; color: #fff; border-color: #f87171; box-shadow: 0 0 8px #ef4444; }
+
 .eq-section { width: 100%; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
 .eq { display: grid; grid-template-columns: repeat(31, 38px); gap: 4px; min-width: max-content; }
 .band { background: #101216; border: 1px solid #2a323d; border-radius: 4px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; height: 230px; position: relative; }
 .band-frequency { font-size: 8px; color: #94a3b8; margin-bottom: 4px; text-align: center; }
-.band input[type="range"] { writing-mode: vertical-lr; direction: rtl; width: 16px; height: 165px; accent-color: #38bdf8; cursor: pointer; }
+.band input[type="range"] { writing-mode: vertical-lr; direction: rtl; width: 16px; height: 165px; accent-color: #38bdf8; cursor: pointer; position: relative; z-index: 2; }
 .slider-track-container { position: relative; height: 165px; width: 24px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
 .band-value { font-size: 8px; color: #38bdf8; margin-top: 4px; font-family: monospace; text-align: center; }
 .scale { display: flex; justify-content: space-between; font-size: 9px; color: #64748b; padding: 2px 4px; }
+
+/* PANEL ALESIS FX */
+.echo-panel-box { background: #161a22; border: 1px solid #3a414b; border-radius: 8px; padding: 20px; }
+.echo-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.echo-onoff-btn { background: #252b35; color: #fff; border: 1px solid #485260; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+.echo-onoff-btn.active { background: #10b981; border-color: #34d399; color: #000; box-shadow: 0 0 8px #10b981; }
+.echo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.echo-control-card { background: #101216; border: 1px solid #2a323d; padding: 15px; border-radius: 6px; }
+.echo-control-card label { display: block; font-size: 11px; color: #38bdf8; margin-bottom: 6px; font-weight: bold; }
+.echo-control-card input[type="range"] { width: 100%; accent-color: #38bdf8; margin-bottom: 6px; }
+.echo-val { font-size: 11px; color: #f59e0b; font-family: monospace; text-align: right; }
 
 /* AUDIO & BLUETOOTH PANEL */
 .audio-panel { background: #1b2027; border: 1px solid #3a414b; border-radius: 8px; padding: 12px; margin-top: 14px; }
@@ -79,13 +107,12 @@ header, .topbar {
 .playlist-item { display: flex; justify-content: space-between; padding: 3px 6px; border-bottom: 1px solid #1e293b; cursor: pointer; }
 .playlist-item:hover { background: #1e293b; color: #fff; }
 .playlist-item.playing { color: #38bdf8; font-weight: bold; }
-audio { width: 100%; height: 35px; margin: 8px 0; }
 .output-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #101216; padding: 8px; border-radius: 6px; margin-top: 8px; }
 .output-control label { display: block; font-size: 9px; color: #94a3b8; margin-bottom: 3px; }
-.output-control select, .output-control input[type="range"] { width: 100%; background: #1e293b; color: #fff; border: 1px solid #485260; padding: 4px; font-size: 11px; border-radius: 4px; }
+.output-control input[type="range"] { width: 100%; accent-color: #f59e0b; }
 .master-value { font-size: 10px; color: #f59e0b; font-family: monospace; text-align: center; }
-#muteOutput.active { background: #ef4444 !important; color: #fff !important; }
-.device-status, .audio-status, .status { font-size: 10px; color: #94a3b8; margin-top: 4px; }
+#muteOutputButton.active { background: #ef4444 !important; color: #fff !important; border-color: #f87171; }
+.audio-status, .status { font-size: 10px; color: #94a3b8; margin-top: 4px; }
 .footer { text-align: center; font-size: 10px; color: #64748b; margin-top: 15px; }
   </style>
 </head>
@@ -95,7 +122,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
     <header class="topbar">
       <div>
         <div class="brand">AUDIO PROCESSOR ONLINE</div>
-        <div class="subtitle">GQX-3102 Equalizer, Alesis FX & Digital Mixer Console + ESP32 BLE</div>
+        <div class="subtitle">GQX-3102 Equalizer, Alesis FX & Direct Buffer Engine + ESP32 BLE</div>
       </div>
     </header>
 
@@ -103,19 +130,113 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
     <nav class="mode-switch-bar">
       <button class="tab-btn active" id="tabEqBtn">🎛️ EQUALIZER</button>
       <button class="tab-btn" id="tabEchoBtn">🔊 ALESIS FX</button>
-      <button class="tab-btn" id="tabMixerBtn">🎚️ DIGITAL MIXER</button>
+      <button class="tab-btn" id="tabMixerBtn" style="opacity:0.5;">🎚️ MIXER CONSOLE</button>
     </nav>
 
     <!-- TAB 1: EQUALIZER -->
     <div class="tab-content active" id="tabEqContent">
       <section class="rack">
         <div class="rack-header">
-          <div class="model">GQX-3102 GRAPHIC EQUALIZER</div>
+          <div>
+            <div class="model">GQX-3102</div>
+            <div class="grade">GRADE A • GRAPHIC EQUALIZER</div>
+          </div>
+          <div class="actions">
+            <button id="flatButton">FLAT</button>
+            <button id="vocalButton">VOCAL</button>
+            <button id="musicButton">MUSIC</button>
+          </div>
         </div>
+
         <section class="channels">
+          <!-- CHANNEL 1 -->
           <article class="channel" data-channel="0">
-            <div class="channel-title">CHANNEL 1</div>
+            <div class="channel-header">
+              <div class="channel-title-group">
+                <span class="status-led active-led" id="ch0_active_led"></span>
+                <div class="channel-title">CHANNEL 1</div>
+              </div>
+              <div class="channel-controls">
+                <button class="small-button bypass-button"><span class="status-led bypass-led"></span> BYPASS</button>
+              </div>
+            </div>
+            <div class="control-row">
+              <div class="control">
+                <label>GAIN</label>
+                <input class="gain" type="range" min="-12" max="12" step="0.5" value="0">
+                <div class="gain-value">0.0 dB</div>
+              </div>
+              <div class="control">
+                <label>HPF</label>
+                <select class="hpf">
+                  <option value="off">OFF</option>
+                  <option value="40">40 Hz</option>
+                  <option value="80">80 Hz</option>
+                  <option value="120">120 Hz</option>
+                </select>
+              </div>
+              <div class="control">
+                <label>RANGE</label>
+                <select class="range">
+                  <option value="6">±6 dB</option>
+                  <option value="15" selected>±15 dB</option>
+                </select>
+              </div>
+            </div>
+            <div class="meter-area">
+              <div class="meter-container-box">
+                <div class="meter-scale-labels"><span>-60</span><span>-40</span><span>-20</span><span>-10</span><span>-3</span><span>0</span><span>+3dB</span></div>
+                <div class="meter"></div>
+              </div>
+              <div class="clip">CLIP</div>
+            </div>
             <div class="eq-section"><div class="eq"></div></div>
+            <div class="scale"><span>+15 dB</span><span>0 dB</span><span>-15 dB</span></div>
+          </article>
+
+          <!-- CHANNEL 2 -->
+          <article class="channel" data-channel="1">
+            <div class="channel-header">
+              <div class="channel-title-group">
+                <span class="status-led active-led" id="ch1_active_led"></span>
+                <div class="channel-title">CHANNEL 2</div>
+              </div>
+              <div class="channel-controls">
+                <button class="small-button bypass-button"><span class="status-led bypass-led"></span> BYPASS</button>
+              </div>
+            </div>
+            <div class="control-row">
+              <div class="control">
+                <label>GAIN</label>
+                <input class="gain" type="range" min="-12" max="12" step="0.5" value="0">
+                <div class="gain-value">0.0 dB</div>
+              </div>
+              <div class="control">
+                <label>HPF</label>
+                <select class="hpf">
+                  <option value="off">OFF</option>
+                  <option value="40">40 Hz</option>
+                  <option value="80">80 Hz</option>
+                  <option value="120">120 Hz</option>
+                </select>
+              </div>
+              <div class="control">
+                <label>RANGE</label>
+                <select class="range">
+                  <option value="6">±6 dB</option>
+                  <option value="15" selected>±15 dB</option>
+                </select>
+              </div>
+            </div>
+            <div class="meter-area">
+              <div class="meter-container-box">
+                <div class="meter-scale-labels"><span>-60</span><span>-40</span><span>-20</span><span>-10</span><span>-3</span><span>0</span><span>+3dB</span></div>
+                <div class="meter"></div>
+              </div>
+              <div class="clip">CLIP</div>
+            </div>
+            <div class="eq-section"><div class="eq"></div></div>
+            <div class="scale"><span>+15 dB</span><span>0 dB</span><span>-15 dB</span></div>
           </article>
         </section>
       </section>
@@ -124,20 +245,42 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
     <!-- TAB 2: ALESIS FX -->
     <div class="tab-content" id="tabEchoContent">
       <div class="echo-panel-box">
-        <h3>ALESIS DIGITAL EFFECTS PROCESSOR</h3>
+        <div class="echo-header-row">
+          <div>
+            <h3 style="color: #38bdf8; margin:0 0 4px 0;">ALESIS DIGITAL EFFECTS PROCESSOR</h3>
+            <p style="font-size: 11px; color: #94a3b8; margin:0;">Prosesor Efek Studio (Reverb & Delay).</p>
+          </div>
+          <button class="echo-onoff-btn" id="echoToggleBtn">ALESIS FX: OFF</button>
+        </div>
+        
+        <div class="echo-grid">
+          <div class="echo-control-card">
+            <label>DELAY TIME</label>
+            <input type="range" id="echoDelay" min="0.05" max="1.0" step="0.05" value="0.3">
+            <div class="echo-val" id="echoDelayVal">0.30 detik</div>
+          </div>
+          <div class="echo-control-card">
+            <label>FEEDBACK</label>
+            <input type="range" id="echoFeedback" min="0.0" max="0.9" step="0.05" value="0.4">
+            <div class="echo-val" id="echoFeedbackVal">40%</div>
+          </div>
+          <div class="echo-control-card">
+            <label>ROOM DAMPING</label>
+            <input type="range" id="echoDamping" min="1000" max="15000" step="500" value="5000">
+            <div class="echo-val" id="echoDampingVal">5000 Hz</div>
+          </div>
+          <div class="echo-control-card">
+            <label>EFFECTS MIX</label>
+            <input type="range" id="echoMix" min="0.0" max="1.0" step="0.05" value="0.3">
+            <div class="echo-val" id="echoMixVal">30%</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- TAB 3: DIGITAL MIXER -->
-    <div class="tab-content" id="tabMixerContent">
-      <div class="mixer-console">
-        <h3>DIGITAL MIXER CONSOLE</h3>
-      </div>
-    </div>
-
-    <!-- PANEL AUDIO & OUTPUT ROUTING -->
+    <!-- PANEL AUDIO & PLAYER (DIJAMIN KELUAR DI SPEAKER HP) -->
     <section class="audio-panel">
-      <h3>PENGATURAN OUTPUT & AUDIO PLAYER</h3>
+      <h3>DIRECT BUFFER AUDIO PLAYER & BLUETOOTH</h3>
 
       <div class="bt-panel">
         <div>
@@ -148,348 +291,474 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
       </div>
 
       <div class="audio-actions">
-        <div style="width:100%; background:#101216; padding:8px; border-radius:6px; border:1px solid #2a323d; margin-bottom:8px;">
-          <label for="outputDeviceSelect">PILIH PERANGKAT OUTPUT SUARA (SPEAKER / HEADSET / BLUETOOTH)</label>
-          <select id="outputDeviceSelect" style="display:block; background:#1e293b; color:#fff; border:1px solid #485260; padding:4px; font-size:11px; border-radius:4px; width:100%; margin-top:4px;">
-            <option value="">Default Perangkat Sistem (Otomatis)</option>
-          </select>
-        </div>
-
-        <button id="micButton">MIC INPUT</button>
-        <label class="file-button">PILIH BANYAK FILE AUDIO<input id="audioFile" type="file" accept="audio/*" multiple hidden></label>
-        <button id="startButton">START PLAYLIST</button>
-        <button id="stopButton">STOP AUDIO</button>
+        <label class="file-button">PILIH FILE AUDIO (MP3/WAV)<input id="audioFilesInput" type="file" accept="audio/*" multiple hidden></label>
+        <button id="startAudioButton" style="background:#10b981; color:#000;">▶️ PLAY AUDIO</button>
+        <button id="stopAudioButton" style="background:#ef4444; color:#fff;">⏹️ STOP</button>
       </div>
 
       <div class="playlist-container" id="playlistContainer">
         <div style="text-align: center; padding: 6px; color: #64748b;">Belum ada file audio dipilih.</div>
       </div>
 
-      <!-- Elemen audio HTML5 terhubung langsung dengan setSinkId & Web Audio API -->
-      <audio id="audioPlayer" controls></audio>
-
       <div class="output-panel">
         <div class="output-control">
-          <label for="masterGain">MASTER OUTPUT</label>
-          <input id="masterGain" type="range" min="-30" max="0" step="1" value="0">
-          <div id="masterValue" class="master-value">0 dB</div>
+          <label for="masterGainControl">MASTER OUTPUT</label>
+          <input id="masterGainControl" type="range" min="-30" max="0" step="1" value="-3">
+          <div id="masterGainValue" class="master-value">-3 dB</div>
         </div>
         <div class="output-control">
           <label for="outputMode">KONTROL OUTPUT</label>
-          <button id="muteOutput" style="width:100%; background:#252b35; color:#fff; border:1px solid #485260; padding:6px; border-radius:4px; font-weight:bold;">MUTE OUTPUT</button>
+          <button id="muteOutputButton" style="width:100%; margin-top:2px; background:#252b35; color:#fff; border:1px solid #485260; padding:6px; border-radius:4px; font-weight:bold;">MUTE OUTPUT</button>
         </div>
       </div>
 
-      <div id="readyStatus" class="audio-status">Status Audio: Siap diputar.</div>
+      <div id="audioStatus" class="audio-status">Status: Pilih file audio lalu tekan PLAY.</div>
     </section>
 
-    <div id="status" class="status">Status: sistem siap digunakan.</div>
+    <div id="status" class="status">Status: siap digunakan di HP.</div>
   </main>
 
   <script>
 "use strict";
 
 /* =========================================================
-   NAVIGASI TIGA TAB UTAMA
+   NAVIGASI TAB UTAMA
 ========================================================= */
 const tabEqBtn = document.getElementById("tabEqBtn");
 const tabEchoBtn = document.getElementById("tabEchoBtn");
-const tabMixerBtn = document.getElementById("tabMixerBtn");
 const tabEqContent = document.getElementById("tabEqContent");
 const tabEchoContent = document.getElementById("tabEchoContent");
-const tabMixerContent = document.getElementById("tabMixerContent");
 
 tabEqBtn.addEventListener("click", () => {
-  tabEqBtn.classList.add("active"); tabEchoBtn.classList.remove("active"); tabMixerBtn.classList.remove("active");
-  tabEqContent.classList.add("active"); tabEchoContent.classList.remove("active"); tabMixerContent.classList.remove("active");
+  tabEqBtn.classList.add("active"); tabEchoBtn.classList.remove("active");
+  tabEqContent.classList.add("active"); tabEchoContent.classList.remove("active");
 });
 tabEchoBtn.addEventListener("click", () => {
-  tabEchoBtn.classList.add("active"); tabEqBtn.classList.remove("active"); tabMixerBtn.classList.remove("active");
-  tabEchoContent.classList.add("active"); tabEqContent.classList.remove("active"); tabMixerContent.classList.remove("active");
-});
-tabMixerBtn.addEventListener("click", () => {
-  tabMixerBtn.classList.add("active"); tabEqBtn.classList.remove("active"); tabEchoBtn.classList.remove("active");
-  tabMixerContent.classList.add("active"); tabEqContent.classList.remove("active"); tabEchoContent.classList.remove("active");
+  tabEchoBtn.classList.add("active"); tabEqBtn.classList.remove("active");
+  tabEchoContent.classList.add("active"); tabEqContent.classList.remove("active");
 });
 
 /* =========================================================
-   RENDER SLIDER EQUALIZER
+   WEB BLUETOOTH API KE ESP32
 ========================================================= */
-const frequencies = [20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000];
-const channelEl = document.querySelector(".channel");
-if (channelEl) {
-  const eqContainer = channelEl.querySelector(".eq");
-  frequencies.forEach(freq => {
+let bleDevice = null, bleServer = null, eqCharacteristic = null;
+const ESP32_SERVICE_UUID = "12345678-1234-1234-1234-123456789abc";
+const ESP32_CHAR_UUID    = "abcdef01-2345-6789-0123-456789abcdef";
+
+document.getElementById("connectBtButton").addEventListener("click", async () => {
+  if (!navigator.bluetooth) { alert("Web Bluetooth API tidak didukung browser ini."); return; }
+  try {
+    if (!bleDevice || !bleDevice.gatt.connected) {
+      document.getElementById("btStatus").textContent = "Memindai ESP32...";
+      bleDevice = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: [ESP32_SERVICE_UUID] });
+      bleDevice.addEventListener('gattserverdisconnected', () => {
+        document.getElementById("connectBtButton").textContent = "SAMBUNGKAN ESP32";
+        document.getElementById("connectBtButton").classList.remove("connected");
+        document.getElementById("btStatus").textContent = "Bluetooth terputus.";
+      });
+      bleServer = await bleDevice.gatt.connect();
+      const service = await bleServer.getPrimaryService(ESP32_SERVICE_UUID);
+      eqCharacteristic = await service.getCharacteristic(ESP32_CHAR_UUID);
+      document.getElementById("connectBtButton").textContent = "PUTUSKAN ESP32";
+      document.getElementById("connectBtButton").classList.add("connected");
+      document.getElementById("btStatus").textContent = "Terhubung: " + (bleDevice.name || "ESP32");
+    } else {
+      if (bleDevice.gatt.connected) bleDevice.gatt.disconnect();
+    }
+  } catch (error) {
+    document.getElementById("btStatus").textContent = "Koneksi dibatalkan.";
+  }
+});
+
+async function sendDataToESP32(dataString) {
+  if (eqCharacteristic && bleDevice && bleDevice.gatt.connected) {
+    try { await eqCharacteristic.writeValue(new TextEncoder().encode(dataString)); } catch (err) {}
+  }
+}
+
+/* =========================================================
+   DATA FREKUENSI & EQUALIZER GRAFIK
+========================================================= */
+const frequencies = [
+  20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160,
+  200, 250, 315, 400, 500, 630, 800, 1000, 1250,
+  1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000,
+  10000, 12500, 16000, 20000
+];
+
+const channels = [...document.querySelectorAll(".channel")];
+function setStatus(msg) { document.getElementById("status").textContent = "Status: " + msg; }
+function setAudioStatus(msg) { document.getElementById("audioStatus").textContent = msg; }
+function formatFrequency(v) { return Number.isInteger(v) ? String(v) : v.toFixed(1); }
+
+function createBands(channel) {
+  const eq = channel.querySelector(".eq");
+  if (!eq || eq.children.length > 0) return;
+
+  frequencies.forEach((frequency, index) => {
     const band = document.createElement("div");
     band.className = "band";
-    band.innerHTML = `<div class="band-frequency">${freq}Hz</div><div class="slider-track-container"><input type="range" min="-15" max="15" step="0.5" value="0"></div><div class="band-value">0.0</div>`;
-    eqContainer.appendChild(band);
+    band.innerHTML = `
+      <div class="band-frequency">${formatFrequency(frequency)} Hz</div>
+      <div class="slider-track-container"><input type="range" min="-15" max="15" step="0.5" value="0"></div>
+      <div class="band-value">0.0</div>
+    `;
+    const slider = band.querySelector("input");
+    const value = band.querySelector(".band-value");
+
+    slider.addEventListener("input", () => {
+      value.textContent = Number(slider.value).toFixed(1);
+      syncAudioControlsFromUI();
+      sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));
+    });
+    eq.appendChild(band);
   });
 }
+channels.forEach(ch => createBands(ch));
 
 /* =========================================================
-   AUDIO ENGINE & OUTPUT ROUTING (BLUETOOTH / HEADSET / SPEAKER)
+   AUDIO ENGINE (BUFFER-BASED DIRECT AUDIO DI HP)
 ========================================================= */
 let audioContext = null;
-let masterGainNode = null;
-let audioElementSource = null;
-let audioFiles = [];
-let currentAudioIndex = -1;
-let audioObjectUrls = [];
-let isMuted = false;
+let audioBuffers = [];
+let currentPlaylistIndex = 0;
+let activeSourceNode = null;
+let isPlaying = false;
 
-const audioPlayer = document.getElementById("audioPlayer");
-const outputDeviceSelect = document.getElementById("outputDeviceSelect");
+let mixerMergerNode = null, alesisDelayNode = null, alesisFeedbackNode = null, alesisFilterNode = null, alesisWetNode = null, alesisDryNode = null;
+let masterGainNode = null, outputMuteGainNode = null;
+let isAlesisFxEnabled = false, audioGraphReady = false, outputMuted = false;
 
-// Memindai perangkat audio output (Speaker, Bluetooth, Headset)
-async function loadAudioOutputDevices() {
-  if (!navigator.mediaDevices?.enumerateDevices) return;
-  try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const outputs = devices.filter(d => d.kind === "audiooutput");
-    outputDeviceSelect.innerHTML = '<option value="">Default Perangkat Sistem (Otomatis)</option>';
-    outputs.forEach((device, index) => {
-      const option = document.createElement("option");
-      option.value = device.deviceId;
-      option.textContent = device.label || `Output Audio ${index + 1}`;
-      outputDeviceSelect.appendChild(option);
-    });
-  } catch (err) {
-    console.warn("Gagal memindai perangkat output:", err);
+const audioChannels = [
+  { inputGain: null, highPass: null, filters: [], analyser: null, bypass: false },
+  { inputGain: null, highPass: null, filters: [], analyser: null, bypass: false }
+];
+
+function createAudioContext() {
+  if (!audioContext) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    audioContext = new AudioContextClass();
   }
-}
-
-// Mengarahkan output elemen audio ke perangkat yang dipilih di dropdown
-outputDeviceSelect.addEventListener("change", async () => {
-  const deviceId = outputDeviceSelect.value;
-  if (typeof audioPlayer.setSinkId === "function") {
-    try {
-      await audioPlayer.setSinkId(deviceId);
-      document.getElementById("readyStatus").textContent = "Output audio dialihkan ke perangkat terpilih.";
-    } catch (err) {
-      document.getElementById("readyStatus").textContent = "Gagal mengalihkan output audio.";
-    }
-  } else {
-    alert("Browser Anda belum mendukung pemindahan output audio secara langsung melalui setSinkId.");
-  }
-});
-
-function initAudioContext() {
-  if (audioContext) return audioContext;
-  const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  audioContext = new AudioCtx();
-  
-  masterGainNode = audioContext.createGain();
-  masterGainNode.gain.value = 1.0;
-  masterGainNode.connect(audioContext.destination);
-
-  if (audioPlayer && !audioElementSource) {
-    audioElementSource = audioContext.createMediaElementSource(audioPlayer);
-    audioElementSource.connect(masterGainNode);
+  if (audioContext.state === "suspended") {
+    audioContext.resume();
   }
   return audioContext;
 }
 
-function selectAudioFile(index) {
-  if (index < 0 || index >= audioFiles.length) return;
-  const file = audioFiles[index];
-  audioPlayer.pause();
-  const url = URL.createObjectURL(file);
-  audioObjectUrls.push(url);
-  audioPlayer.src = url;
-  currentAudioIndex = index;
-  renderPlaylistUI();
-}
+function dbToGain(db) { return Math.pow(10, db / 20); }
 
-function renderPlaylistUI() {
-  const container = document.getElementById("playlistContainer");
-  if (!container) return;
-  container.innerHTML = "";
-  if (audioFiles.length === 0) {
-    container.innerHTML = `<div style="text-align: center; padding: 6px; color: #64748b;">Belum ada file audio dipilih.</div>`;
-    return;
-  }
-  audioFiles.forEach((file, index) => {
-    const item = document.createElement("div");
-    item.className = "playlist-item" + (index === currentAudioIndex ? " playing" : "");
-    item.innerHTML = `<span>${index + 1}. ${file.name}</span>`;
-    item.addEventListener("click", () => {
-      selectAudioFile(index);
-  <script>
-"use strict";
+function initializeAudioGraph() {
+  createAudioContext();
+  if (audioGraphReady) return;
 
-/* =========================================================
-   NAVIGASI TIGA TAB UTAMA
-========================================================= */
-const tabEqBtn = document.getElementById("tabEqBtn");
-const tabEchoBtn = document.getElementById("tabEchoBtn");
-const tabMixerBtn = document.getElementById("tabMixerBtn");
-const tabEqContent = document.getElementById("tabEqContent");
-const tabEchoContent = document.getElementById("tabEchoContent");
-const tabMixerContent = document.getElementById("tabMixerContent");
+  // Bangun Equalizer Channel 1 & 2
+  channels.forEach((channel, idx) => {
+    const gainControl = channel.querySelector(".gain");
+    const hpfControl = channel.querySelector(".hpf");
+    const bandControls = [...channel.querySelectorAll(".band input")];
 
-tabEqBtn.addEventListener("click", () => {
-  tabEqBtn.classList.add("active"); tabEchoBtn.classList.remove("active"); tabMixerBtn.classList.remove("active");
-  tabEqContent.classList.add("active"); tabEchoContent.classList.remove("active"); tabMixerContent.classList.remove("active");
-});
-tabEchoBtn.addEventListener("click", () => {
-  tabEchoBtn.classList.add("active"); tabEqBtn.classList.remove("active"); tabMixerBtn.classList.remove("active");
-  tabEchoContent.classList.add("active"); tabEqContent.classList.remove("active"); tabMixerContent.classList.remove("active");
-});
-tabMixerBtn.addEventListener("click", () => {
-  tabMixerBtn.classList.add("active"); tabEqBtn.classList.remove("active"); tabEchoBtn.classList.remove("active");
-  tabMixerContent.classList.add("active"); tabEqContent.classList.remove("active"); tabEchoContent.classList.remove("active");
-});
+    const inputGain = audioContext.createGain();
+    const highPass = audioContext.createBiquadFilter();
+    const analyser = audioContext.createAnalyser();
 
-/* =========================================================
-   RENDER SLIDER EQUALIZER
-========================================================= */
-const frequencies = [20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000];
-const channelEl = document.querySelector(".channel");
-if (channelEl) {
-  const eqContainer = channelEl.querySelector(".eq");
-  frequencies.forEach(freq => {
-    const band = document.createElement("div");
-    band.className = "band";
-    band.innerHTML = `<div class="band-frequency">${freq}Hz</div><div class="slider-track-container"><input type="range" min="-15" max="15" step="0.5" value="0"></div><div class="band-value">0.0</div>`;
-    eqContainer.appendChild(band);
-  });
-}
+    inputGain.gain.value = dbToGain(Number(gainControl.value));
+    highPass.type = "highpass";
+    highPass.frequency.value = hpfControl.value === "off" ? 20 : Number(hpfControl.value);
+    analyser.fftSize = 1024;
 
-/* =========================================================
-   AUDIO ENGINE & OUTPUT ROUTING KHUSUS PONSEL
-========================================================= */
-let audioFiles = [];
-let currentAudioIndex = -1;
-let audioObjectUrls = [];
-let isMuted = false;
+    inputGain.connect(highPass);
+    let prev = highPass;
+    const filters = [];
 
-const audioPlayer = document.getElementById("audioPlayer");
-const outputDeviceSelect = document.getElementById("outputDeviceSelect");
-
-// Memindai perangkat audio output (Speaker, Bluetooth, Headset)
-async function loadAudioOutputDevices() {
-  if (!navigator.mediaDevices?.enumerateDevices) return;
-  try {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const outputs = devices.filter(d => d.kind === "audiooutput");
-    outputDeviceSelect.innerHTML = '<option value="">Default Perangkat Sistem (Otomatis)</option>';
-    outputs.forEach((device, index) => {
-      const option = document.createElement("option");
-      option.value = device.deviceId;
-      option.textContent = device.label || `Output Audio ${index + 1}`;
-      outputDeviceSelect.appendChild(option);
+    bandControls.forEach((ctl, fIdx) => {
+      const flt = audioContext.createBiquadFilter();
+      flt.type = "peaking";
+      flt.frequency.value = frequencies[fIdx];
+      flt.Q.value = 1.4;
+      flt.gain.value = Number(ctl.value);
+      prev.connect(flt);
+      prev = flt;
+      filters.push(flt);
     });
-  } catch (err) {
-    console.warn("Gagal memindai perangkat output:", err);
-  }
+
+    prev.connect(analyser);
+    audioChannels[idx] = { inputGain, highPass, filters, analyser, bypass: false };
+
+    gainControl.addEventListener("input", () => {
+      inputGain.gain.setValueAtTime(dbToGain(Number(gainControl.value)), audioContext.currentTime);
+    });
+    hpfControl.addEventListener("change", () => {
+      highPass.frequency.setValueAtTime(hpfControl.value === "off" ? 20 : Number(hpfControl.value), audioContext.currentTime);
+    });
+  });
+
+  mixerMergerNode = audioContext.createChannelMerger(2);
+  masterGainNode = audioContext.createGain();
+  outputMuteGainNode = audioContext.createGain();
+
+  // Efek Alesis FX
+  alesisDelayNode = audioContext.createDelay(2.0);
+  alesisDelayNode.delayTime.value = 0.3;
+  alesisFeedbackNode = audioContext.createGain();
+  alesisFeedbackNode.gain.value = 0.4;
+  alesisFilterNode = audioContext.createBiquadFilter();
+  alesisFilterNode.frequency.value = 5000;
+  alesisWetNode = audioContext.createGain();
+  alesisWetNode.gain.value = 0.3;
+  alesisDryNode = audioContext.createGain();
+  alesisDryNode.gain.value = 0.7;
+
+  alesisDelayNode.connect(alesisFilterNode);
+  alesisFilterNode.connect(alesisFeedbackNode);
+  alesisFeedbackNode.connect(alesisDelayNode);
+
+  masterGainNode.gain.value = dbToGain(Number(document.getElementById("masterGainControl").value));
+  outputMuteGainNode.gain.value = 1.0;
+
+  rebuildAudioRouting();
+  outputMuteGainNode.connect(audioContext.destination);
+
+  audioGraphReady = true;
+  startRealMeters();
 }
 
-// Mengarahkan output elemen audio ke perangkat yang dipilih
-outputDeviceSelect.addEventListener("change", async () => {
-  const deviceId = outputDeviceSelect.value;
-  if (typeof audioPlayer.setSinkId === "function") {
+function rebuildAudioRouting() {
+  if (!audioGraphReady) return;
+  try {
+    audioChannels[0].analyser.disconnect();
+    audioChannels[1].analyser.disconnect();
+    mixerMergerNode.disconnect();
+    masterGainNode.disconnect();
+  } catch (e) {}
+
+  audioChannels[0].analyser.connect(mixerMergerNode, 0, 0);
+  audioChannels[1].analyser.connect(mixerMergerNode, 0, 1);
+
+  if (isAlesisFxEnabled) {
+    mixerMergerNode.connect(alesisDryNode);
+    alesisDryNode.connect(masterGainNode);
+    mixerMergerNode.connect(alesisDelayNode);
+    alesisDelayNode.connect(alesisWetNode);
+    alesisWetNode.connect(masterGainNode);
+  } else {
+    mixerMergerNode.connect(masterGainNode);
+  }
+  masterGainNode.connect(outputMuteGainNode);
+}
+
+document.getElementById("echoToggleBtn").addEventListener("click", (e) => {
+  isAlesisFxEnabled = !isAlesisFxEnabled;
+  e.target.textContent = isAlesisFxEnabled ? "ALESIS FX: ON" : "ALESIS FX: OFF";
+  e.target.classList.toggle("active", isAlesisFxEnabled);
+  rebuildAudioRouting();
+});
+
+// Penanganan File Audio via FileReader (Buffer Decoding)
+const audioFilesInput = document.getElementById("audioFilesInput");
+let audioFileNames = [];
+
+audioFilesInput.addEventListener("change", async (e) => {
+  const files = Array.from(e.target.files);
+  if (files.length === 0) return;
+  
+  createAudioContext();
+  initializeAudioGraph();
+  audioBuffers = [];
+  audioFileNames = files.map(f => f.name);
+
+  setAudioStatus("Memproses dan mendecode file audio...");
+
+  for (let file of files) {
     try {
-      await audioPlayer.setSinkId(deviceId);
-      document.getElementById("readyStatus").textContent = "Output audio dialihkan ke perangkat terpilih.";
+      const arrayBuffer = await file.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      audioBuffers.push(audioBuffer);
     } catch (err) {
-      document.getElementById("readyStatus").textContent = "Gagal mengalihkan output audio.";
+      console.warn("Gagal decode:", file.name);
     }
   }
-});
 
-function selectAudioFile(index) {
-  if (index < 0 || index >= audioFiles.length) return;
-  const file = audioFiles[index];
-  audioPlayer.pause();
-  const url = URL.createObjectURL(file);
-  audioObjectUrls.push(url);
-  audioPlayer.src = url;
-  currentAudioIndex = index;
+  currentPlaylistIndex = 0;
   renderPlaylistUI();
-}
+  setAudioStatus(audioBuffers.length + " file siap diputar.");
+});
 
 function renderPlaylistUI() {
   const container = document.getElementById("playlistContainer");
-  if (!container) return;
   container.innerHTML = "";
-  if (audioFiles.length === 0) {
-    container.innerHTML = `<div style="text-align: center; padding: 6px; color: #64748b;">Belum ada file audio dipilih.</div>`;
-    return;
-  }
-  audioFiles.forEach((file, index) => {
+  audioFileNames.forEach((name, idx) => {
     const item = document.createElement("div");
-    item.className = "playlist-item" + (index === currentAudioIndex ? " playing" : "");
-    item.innerHTML = `<span>${index + 1}. ${file.name}</span>`;
+    item.className = "playlist-item" + (idx === currentPlaylistIndex ? " playing" : "");
+    item.textContent = (idx + 1) + ". " + name;
     item.addEventListener("click", () => {
-      selectAudioFile(index);
-      audioPlayer.play();
+      currentPlaylistIndex = idx;
+      renderPlaylistUI();
+      playCurrentBuffer();
     });
     container.appendChild(item);
   });
 }
 
-audioPlayer.addEventListener("ended", () => {
-  if (audioFiles.length > 0) {
-    currentAudioIndex = (currentAudioIndex + 1) % audioFiles.length;
-    selectAudioFile(currentAudioIndex);
-    audioPlayer.play();
+function playCurrentBuffer() {
+  if (audioBuffers.length === 0) {
+    alert("Silakan pilih file audio terlebih dahulu!");
+    return;
   }
-});
+  
+  createAudioContext();
+  initializeAudioGraph();
 
-document.getElementById("audioFile").addEventListener("change", (e) => {
-  const files = Array.from(e.target.files || []);
-  if (files.length === 0) return;
-  audioFiles = files;
-  currentAudioIndex = 0;
-  selectAudioFile(0);
-});
+  if (activeSourceNode) {
+    try { activeSourceNode.stop(); } catch (e) {}
+  }
 
-// Langsung memutar audio melalui elemen standar agar pasti keluar di speaker HP
-document.getElementById("startButton").addEventListener("click", async () => {
-  if (audioPlayer.src) {
-    try {
-      audioPlayer.muted = isMuted;
-      await audioPlayer.play();
-      document.getElementById("readyStatus").textContent = "Memutar audio langsung ke speaker/perangkat aktif.";
-    } catch (err) {
-        alert("Gagal memutar audio. Pastikan file sudah dipilih.");
+  const buffer = audioBuffers[currentPlaylistIndex];
+  activeSourceNode = audioContext.createBufferSource();
+  activeSourceNode.buffer = buffer;
+
+  // Hubungkan ke Channel 1 dan Channel 2 Equalizer
+  activeSourceNode.connect(audioChannels[0].inputGain);
+  activeSourceNode.connect(audioChannels[1].inputGain);
+
+  activeSourceNode.start(0);
+  isPlaying = true;
+  setAudioStatus("Memutar: " + audioFileNames[currentPlaylistIndex]);
+
+  activeSourceNode.onended = () => {
+    if (isPlaying && audioBuffers.length > 0) {
+      currentPlaylistIndex = (currentPlaylistIndex + 1) % audioBuffers.length;
+      renderPlaylistUI();
+      playCurrentBuffer();
     }
-  } else {
-    alert("Pilih file audio terlebih dahulu.");
+  };
+}
+
+document.getElementById("startAudioButton").addEventListener("click", () => {
+  playCurrentBuffer();
+});
+
+document.getElementById("stopAudioButton").addEventListener("click", () => {
+  if (activeSourceNode) {
+    try { activeSourceNode.stop(); } catch (e) {}
+    activeSourceNode = null;
   }
+  isPlaying = false;
+  setAudioStatus("Audio dihentikan.");
 });
 
-document.getElementById("stopButton").addEventListener("click", () => {
-  audioPlayer.pause();
-  audioPlayer.currentTime = 0;
-  document.getElementById("readyStatus").textContent = "Audio dihentikan.";
-});
+function syncAudioControlsFromUI() {
+  if (!audioGraphReady || !audioContext) return;
+  channels.forEach((channel, index) => {
+    const ac = audioChannels[index];
+    if (!ac.inputGain) return;
+    const gainCtrl = channel.querySelector(".gain");
+    const hpfCtrl = channel.querySelector(".hpf");
+    const bypassBtn = channel.querySelector(".bypass-button");
+    const bands = [...channel.querySelectorAll(".band input")];
 
-document.getElementById("masterGain").addEventListener("input", (e) => {
+    ac.inputGain.gain.setValueAtTime(dbToGain(Number(gainCtrl.value)), audioContext.currentTime);
+    ac.highPass.frequency.setValueAtTime(hpfCtrl.value === "off" ? 20 : Number(hpfCtrl.value), audioContext.currentTime);
+    ac.bypass = bypassBtn.classList.contains("active");
+
+    ac.filters.forEach((filter, bIdx) => {
+      if (bands[bIdx]) {
+        filter.gain.setValueAtTime(ac.bypass ? 0 : Number(bands[bIdx].value), audioContext.currentTime);
+      }
+    });
+  });
+}
+
+// Kontrol Master & Mute
+document.getElementById("masterGainControl").addEventListener("input", (e) => {
   const val = Number(e.target.value);
-  document.getElementById("masterValue").textContent = val + " dB";
-  // Mengontrol volume langsung via elemen audio standar HTML5
-  const linearGain = Math.pow(10, val / 20);
-  audioPlayer.volume = Math.min(Math.max(linearGain, 0), 1);
-});
-
-document.getElementById("muteOutput").addEventListener("click", () => {
-  isMuted = !isMuted;
-  audioPlayer.muted = isMuted;
-  const btn = document.getElementById("muteOutput");
-  btn.classList.toggle("active", isMuted);
-  btn.textContent = isMuted ? "UNMUTE OUTPUT" : "MUTE OUTPUT";
-  document.getElementById("readyStatus").textContent = isMuted ? "OUTPUT MUTED" : "OUTPUT ACTIVE";
-});
-
-window.addEventListener("DOMContentLoaded", () => {
-  loadAudioOutputDevices();
-  if (navigator.mediaDevices?.addEventListener) {
-    navigator.mediaDevices.addEventListener("devicechange", loadAudioOutputDevices);
+  document.getElementById("masterGainValue").textContent = val + " dB";
+  if (masterGainNode && audioContext) {
+    masterGainNode.gain.setValueAtTime(dbToGain(val), audioContext.currentTime);
   }
 });
-  </script>
 
+let isMuted = false;
+document.getElementById("muteOutputButton").addEventListener("click", (e) => {
+  isMuted = !isMuted;
+  e.target.textContent = isMuted ? "UNMUTE OUTPUT" : "MUTE OUTPUT";
+  e.target.classList.toggle("active", isMuted);
+  if (outputMuteGainNode && audioContext) {
+    outputMuteGainNode.gain.setValueAtTime(isMuted ? 0 : 1.0, audioContext.currentTime);
+  }
+});
+
+// Preset & Tombol Lainnya
+function setPreset(type) {
+  channels.forEach(channel => {
+    channel.querySelector(".gain").value = "0";
+    channel.querySelectorAll(".band input").forEach((slider, index) => {
+      let val = 0;
+      if (type === "vocal") {
+        if (index >= 13 && index <= 21) val = 3;
+        if (index <= 5) val = -2;
+      } else if (type === "music") {
+        if (index <= 5) val = 4;
+        if (index >= 23) val = 3;
+      }
+      slider.value = String(val);
+      slider.closest(".band").querySelector(".band-value").textContent = Number(slider.value).toFixed(1);
+    });
+  });
+  syncAudioControlsFromUI();
+  setStatus("Preset " + type.toUpperCase() + " aktif.");
+}
+
+document.getElementById("flatButton").addEventListener("click", () => setPreset("flat"));
+document.getElementById("vocalButton").addEventListener("click", () => setPreset("vocal"));
+document.getElementById("musicButton").addEventListener("click", () => setPreset("music"));
+
+channels.forEach((channel, idx) => {
+  channel.querySelector(".gain").addEventListener("input", () => {
+    channel.querySelector(".gain-value").textContent = Number(channel.querySelector(".gain").value).toFixed(1) + " dB";
+    syncAudioControlsFromUI();
+  });
+  channel.querySelector(".bypass-button").addEventListener("click", (e) => {
+    e.target.classList.toggle("active");
+    syncAudioControlsFromUI();
+  });
+});
+
+/* =========================================================
+   ANIMASI METER LED
+========================================================= */
+function startRealMeters() {
+  const buffers = [new Uint8Array(1024), new Uint8Array(1024)];
+  function update() {
+    requestAnimationFrame(update);
+    audioChannels.forEach((ac, idx) => {
+      const channel = channels[idx];
+      if (!channel || !ac.analyser || !isPlaying) return;
+      const meter = channel.querySelector(".meter");
+      const clip = channel.querySelector(".clip");
+      if (!meter) return;
+
+      ac.analyser.getByteTimeDomainData(buffers[idx]);
+      let sum = 0, peak = 0;
+      for (let i = 0; i < buffers[idx].length; i++) {
+        let sample = (buffers[idx][i] - 128) / 128;
+        sum += sample * sample;
+        if (Math.abs(sample) > peak) peak = Math.abs(sample);
+      }
+      let rms = Math.sqrt(sum / buffers[idx].length);
+      let level = rms < 0.001 ? 0 : Math.max(1, Math.min(12, Math.round(rms * 25)));
+
+      meter.innerHTML = "";
+      for (let s = 0; s < 12; s++) {
+        const span = document.createElement("span");
+        if (s >= 9) span.classList.add("red"); else if (s >= 7) span.classList.add("yellow"); else span.classList.add("green");
+        if (s < level) span.classList.add("on");
+        meter.appendChild(span);
+      }
+      clip.classList.toggle("on", peak >= 0.95);
+    });
+  }
+  update();
+}
+  </script>
 </body>
 </html>
