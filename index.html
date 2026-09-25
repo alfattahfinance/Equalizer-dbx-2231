@@ -1210,7 +1210,12 @@ function buildEqualizerChannel(channelIndex) {
 
 function initializeAudioGraph() {
   createAudioContext();
-  if (audioGraphReady) { updateMasterGain(); updateOutputMute(); return; }
+  if (audioGraphReady) { 
+    updateMasterGain(); 
+    updateOutputMute(); 
+    startRealMeters(); // Pastikan meter berjalan
+    return; 
+  }
 
   buildEqualizerChannel(0);
   buildEqualizerChannel(1);
@@ -1249,6 +1254,7 @@ function initializeAudioGraph() {
   audioGraphReady = true;
   updateMasterGain();
   updateOutputMute();
+  startRealMeters(); // Menyalakan animasi meter otomatis
 }
 
 function rebuildAudioRouting() {
@@ -1517,7 +1523,7 @@ document.getElementById("loadButton").addEventListener("click", () => {
       channel.querySelectorAll(".band input").forEach((s, bIdx) => {
         s.value = item.bands?.[bIdx] ?? "0";
         const valDisplay = s.closest(".band").querySelector(".band-value");
-        if (valDisplay) valDisplay.textContent = Number(s.value).toFixed(1);
+        if (valDisplay) valDisplay.textContent = Number(value).toFixed(1);
       });
       updateValues(channel);
     });
@@ -1722,7 +1728,7 @@ refreshInputDevices();
 function startRealMeters() {
   if (meterAnimationId) return;
   const meterBuffers = [new Uint8Array(1024), new Uint8Array(1024)];
-  const vertMeterBuffers = [new Uint8Array(512), new Uint8Array(512), new Uint8Array(512), newUint8Array(512), new Uint8Array(512)];
+  const vertMeterBuffers = [new Uint8Array(512), new Uint8Array(512), new Uint8Array(512), new Uint8Array(512), new Uint8Array(512)];
   
   function updateAllMeters() {
     meterAnimationId = requestAnimationFrame(updateAllMeters);
