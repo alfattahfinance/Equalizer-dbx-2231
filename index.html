@@ -78,7 +78,7 @@ header, .topbar {
 .status-led { width: 8px; height: 8px; border-radius: 50%; background: #252b35; border: 1px solid #485260; display: inline-block; }
 .status-led.active-led { background: #10b981; border-color: #34d399; box-shadow: 0 0 6px #10b981; }
 .status-led.bypass-led { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #ef4444; }
-.status-led.test-led { background: #f59e0b; border-color: #fbbf24; box-shadow: 0 0 6px #fbbf24; }
+.status-led.test-led { background: #f59e0b; border-color: #fbbf24; box-shadow: 0 0 6px #f59e0b; }
 
 .channel-title { font-size: 12px; font-weight: bold; color: #38bdf8; }
 .channel-controls { display: flex; gap: 6px; align-items: center; }
@@ -99,7 +99,7 @@ header, .topbar {
 .meter span { flex: 1; height: 8px; background: #192231; border-radius: 1px; border: 1px solid #2a3441; }
 .meter span.green.on { background: #10b981; border-color: #34d399; box-shadow: 0 0 5px #10b981; }
 .meter span.yellow.on { background: #f59e0b; border-color: #fbbf24; box-shadow: 0 0 5px #f59e0b; }
-.meter span.red.on { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #ef4444; }
+.meter span.red.on { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #f87171; }
 .clip { font-size: 9px; font-weight: bold; color: #64748b; background: #161a22; padding: 3px 8px; border-radius: 3px; border: 1px solid #2a3441; }
 .clip.on { background: #ef4444; color: #fff; border-color: #f87171; box-shadow: 0 0 8px #ef4444; }
 
@@ -160,7 +160,7 @@ header, .topbar {
 .echo-val { font-size: 11px; color: #f59e0b; font-family: monospace; text-align: right; }
 
 /* =========================================================
-   DIGITAL MIXER CONSOLE - PROFESSIONAL LAYOUT (MIDAS/X32 STYLE)
+   DIGITAL MIXER CONSOLE
 ========================================================= */
 .mixer-console {
   background: #0d1117;
@@ -565,14 +565,13 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
         <!-- BAGIAN LAYAR UTAMA & KONTROL ATAS -->
         <div class="mixer-top-console">
           
-          <!-- LAYAR TFT UTAMA (MIDAS / X32 STYLE) -->
+          <!-- LAYAR TFT UTAMA -->
           <div class="mixer-tft-screen">
             <div class="tft-header">
               <span id="tftSectionTitle">CONFIG / PREAMP INTERFACE</span>
               <span style="color: #10b981;">● DSP: 48kHz / 32-bit</span>
             </div>
 
-            <!-- Tab Menu Layar Atas -->
             <div class="tft-top-tabs">
               <button class="tft-tab active" data-tft-tab="home">HOME</button>
               <button class="tft-tab" data-tft-tab="meters">METERS</button>
@@ -582,7 +581,6 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <button class="tft-tab" data-tft-tab="effects">EFFECTS</button>
             </div>
 
-            <!-- Tampilan Utama Konten Layar (Interaktif) -->
             <div class="tft-main-viewport">
               <div class="tft-content-screen" id="tftContentArea"></div>
               <div style="font-size: 8px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 3px; display: flex; justify-content: space-between;">
@@ -591,7 +589,6 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               </div>
             </div>
 
-            <!-- 6 Encoders Fisik di Bawah Layar TFT -->
             <div class="tft-encoders-bar">
               <div class="tft-encoder-knob">GAIN<span id="enc1Val">+12dB</span></div>
               <div class="tft-encoder-knob">HPF<span id="enc2Val">80Hz</span></div>
@@ -602,7 +599,6 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             </div>
           </div>
 
-          <!-- Bagian Tombol Kanan Layar (Section Control) -->
           <div class="mixer-control-section">
             <div style="font-size: 10px; font-weight: bold; color: #38bdf8; margin-bottom: 4px;">SECTION SELECT</div>
             <div class="section-grid-btns">
@@ -616,10 +612,8 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
           </div>
         </div>
 
-        <!-- PERMUKAAN KONSOLE (CHANNEL STRIPS & MASTER) -->
+        <!-- PERMUKAAN KONSOLE -->
         <div class="mixer-desk-surface">
-          
-          <!-- CH 1 -->
           <div class="console-channel-strip">
             <div class="strip-label-box">CH 1: MIC</div>
             <div class="strip-knobs-area">
@@ -628,9 +622,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             </div>
             <div class="fader-readout">0.0 dB</div>
             <div class="fader-panel-area">
-              <div class="fader-slot">
-                <input type="range" min="-40" max="10" step="0.5" value="0">
-              </div>
+              <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
               <div class="vert-led-meter" id="mixerMeter1"></div>
             </div>
             <div class="strip-action-buttons" style="margin-top:8px;">
@@ -639,7 +631,6 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             </div>
           </div>
 
-          <!-- CH 2 -->
           <div class="console-channel-strip">
             <div class="strip-label-box">CH 2: MUSIC</div>
             <div class="strip-knobs-area">
@@ -648,9 +639,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             </div>
             <div class="fader-readout">0.0 dB</div>
             <div class="fader-panel-area">
-              <div class="fader-slot">
-                <input type="range" min="-40" max="10" step="0.5" value="0">
-              </div>
+              <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
               <div class="vert-led-meter" id="mixerMeter2"></div>
             </div>
             <div class="strip-action-buttons" style="margin-top:8px;">
@@ -659,7 +648,6 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             </div>
           </div>
 
-          <!-- CH 3 -->
           <div class="console-channel-strip">
             <div class="strip-label-box">CH 3: AUX</div>
             <div class="strip-knobs-area">
@@ -668,9 +656,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             </div>
             <div class="fader-readout">0.0 dB</div>
             <div class="fader-panel-area">
-              <div class="fader-slot">
-                <input type="range" min="-40" max="10" step="0.5" value="0">
-              </div>
+              <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
               <div class="vert-led-meter" id="mixerMeter3"></div>
             </div>
             <div class="strip-action-buttons" style="margin-top:8px;">
@@ -679,7 +665,6 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             </div>
           </div>
 
-          <!-- CH 4 -->
           <div class="console-channel-strip">
             <div class="strip-label-box">CH 4: FX</div>
             <div class="strip-knobs-area">
@@ -688,9 +673,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             </div>
             <div class="fader-readout">0.0 dB</div>
             <div class="fader-panel-area">
-              <div class="fader-slot">
-                <input type="range" min="-40" max="10" step="0.5" value="0">
-              </div>
+              <div class="fader-slot"><input type="range" min="-40" max="10" step="0.5" value="0"></div>
               <div class="vert-led-meter" id="mixerMeter4"></div>
             </div>
             <div class="strip-action-buttons" style="margin-top:8px;">
@@ -699,7 +682,6 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             </div>
           </div>
 
-          <!-- MASTER L/R -->
           <div class="console-channel-strip master-strip">
             <div class="strip-label-box">MASTER L/R</div>
             <div class="strip-knobs-area" style="border-color: #78350f;">
@@ -708,9 +690,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             </div>
             <div class="fader-readout">0.0 dB</div>
             <div class="fader-panel-area">
-              <div class="fader-slot">
-                <input type="range" min="-50" max="6" step="0.5" value="0">
-              </div>
+              <div class="fader-slot"><input type="range" min="-50" max="6" step="0.5" value="0"></div>
               <div class="vert-led-meter" id="mixerMeterMaster"></div>
             </div>
             <div class="strip-action-buttons" style="margin-top:8px;">
@@ -718,19 +698,18 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <button class="console-action-btn active" style="background:#fbbf24; color:#000;">LR</button>
             </div>
           </div>
-
         </div>
       </div>
     </div>
 
-    <!-- PANEL AUDIO ENGINE & BLUETOOTH BERSAMA -->
+    <!-- PANEL AUDIO & BLUETOOTH -->
     <section class="audio-panel">
       <h3>AUDIO PLAYER, MIXER & BLUETOOTH ESP32</h3>
 
       <div class="bt-panel">
         <div>
           <strong>KONEKSI HARDWARE ESP32</strong>
-          <div id="btStatus" class="bt-info">Bluetooth terputus. Klik sambungkan untuk menghubungkan ESP32.</div>
+          <div id="btStatus" class="bt-info">Bluetooth terputus.</div>
         </div>
         <button id="connectBtButton">SAMBUNGKAN ESP32</button>
       </div>
@@ -739,14 +718,14 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
         <div class="input-device-panel" style="width:100%; background:#101216; padding:8px; border-radius:6px; border:1px solid #2a323d; margin-bottom:8px;">
           <div class="input-device-row" style="display:flex; justify-content:space-between; align-items:flex-end; gap:8px;">
             <div>
-              <label for="inputDeviceSelect">INPUT DEVICE / MIC EXTERNAL</label>
-              <select id="inputDeviceSelect" style="display:block; background:#1e293b; color:#fff; border:1px solid #485260; padding:4px; font-size:11px; border-radius:4px; width:220px; margin-top:4px;">
-                <option value="">Default microphone</option>
+              <label for="outputDeviceSelect">PILIH PERANGKAT OUTPUT (SPEAKER / HEADSET / BLUETOOTH)</label>
+              <select id="outputDeviceSelect" style="display:block; background:#1e293b; color:#fff; border:1px solid #485260; padding:4px; font-size:11px; border-radius:4px; width:220px; margin-top:4px;">
+                <option value="">Default Speaker/Headset Aktif</option>
               </select>
             </div>
             <button id="refreshInputDevicesButton">REFRESH</button>
           </div>
-          <div id="inputDeviceStatus" class="device-status">Perangkat input belum dipindai.</div>
+          <div id="inputDeviceStatus" class="device-status">Perangkat audio siap.</div>
         </div>
         
         <button id="startMicButton">MIC INPUT</button>
@@ -755,9 +734,8 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
         <button id="stopAudioButton">STOP AUDIO</button>
       </div>
 
-      <!-- Playlist Container -->
       <div class="playlist-container" id="playlistContainer">
-        <div style="text-align: center; padding: 6px; color: #64748b;">Belum ada file audio dipilih. Klik "PILIH BANYAK FILE AUDIO".</div>
+        <div style="text-align: center; padding: 6px; color: #64748b;">Belum ada file audio dipilih.</div>
       </div>
 
       <audio id="audioPlayer" controls></audio>
@@ -765,8 +743,8 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
       <div class="output-panel">
         <div class="output-control">
           <label for="masterGainControl">MASTER OUTPUT</label>
-          <input id="masterGainControl" type="range" min="-30" max="0" step="1" value="-12">
-          <div id="masterGainValue" class="master-value">-12 dB</div>
+          <input id="masterGainControl" type="range" min="-30" max="0" step="1" value="-6">
+          <div id="masterGainValue" class="master-value">-6 dB</div>
         </div>
         <div class="output-control">
           <label for="outputMode">OUTPUT MODE</label>
@@ -790,93 +768,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
 "use strict";
 
 /* =========================================================
-   GLOBAL CHANNEL STATE
-========================================================= */
-window.channelState = [
-  { fader: 0, gain: 0, hpf: "off", mute: false, solo: false, bands: new Array(31).fill(0) },
-  { fader: 0, gain: 0, hpf: "off", mute: false, solo: false, bands: new Array(31).fill(0) },
-  { fader: 0, gain: 0, hpf: "off", mute: false, solo: false, bands: new Array(31).fill(0) },
-  { fader: 0, gain: 0, hpf: "off", mute: false, solo: false, bands: new Array(31).fill(0) }
-];
-
-/* =========================================================
-   DSP CONTROL BRIDGE
-========================================================= */
-(function () {
-    const P = window.MixerProtocol || {
-        PARAMETERS: { FADER: "FADER", GAIN: "GAIN", EQ_BAND: "EQ_BAND", MUTE: "MUTE", SOLO: "SOLO", MASTER: "MASTER" },
-        normalizeValue: (p, v) => v,
-        clamp: (v, min, max) => Math.max(min, Math.min(max, v))
-    };
-
-    const Bridge = {
-        initialized: false,
-        applyingFeedback: false,
-        suppressTX: false,
-        init() {
-            if (this.initialized) return;
-            this.initialized = true;
-
-            window.addEventListener("mixer:feedback", event => {
-                if (event && event.detail) this.applyFeedback(event.detail);
-            });
-
-            window.addEventListener("mixer:dsp-control", event => {
-                if (event && event.detail) this.applyControl(event.detail);
-            });
-        },
-        applyFeedback(packet) {
-            if (!packet) return;
-            const parameter = String(packet.parameter || "").toUpperCase();
-            const channel = Number(packet.channel);
-            const value = P.normalizeValue(parameter, packet.value);
-            this.applyingFeedback = true;
-            try {
-                if (parameter === "MASTER") {
-                    this.applyMaster(value);
-                } else {
-                    this.updateChannelUI(channel, parameter, value, packet.band);
-                }
-            } finally {
-                this.applyingFeedback = false;
-            }
-        },
-        applyControl(packet) {
-            if (packet) this.applyFeedback(packet);
-        },
-        applyMaster(value) {
-            const number = Number(value);
-            if (!Number.isFinite(number)) return;
-            const slider = document.getElementById("masterGainControl");
-            if (slider && document.activeElement !== slider) {
-                slider.value = String(number);
-                slider.dispatchEvent(new Event("input", { bubbles: true }));
-            }
-        },
-        updateChannelUI(channel, parameter, value, band = null) {
-            window.dispatchEvent(
-                new CustomEvent("mixer:ui-update", { detail: { channel, parameter, value, band } })
-            );
-        },
-        send(channel, parameter, value, extra = {}) {
-            if (this.applyingFeedback || this.suppressTX) return null;
-            const manager = window.ConnectionManager;
-            if (manager && typeof manager.sendControl === "function") {
-                return manager.sendControl(channel, parameter, value, extra);
-            }
-            return null;
-        }
-    };
-    window.DSPControlBridge = Bridge;
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () => Bridge.init(), { once: true });
-    } else {
-        Bridge.init();
-    }
-})();
-
-/* =========================================================
-   INISIALISASI ELEMEN LED METER VERTIKAL MIXER
+   INISIALISASI LED METER VERTIKAL MIXER
 ========================================================= */
 function initMixerVerticalMeters() {
   const meterIds = ["mixerMeter1", "mixerMeter2", "mixerMeter3", "mixerMeter4", "mixerMeterMaster"];
@@ -1015,21 +907,20 @@ function createBands(channel) {
 }
 
 /* =========================================================
-   AUDIO ENGINE & ROUTING URUTAN:
-   Mixer Input ➡️ Alesis FX ➡️ Equalizer GQX-3102 ➡️ Output
+   AUDIO ENGINE & ROUTING (DIPERBAIKI AGAR KELUAR DI SPEAKER HP)
 ========================================================= */
 let audioContext = null, microphoneStream = null, activeSource = null, microphoneSource = null, audioElementSource = null;
 let mixerMergerNode = null, alesisDelayNode = null, alesisFeedbackNode = null, alesisFilterNode = null, alesisWetNode = null, alesisDryNode = null;
 let masterGainNode = null, outputMuteGainNode = null;
 
 let isAlesisFxEnabled = false;
-let selectedInputDeviceId = "", audioGraphReady = false, meterAnimationId = null, outputMuted = false;
+let audioGraphReady = false, meterAnimationId = null, outputMuted = false;
 let playlistFiles = [], currentPlaylistIndex = 0, playlistObjectUrls = [];
 
 const audioFilesInput = document.getElementById("audioFilesInput");
 const audioPlayer = document.getElementById("audioPlayer");
 const playlistContainer = document.getElementById("playlistContainer");
-const inputDeviceSelect = document.getElementById("inputDeviceSelect");
+const outputDeviceSelect = document.getElementById("outputDeviceSelect");
 const refreshInputDevicesButton = document.getElementById("refreshInputDevicesButton");
 const inputDeviceStatus = document.getElementById("inputDeviceStatus");
 const startMicButton = document.getElementById("startMicButton");
@@ -1058,7 +949,7 @@ function createAudioContext() {
 function dbToGain(db) { return Math.pow(10, db / 20); }
 function getSafeMasterGainDb() {
   const req = Number(masterGainControl.value);
-  return outputMode.value === "safe" ? Math.min(req, -6) : req;
+  return outputMode.value === "safe" ? Math.min(req, -3) : req;
 }
 
 function updateMasterGain() {
@@ -1077,24 +968,36 @@ function updateOutputMute() {
   muteOutputButton.classList.toggle("active", outputMuted);
 }
 
-async function refreshInputDevices() {
+// Memilih perangkat output (Headset, Speaker, Bluetooth) menggunakan setSinkId
+outputDeviceSelect.addEventListener("change", async () => {
+  const deviceId = outputDeviceSelect.value;
+  if (typeof audioPlayer.setSinkId === "function") {
+    try {
+      await audioPlayer.setSinkId(deviceId);
+      setAudioStatus("Perangkat output dialihkan.");
+    } catch (err) {
+      setAudioStatus("Gagal mengalihkan output perangkat.");
+    }
+  }
+});
+
+async function loadAudioOutputDevices() {
   if (!navigator.mediaDevices?.enumerateDevices) return;
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    const inputDevices = devices.filter(d => d.kind === "audioinput");
-    inputDeviceSelect.innerHTML = '<option value="">Default microphone</option>';
-    inputDevices.forEach((device, index) => {
+    const outputs = devices.filter(d => d.kind === "audiooutput");
+    outputDeviceSelect.innerHTML = '<option value="">Default Speaker/Headset Aktif</option>';
+    outputs.forEach((device, index) => {
       const option = document.createElement("option");
       option.value = device.deviceId;
-      option.textContent = device.label || "Audio input " + (index + 1);
-      inputDeviceSelect.appendChild(option);
+      option.textContent = device.label || "Output Audio " + (index + 1);
+      outputDeviceSelect.appendChild(option);
     });
-    inputDeviceStatus.textContent = inputDevices.length + " perangkat input ditemukan.";
-  } catch (error) { inputDeviceStatus.textContent = "Gagal membaca perangkat."; }
+    inputDeviceStatus.textContent = outputs.length + " perangkat output ditemukan.";
+  } catch (error) { inputDeviceStatus.textContent = "Gagal memindai perangkat."; }
 }
 
-inputDeviceSelect.addEventListener("change", e => { selectedInputDeviceId = e.target.value; });
-refreshInputDevicesButton.addEventListener("click", refreshInputDevices);
+refreshInputDevicesButton.addEventListener("click", loadAudioOutputDevices);
 
 // Playlist multi-file handler
 audioFilesInput.addEventListener("change", e => {
@@ -1333,24 +1236,33 @@ function connectAudioSource(source, sourceType) {
 startAudioButton.addEventListener("click", async () => {
   if (playlistFiles.length === 0) { setStatus("Pilih file audio playlist terlebih dahulu."); return; }
   try {
-    createAudioContext();
+    const ctx = createAudioContext();
+    if (ctx.state === "suspended") await ctx.resume();
+    
     initializeAudioGraph();
-    if (!audioElementSource) audioElementSource = audioContext.createMediaElementSource(audioPlayer);
+    if (!audioElementSource) {
+      audioElementSource = audioContext.createMediaElementSource(audioPlayer);
+    }
     disconnectCurrentSource();
     connectAudioSource(audioElementSource, "Playlist Audio");
+    
+    audioPlayer.muted = false;
     await audioPlayer.play();
     startAudioButton.classList.add("active");
     setAudioStatus("Memutar playlist audio.");
-  } catch (err) { setAudioStatus("Gagal memutar audio."); }
+  } catch (err) { 
+    setAudioStatus("Gagal memutar audio. Pastikan interaksi sentuhan diizinkan."); 
+  }
 });
 
 startMicButton.addEventListener("click", async () => {
   try {
-    createAudioContext();
+    const ctx = createAudioContext();
+    if (ctx.state === "suspended") await ctx.resume();
+    
     initializeAudioGraph();
     disconnectCurrentSource();
     const constraints = { audio: { channelCount: 1, echoCancellation: false } };
-    if (selectedInputDeviceId) constraints.audio.deviceId = { exact: selectedInputDeviceId };
     microphoneStream = await navigator.mediaDevices.getUserMedia(constraints);
     microphoneSource = audioContext.createMediaStreamSource(microphoneStream);
     connectAudioSource(microphoneSource, "Mikrofon");
@@ -1469,59 +1381,6 @@ channels.forEach((channel, idx) => {
 document.getElementById("flatButton").addEventListener("click", () => setPreset("flat"));
 document.getElementById("vocalButton").addEventListener("click", () => setPreset("vocal"));
 document.getElementById("musicButton").addEventListener("click", () => setPreset("music"));
-
-document.getElementById("saveButton").addEventListener("click", () => {
-  const data = channels.map(c => ({
-    gain: c.querySelector(".gain").value,
-    hpf: c.querySelector(".hpf").value,
-    range: c.querySelector(".range").value,
-    bypass: c.querySelector(".bypass-button").classList.contains("active"),
-    bands: [...c.querySelectorAll(".band input")].map(s => s.value)
-  }));
-  localStorage.setItem("equalizer-settings", JSON.stringify(data));
-  setStatus("Setting tersimpan.");
-});
-
-document.getElementById("loadButton").addEventListener("click", () => {
-  const saved = localStorage.getItem("equalizer-settings");
-  if (!saved) { setStatus("Tidak ada setting tersimpan."); return; }
-  try {
-    const data = JSON.parse(saved);
-    channels.forEach((channel, index) => {
-      const item = data[index];
-      if (!item) return;
-      channel.querySelector(".gain").value = item.gain ?? "0";
-      channel.querySelector(".hpf").value = item.hpf ?? "off";
-      channel.querySelector(".range").value = item.range ?? "15";
-      setRange(channel, item.range ?? "15");
-      channel.querySelectorAll(".band input").forEach((s, bIdx) => {
-        s.value = item.bands?.[bIdx] ?? "0";
-        const valDisplay = s.closest(".band").querySelector(".band-value");
-        if (valDisplay) valDisplay.textContent = Number(s.value).toFixed(1);
-      });
-      updateValues(channel);
-    });
-    setStatus("Setting dipanggil kembali.");
-  } catch (err) { setStatus("Gagal memuat setting."); }
-});
-
-document.getElementById("resetButton").addEventListener("click", () => {
-  channels.forEach((channel, idx) => {
-    channel.querySelector(".gain").value = "0";
-    channel.querySelector(".hpf").value = "off";
-    channel.querySelector(".range").value = "15";
-    setRange(channel, "15");
-    channel.querySelectorAll(".band input").forEach(s => {
-      s.value = "0";
-      const valDisplay = s.closest(".band").querySelector(".band-value");
-      if (valDisplay) valDisplay.textContent = "0.0";
-    });
-    channel.querySelector(".bypass-button").classList.remove("active");
-    document.getElementById(`ch${idx}_active_led`).classList.add("active-led");
-    updateValues(channel);
-  });
-  setStatus("Reset ke pengaturan awal.");
-});
 
 masterGainControl.addEventListener("input", updateMasterGain);
 outputMode.addEventListener("change", updateMasterGain);
@@ -1736,7 +1595,7 @@ tftTabs.forEach(tab => {
 });
 
 loadTftPage("config");
-refreshInputDevices();
+loadAudioOutputDevices();
 
 /* =========================================================
    LOGIKA METER LED REAL-TIME
