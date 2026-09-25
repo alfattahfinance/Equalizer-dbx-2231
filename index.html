@@ -1725,69 +1725,96 @@ document.querySelectorAll(".console-action-btn").forEach(btn => {
 /* =========================================================
    LOGIKA TFT DISPLAY & TOMBOL KONTROL DIGITAL MIXER
 ========================================================= */
+/* =========================================================
+   KONTEN VISUAL INTERAKTIF LAYAR TFT
+========================================================= */
 const tftSectionTitle = document.getElementById("tftSectionTitle");
 const tftContentArea = document.getElementById("tftContentArea");
 
 const sectionData = {
   config: {
     title: "CONFIG / PREAMP INTERFACE",
-    content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 4px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>"
+    content: `
+      <div><b>Gain:</b> +12.0 dB | <b>Phantom:</b> +48V ON | <b>Phase:</b> Normal</div>
+      <div class="tft-visual-meters" style="margin-top:4px;">
+        <div class="tft-meter-row"><span>CH 1</span><div class="tft-meter-bar"><span class="green on"></span><span class="green on"></span><span class="green on"></span><span class="green on"></span><span class="yellow on"></span><span class="yellow"></span><span class="red"></span></div><span>-12dB</span></div>
+        <div class="tft-meter-row"><span>CH 2</span><div class="tft-meter-bar"><span class="green on"></span><span class="green on"></span><span class="green on"></span><span class="yellow"></span><span class="yellow"></span><span class="red"></span><span class="red"></span></div><span>-18dB</span></div>
+      </div>
+    `
   },
   gate: {
     title: "NOISE GATE / EXPANDER PROCESSOR",
-    content: "<div><b>Threshold:</b> -45 dB | <b>Ratio:</b> 1:2.5 | <b>Attack:</b> 5ms | <b>Hold:</b> 20ms</div><div style='margin-top: 4px; color: #94a3b8;'>Meredam kebisingan latar belakang saat sinyal input kecil.</div>"
+    content: `
+      <div><b>Thresh:</b> -45 dB | <b>Ratio:</b> 1:2.5 | <b>Attack:</b> 5ms</div>
+      <div style="font-size:9px; color:#10b981; margin-top:4px;">● Status: GATE ACTIVE (Meredam noise latar belakang)</div>
+    `
   },
   dynamics: {
     title: "DYNAMICS / COMPRESSOR PROCESSOR",
-    content: "<div><b>Threshold:</b> -18 dB | <b>Ratio:</b> 3:1 | <b>Attack:</b> 15ms | <b>Release:</b> 300ms</div><div style='margin-top: 4px; color: #94a3b8;'>Mengontrol rentang dinamis agar suara vokal/musik lebih stabil.</div>"
+    content: `
+      <div><b>Thresh:</b> -18 dB | <b>Ratio:</b> 3:1 | <b>Release:</b> 300ms</div>
+      <div class="tft-curve-box">
+        <div class="tft-curve-bar" style="height: 15px;"></div>
+        <div class="tft-curve-bar" style="height: 25px;"></div>
+        <div class="tft-curve-bar" style="height: 35px;"></div>
+        <div class="tft-curve-bar" style="height: 28px;"></div>
+        <div class="tft-curve-bar" style="height: 20px;"></div>
+        <div class="tft-curve-bar" style="height: 30px;"></div>
+      </div>
+    `
   },
   eq: {
     title: "CHANNEL PARAMETRIC EQUALIZER",
-    content: "<div><b>Low Cut (HPF):</b> 80Hz | <b>Band 1 (Low):</b> 100Hz (+2dB) | <b>Band 2 (Mid):</b> 2.5kHz (-3dB)</div><div style='margin-top: 4px; color: #94a3b8;'>Pemrosesan filter frekuensi parametrik 4-band pada kanal terpilih.</div>"
+    content: `
+      <div><b>HPF:</b> 80Hz | <b>Low:</b> +2dB | <b>Mid:</b> -3dB | <b>High:</b> +4dB</div>
+      <div class="tft-curve-box">
+        <div class="tft-curve-bar" style="height: 10px; background:#38bdf8;"></div>
+        <div class="tft-curve-bar" style="height: 30px; background:#38bdf8;"></div>
+        <div class="tft-curve-bar" style="height: 20px; background:#38bdf8;"></div>
+        <div class="tft-curve-bar" style="height: 35px; background:#38bdf8;"></div>
+        <div class="tft-curve-bar" style="height: 15px; background:#38bdf8;"></div>
+      </div>
+    `
   },
   sends: {
     title: "BUS SENDS & FX ROUTING",
-    content: "<div><b>Bus 1 (Echo Send):</b> -6.0 dB | <b>Bus 2 (Reverb Send):</b> -12.0 dB | <b>Tap:</b> Post-Fader</div><div style='margin-top: 4px; color: #94a3b8;'>Pengaturan pengiriman sinyal (aux/effects send) ke prosesor eksternal.</div>"
+    content: `
+      <div><b>Bus 1 (Echo Send):</b> -6.0 dB | <b>Bus 2 (Reverb):</b> -12.0 dB</div>
+      <div style="font-size:9px; color:#f59e0b; margin-top:4px;">Routing Mode: Post-Fader Direct Send</div>
+    `
   },
   main: {
     title: "MAIN FOH OUTPUT & MATRIX",
-    content: "<div><b>Main L/R:</b> Active | <b>Matrix 1/2:</b> Feed Live | <b>Master Limiter:</b> -0.5 dB</div><div style='margin-top: 4px; color: #94a3b8;'>Pengaturan keluaran utama (Main Bus) menuju sound system lapangan.</div>"
+    content: `
+      <div><b>Main L/R Output:</b> Active | <b>Limiter:</b> -0.5 dB</div>
+      <div class="tft-visual-meters" style="margin-top:4px;">
+        <div class="tft-meter-row"><span>MAIN L</span><div class="tft-meter-bar"><span class="green on"></span><span class="green on"></span><span class="green on"></span><span class="green on"></span><span class="yellow on"></span><span class="yellow on"></span><span class="red on"></span></div><span>-3dB</span></div>
+        <div class="tft-meter-row"><span>MAIN R</span><div class="tft-meter-bar"><span class="green on"></span><span class="green on"></span><span class="green on"></span><span class="green on"></span><span class="yellow on"></span><span class="yellow on"></span><span class="red"></span></div><span>-6dB</span></div>
+      </div>
+    `
   }
 };
 
-// 1. Logika Tombol Section Select (Kanan Layar TFT)
-const consoleBtns = document.querySelectorAll(".mixer-control-section .console-btn");
-consoleBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    consoleBtns.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    const sectionKey = btn.getAttribute("data-section");
-    if (sectionData[sectionKey] && tftSectionTitle && tftContentArea) {
-      tftSectionTitle.textContent = sectionData[sectionKey].title;
-      tftContentArea.innerHTML = sectionData[sectionKey].content;
-    }
-  });
-});
-
-// 2. Logika Tombol Tab Menu Layar Atas TFT
-const tftTabs = document.querySelectorAll(".tft-top-tabs .tft-tab");
 const tftTabPages = {
-  home: {
-    title: "CONFIG / PREAMP INTERFACE",
-    content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 4px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>"
-  },
+  home: sectionData.config,
   meters: {
-    title: "METERS / RTA ANALYZER",
-    content: "<div><b>RTA Display:</b> Active 31-Band Real-Time Analyzer | <b>Peak Hold:</b> 2.0s</div><div style='margin-top: 4px; color: #94a3b8;'>Memantau spektrum frekuensi audio secara langsung (Real-Time).</div>"
+    title: "METERS / RTA SPECTRUM ANALYZER",
+    content: `
+      <div style="font-size:9px; margin-bottom:4px; color:#10b981;">● Live 31-Band RTA Spectrum Visualizer</div>
+      <div class="tft-curve-box">
+        <div class="tft-curve-bar" style="height: 12px; background:#10b981;"></div>
+        <div class="tft-curve-bar" style="height: 25px; background:#10b981;"></div>
+        <div class="tft-curve-bar" style="height: 38px; background:#10b981;"></div>
+        <div class="tft-curve-bar" style="height: 22px; background:#f59e0b;"></div>
+        <div class="tft-curve-bar" style="height: 30px; background:#f59e0b;"></div>
+        <div class="tft-curve-bar" style="height: 18px; background:#10b981;"></div>
+      </div>
+    `
   },
-  routing: {
-    title: "ROUTING & USB INTERFACE",
-    content: "<div><b>Input Source:</b> Card / USB Stream 1-8 | <b>Outputs:</b> Main L/R & Aux 1-4</div><div style='margin-top: 4px; color: #94a3b8;'>Pengaturan jalur sinyal fisik dan digital pada console mixer.</div>"
-  },
+  routing: sectionData.sends,
   setup: {
-    title: "SYSTEM SETUP & PREFERENCES",
-    content: "<div><b>Sample Rate:</b> 48 kHz | <b>Word Clock:</b> Internal | <b>OSC IP:</b> 192.168.1.100</div><div style='margin-top: 4px; color: #94a3b8;'>Konfigurasi sistem perangkat keras console digital mixer.</div>"
+    title: "SYSTEM SETUP & HARDWARE PREFERENCES",
+    content: "<div><b>Sample Rate:</b> 48 kHz | <b>Word Clock:</b> Internal | <b>ESP32 BLE:</b> Connected</div><div style='margin-top: 4px; color: #94a3b8;'>Konfigurasi sistem hardware digital mixer console siap pakai.</div>"
   },
   library: {
     title: "SCENE & PRESET LIBRARY",
@@ -1795,7 +1822,7 @@ const tftTabPages = {
   },
   effects: {
     title: "FX RACK & PROCESSOR",
-    content: "<div><b>FX 1:</b> Vintage Room Reverb | <b>FX 2:</b> Dual Digital Delay | <b>FX 3:</b> Graphic EQ</div><div style='margin-top: 4px; color: #94a3b8;'>Manajemen efek internal console kelas studio profesional.</div>"
+    content: "<div><b>FX 1:</b> Vintage Room Reverb | <b>FX 2:</b> Dual Digital Delay</div><div style='margin-top: 4px; color: #94a3b8;'>Manajemen efek internal console kelas studio profesional.</div>"
   }
 };
 
