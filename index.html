@@ -221,6 +221,7 @@ header, .topbar {
   padding: 4px 8px;
   border-radius: 3px;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .tft-tab.active {
@@ -1702,7 +1703,7 @@ consoleBtns.forEach(btn => {
 const tftTabs = document.querySelectorAll(".tft-top-tabs .tft-tab");
 const tftTabPages = {
   home: {
-    title: "HOME / OVERVIEW VIEW",
+    title: "CONFIG / PREAMP INTERFACE",
     content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 6px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>"
   },
   meters: {
@@ -1732,31 +1733,36 @@ tftTabs.forEach(tab => {
     tftTabs.forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
 
-    const tabText = tab.textContent.toLowerCase().trim();
-    if (tftTabPages[tabText] && tftSectionTitle && tftContentArea) {
-      tftSectionTitle.textContent = tftTabPages[tabText].title;
-      tftContentArea.innerHTML = tftTabPages[tabText].content;
+    const tabKey = tab.getAttribute("data-tft-tab");
+    if (tftTabPages[tabKey] && tftSectionTitle && tftContentArea) {
+      tftSectionTitle.textContent = tftTabPages[tabKey].title;
+      tftContentArea.innerHTML = tftTabPages[tabKey].content;
     }
   });
 });
 
 refreshInputDevices();
 
-// Simulasi LED Meter Vertikal Mixer Bergerak
+// Simulasi LED Meter Vertikal Mixer & Fader Bergerak
 setInterval(() => {
-  const meters = [
+  const mixerMeters = [
     document.querySelectorAll("#mixerMeter1 span"),
     document.querySelectorAll("#mixerMeter2 span"),
     document.querySelectorAll("#mixerMeter3 span"),
     document.querySelectorAll("#mixerMeter4 span"),
     document.querySelectorAll("#mixerMeterMaster span")
   ];
-  meters.forEach(meterSpans => {
-    if (!meterSpans) return;
-    const activeCount = Math.floor(Math.random() * 8) + 2;
+  
+  mixerMeters.forEach(meterSpans => {
+    if (!meterSpans || meterSpans.length === 0) return;
+    const activeCount = Math.floor(Math.random() * 8) + 3; // Menyalakan 3 s.d 10 segmen LED
     meterSpans.forEach((span, idx) => {
-      if (idx >= (10 - activeCount)) span.classList.add("on");
-      else span.classList.remove("on");
+      // Indikator LED vertikal diisi dari bawah ke atas
+      if (idx >= (meterSpans.length - activeCount)) {
+        span.classList.add("on");
+      } else {
+        span.classList.remove("on");
+      }
     });
   });
 }, 180);
