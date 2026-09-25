@@ -411,9 +411,9 @@ header, .topbar {
   border-radius: 1px;
 }
 
-.vert-led-meter span.green.on { background: #10b981; box-shadow: 0 0 4px #10b981; }
-.vert-led-meter span.yellow.on { background: #f59e0b; box-shadow: 0 0 4px #f59e0b; }
-.vert-led-meter span.red.on { background: #ef4444; box-shadow: 0 0 4px #ef4444; }
+.vert-led-meter span.green.on { background: #10b981 !important; box-shadow: 0 0 4px #10b981; }
+.vert-led-meter span.yellow.on { background: #f59e0b !important; box-shadow: 0 0 4px #f59e0b; }
+.vert-led-meter span.red.on { background: #ef4444 !important; box-shadow: 0 0 4px #ef4444; }
 
 .fader-slot {
   position: relative;
@@ -756,9 +756,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <div class="fader-slot">
                 <input type="range" min="-40" max="10" step="0.5" value="0">
               </div>
-              <div class="vert-led-meter" id="mixerMeter1">
-                <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
-              </div>
+              <div class="vert-led-meter" id="mixerMeter1"></div>
             </div>
             <div class="strip-action-buttons" style="margin-top:8px;">
               <button class="console-action-btn mute">MUTE</button>
@@ -778,9 +776,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <div class="fader-slot">
                 <input type="range" min="-40" max="10" step="0.5" value="0">
               </div>
-              <div class="vert-led-meter" id="mixerMeter2">
-                <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
-              </div>
+              <div class="vert-led-meter" id="mixerMeter2"></div>
             </div>
             <div class="strip-action-buttons" style="margin-top:8px;">
               <button class="console-action-btn mute">MUTE</button>
@@ -800,9 +796,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <div class="fader-slot">
                 <input type="range" min="-40" max="10" step="0.5" value="0">
               </div>
-              <div class="vert-led-meter" id="mixerMeter3">
-                <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
-              </div>
+              <div class="vert-led-meter" id="mixerMeter3"></div>
             </div>
             <div class="strip-action-buttons" style="margin-top:8px;">
               <button class="console-action-btn mute">MUTE</button>
@@ -822,9 +816,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <div class="fader-slot">
                 <input type="range" min="-40" max="10" step="0.5" value="0">
               </div>
-              <div class="vert-led-meter" id="mixerMeter4">
-                <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
-              </div>
+              <div class="vert-led-meter" id="mixerMeter4"></div>
             </div>
             <div class="strip-action-buttons" style="margin-top:8px;">
               <button class="console-action-btn mute">MUTE</button>
@@ -844,9 +836,7 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
               <div class="fader-slot">
                 <input type="range" min="-50" max="6" step="0.5" value="0">
               </div>
-              <div class="vert-led-meter" id="mixerMeterMaster">
-                <span class="red"></span><span class="red"></span><span class="yellow"></span><span class="yellow"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span><span class="green"></span>
-              </div>
+              <div class="vert-led-meter" id="mixerMeterMaster"></div>
             </div>
             <div class="strip-action-buttons" style="margin-top:8px;">
               <button class="console-action-btn mute" style="background:#b45309; color:#fff;">MUTE</button>
@@ -918,6 +908,26 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
 
   <script>
 "use strict";
+
+/* =========================================================
+   1. INISIALISASI ELEMEN LED METER VERTIKAL MIXER SECARA OTOMATIS
+========================================================= */
+function initMixerVerticalMeters() {
+  const meterIds = ["mixerMeter1", "mixerMeter2", "mixerMeter3", "mixerMeter4", "mixerMeterMaster"];
+  meterIds.forEach(id => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.innerHTML = ""; // Bersihkan kontainer
+    for (let i = 0; i < 10; i++) {
+      const span = document.createElement("span");
+      if (i < 2) span.className = "red";
+      else if (i < 4) span.className = "yellow";
+      else span.className = "green";
+      container.appendChild(span);
+    }
+  });
+}
+initMixerVerticalMeters();
 
 /* =========================================================
    NAVIGASI TIGA TAB UTAMA (EQUALIZER, ECHO, DIGITAL MIXER)
@@ -1757,7 +1767,9 @@ setInterval(() => {
     if (!meterSpans || meterSpans.length === 0) return;
     const activeCount = Math.floor(Math.random() * 8) + 3;
     meterSpans.forEach((span, idx) => {
-      if (idx >= (meterSpans.length - activeCount)) {
+      // Indikator lampu menyala dari bawah ke atas
+      const reverseIdx = meterSpans.length - 1 - idx;
+      if (reverseIdx < activeCount) {
         span.classList.add("on");
       } else {
         span.classList.remove("on");
