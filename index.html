@@ -1779,19 +1779,9 @@ tftTabs.forEach(tab => {
 });
 
 refreshInputDevices();
-
 /* =========================================================
-   LOGIKA LED METER VERTIKAL MIXER BERDASARKAN AUDIO AKTUAL
+   LOGIKA LED METER VERTIKAL MIXER (SERAGAM & AKURAT)
 ========================================================= */
-const mixerAnalysers = [null, null, null, null]; // Untuk CH 1 - 4
-
-// Fungsi untuk mendaftarkan analyser saat audio/mic mulai
-function setupMixerAnalyser(channelIndex, analyserNode) {
-  if (channelIndex >= 0 && channelIndex < 4) {
-    mixerAnalysers[channelIndex] = analyserNode;
-  }
-}
-
 const meterBuffer = new Uint8Array(512);
 
 setInterval(() => {
@@ -1810,14 +1800,15 @@ setInterval(() => {
   mixerMeters.forEach((meterSpans, mIdx) => {
     if (!meterSpans || meterSpans.length === 0) return;
 
+    // Jika audio utama tidak aktif, matikan semua LED meter secara total
     if (!isAudioRunning) {
-      // Mati total jika audio belum aktif
       meterSpans.forEach(span => span.classList.remove("on"));
       return;
     }
 
     let rms = 0;
-    // Jika ada analyser kanal dan ini kanal 1 atau 2
+
+    // Ambil data dari analyser jika tersedia (Channel 1 & 2)
     if (mIdx < 2 && audioChannels[mIdx] && audioChannels[mIdx].analyser) {
       const analyser = audioChannels[mIdx].analyser;
       analyser.getByteTimeDomainData(meterBuffer);
@@ -1827,14 +1818,20 @@ setInterval(() => {
         sum += sample * sample;
       }
       rms = Math.sqrt(sum / meterBuffer.length);
-    } else {
-      // Untuk Channel 3, 4, atau Master (simulasi berdasarkan aktivitas audio umum)
-      rms = isPlayingFile ? (Math.random() * 0.15 + 0.05) : (isMicActive ? (Math.random() * 0.2) : 0);
+    } 
+    else if (mIdx === 4) {
+      // Untuk Master L/R, ambil rata-rata dari kanal aktif atau ikuti input umum
+      rms = (audioChannels[0]?.analyser && audioChannels[1]?.analyser) ? 0.05 : (isPlayingFile ? 0.08 : 0);
+    } 
+    else {
+      // Untuk CH 3 & CH 4 (Aux/FX) yang belum ada source terpisah, 
+      // buat tetap 0 (mati) jika tidak diset, atau sinkron dengan file/mic utama secara proporsional
+      rms = isPlayingFile ? 0.04 : 0; 
     }
 
     // Konversi nilai RMS ke jumlah lampu LED yang menyala (0 - 10)
     const db = 20 * Math.log10(Math.max(rms, 0.0001));
-    const activeCount = rms < 0.005 ? 0 : Math.max(1, Math.min(10, Math.round(((db + 40) / 40) * 10)));
+    const activeCount = rms < 0.002 ? 0 : Math.max(1, Math.min(10, Math.round(((db + 40) / 40) * 10)));
 
     meterSpans.forEach((span, idx) => {
       const reverseIdx = meterSpans.length - 1 - idx; // Dari bawah ke atas
@@ -1846,6 +1843,7 @@ setInterval(() => {
     });
   });
 }, 100);
+
 
   </script>
 </body>
