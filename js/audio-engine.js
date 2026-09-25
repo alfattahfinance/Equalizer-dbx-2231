@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#111827">
-  <meta name="description" content="GQX-3102 Equalizer, Alesis FX & Digital Mixer Console + ESP32 BLE">
+  <meta name="description" content="GQX-3102 Equalizer, Alesis FX & Direct Buffer Engine + ESP32 BLE">
   <link rel="manifest" href="manifest.json">
 
   <title>GQX-3102 Equalizer & Digital Mixer Online</title>
@@ -278,7 +278,7 @@ header, .topbar {
       </div>
     </div>
 
-    <!-- PANEL AUDIO & PLAYER (DIJAMIN KELUAR DI SPEAKER HP) -->
+    <!-- PANEL AUDIO & PLAYER -->
     <section class="audio-panel">
       <h3>DIRECT BUFFER AUDIO PLAYER & BLUETOOTH</h3>
 
@@ -417,7 +417,7 @@ function createBands(channel) {
 channels.forEach(ch => createBands(ch));
 
 /* =========================================================
-   AUDIO ENGINE (BUFFER-BASED DIRECT AUDIO DI HP)
+   AUDIO ENGINE (HIGHLY RESPONSIVE BUFFER-BASED AUDIO)
 ========================================================= */
 let audioContext = null;
 let audioBuffers = [];
@@ -451,7 +451,6 @@ function initializeAudioGraph() {
   createAudioContext();
   if (audioGraphReady) return;
 
-  // Bangun Equalizer Channel 1 & 2
   channels.forEach((channel, idx) => {
     const gainControl = channel.querySelector(".gain");
     const hpfControl = channel.querySelector(".hpf");
@@ -485,10 +484,10 @@ function initializeAudioGraph() {
     audioChannels[idx] = { inputGain, highPass, filters, analyser, bypass: false };
 
     gainControl.addEventListener("input", () => {
-      inputGain.gain.setValueAtTime(dbToGain(Number(gainControl.value)), audioContext.currentTime);
+      inputGain.gain.setTargetAtTime(dbToGain(Number(gainControl.value)), audioContext.currentTime, 0.005);
     });
     hpfControl.addEventListener("change", () => {
-      highPass.frequency.setValueAtTime(hpfControl.value === "off" ? 20 : Number(hpfControl.value), audioContext.currentTime);
+      highPass.frequency.setTargetAtTime(hpfControl.value === "off" ? 20 : Number(hpfControl.value), audioContext.currentTime, 0.005);
     });
   });
 
@@ -496,7 +495,6 @@ function initializeAudioGraph() {
   masterGainNode = audioContext.createGain();
   outputMuteGainNode = audioContext.createGain();
 
-  // Efek Alesis FX
   alesisDelayNode = audioContext.createDelay(2.0);
   alesisDelayNode.delayTime.value = 0.3;
   alesisFeedbackNode = audioContext.createGain();
@@ -529,6 +527,9 @@ function rebuildAudioRouting() {
     audioChannels[1].analyser.disconnect();
     mixerMergerNode.disconnect();
     masterGainNode.disconnect();
+    alesisDryNode.disconnect();
+    alesisDelayNode.disconnect();
+    alesisWetNode.disconnect();
   } catch (e) {}
 
   audioChannels[0].analyser.connect(mixerMergerNode, 0, 0);
@@ -551,6 +552,40 @@ document.getElementById("echoToggleBtn").addEventListener("click", (e) => {
   e.target.textContent = isAlesisFxEnabled ? "ALESIS FX: ON" : "ALESIS FX: OFF";
   e.target.classList.toggle("active", isAlesisFxEnabled);
   rebuildAudioRouting();
+});
+
+// Kontrol Parameter Alesis FX secara Real-Time Responsif
+document.getElementById("echoDelay").addEventListener("input", (e) => {
+  const val = Number(e.target.value);
+  document.getElementById("echoDelayVal").textContent = val.toFixed(2) + " detik";
+  if (alesisDelayNode && audioContext) {
+    alesisDelayNode.delayTime.setTargetAtTime(val, audioContext.currentTime, 0.005);
+  }
+});
+
+document.getElementById("echoFeedback").addEventListener("input", (e) => {
+  const val = Number(e.target.value);
+  document.getElementById("echoFeedbackVal").textContent = Math.round(val * 100) + "%";
+  if (alesisFeedbackNode && audioContext) {
+    alesisFeedbackNode.gain.setTargetAtTime(val, audioContext.currentTime, 0.005);
+  }
+});
+
+document.getElementById("echoDamping").addEventListener("input", (e) => {
+  const val = Number(e.target.value);
+  document.getElementById("echoDampingVal").textContent = val + " Hz";
+  if (alesisFilterNode && audioContext) {
+    alesisFilterNode.frequency.setTargetAtTime(val, audioContext.currentTime, 0.005);
+  }
+});
+
+document.getElementById("echoMix").addEventListener("input", (e) => {
+  const val = Number(e.target.value);
+  document.getElementById("echoMixVal").textContent = Math.round(val * 100) + "%";
+  if (alesisWetNode && alesisDryNode && audioContext) {
+    alesisWetNode.gain.setTargetAtTime(val, audioContext.currentTime, 0.005);
+    alesisDryNode.gain.setTargetAtTime(1.0 - val, audioContext.currentTime, 0.005);
+  }
 });
 
 // Penanganan File Audio via FileReader (Buffer Decoding)
@@ -616,7 +651,6 @@ function playCurrentBuffer() {
   activeSourceNode = audioContext.createBufferSource();
   activeSourceNode.buffer = buffer;
 
-  // Hubungkan ke Channel 1 dan Channel 2 Equalizer
   activeSourceNode.connect(audioChannels[0].inputGain);
   activeSourceNode.connect(audioChannels[1].inputGain);
 
@@ -656,24 +690,24 @@ function syncAudioControlsFromUI() {
     const bypassBtn = channel.querySelector(".bypass-button");
     const bands = [...channel.querySelectorAll(".band input")];
 
-    ac.inputGain.gain.setValueAtTime(dbToGain(Number(gainCtrl.value)), audioContext.currentTime);
-    ac.highPass.frequency.setValueAtTime(hpfCtrl.value === "off" ? 20 : Number(hpfCtrl.value), audioContext.currentTime);
+    ac.inputGain.gain.setTargetAtTime(dbToGain(Number(gainCtrl.value)), audioContext.currentTime, 0.005);
+    ac.highPass.frequency.setTargetAtTime(hpfCtrl.value === "off" ? 20 : Number(hpfCtrl.value), audioContext.currentTime, 0.005);
     ac.bypass = bypassBtn.classList.contains("active");
 
     ac.filters.forEach((filter, bIdx) => {
       if (bands[bIdx]) {
-        filter.gain.setValueAtTime(ac.bypass ? 0 : Number(bands[bIdx].value), audioContext.currentTime);
+        filter.gain.setTargetAtTime(ac.bypass ? 0 : Number(bands[bIdx].value), audioContext.currentTime, 0.005);
       }
     });
   });
 }
 
-// Kontrol Master & Mute
+// Kontrol Master & Mute Responsif
 document.getElementById("masterGainControl").addEventListener("input", (e) => {
   const val = Number(e.target.value);
   document.getElementById("masterGainValue").textContent = val + " dB";
   if (masterGainNode && audioContext) {
-    masterGainNode.gain.setValueAtTime(dbToGain(val), audioContext.currentTime);
+    masterGainNode.gain.setTargetAtTime(dbToGain(val), audioContext.currentTime, 0.005);
   }
 });
 
@@ -683,14 +717,15 @@ document.getElementById("muteOutputButton").addEventListener("click", (e) => {
   e.target.textContent = isMuted ? "UNMUTE OUTPUT" : "MUTE OUTPUT";
   e.target.classList.toggle("active", isMuted);
   if (outputMuteGainNode && audioContext) {
-    outputMuteGainNode.gain.setValueAtTime(isMuted ? 0 : 1.0, audioContext.currentTime);
+    outputMuteGainNode.gain.setTargetAtTime(isMuted ? 0 : 1.0, audioContext.currentTime, 0.005);
   }
 });
 
-// Preset & Tombol Lainnya
+// Preset Equalizer
 function setPreset(type) {
   channels.forEach(channel => {
     channel.querySelector(".gain").value = "0";
+    channel.querySelector(".gain-value").textContent = "0.0 dB";
     channel.querySelectorAll(".band input").forEach((slider, index) => {
       let val = 0;
       if (type === "vocal") {
