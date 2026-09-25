@@ -501,12 +501,18 @@ select {
   }
 }
 
+/* =========================================================
+   PERBAIKAN LAYAR TFT UTAMA (MIDAS/X32 STYLE)
+========================================================= */
 .mixer-tft-screen {
-  background: #080c14;
-  border: 2px solid #1f2937;
-  border-radius: 6px;
-  padding: 10px;
-  box-shadow: inset 0 0 15px rgba(0,0,0,0.9);
+  background: #05080c;
+  border: 2px solid #2d3748;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 4px 10px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .tft-header {
@@ -514,29 +520,73 @@ select {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #1e293b;
-  padding-bottom: 6px;
-  margin-bottom: 8px;
-  font-size: 11px;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  font-size: 10px;
   font-weight: bold;
   color: #38bdf8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tft-top-tabs {
+  display: flex;
+  gap: 3px;
+  background: #0f172a;
+  padding: 3px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  border: 1px solid #1e293b;
+  overflow-x: auto;
 }
 
 .tft-tab {
   background: #1e293b;
   color: #94a3b8;
-  border: 1px solid #334155;
-  font-size: 9px;
+  border: none;
+  font-size: 8px;
   font-weight: bold;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 3px;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.2s;
 }
 
 .tft-tab.active {
   background: #0284c7;
   color: #fff;
-  border-color: #38bdf8;
+}
+
+/* Memperlebar viewport dan mencegah tabrak teks */
+.tft-main-viewport {
+  background: #020408;
+  border: 1px solid #1e293b;
+  border-radius: 4px;
+  min-height: 95px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.tft-content-screen {
+  font-size: 10px;
+  color: #38bdf8;
+  line-height: 1.3;
+}
+
+/* 6 Encoders Fisik di Bawah Layar TFT dengan ukuran pas */
+.tft-encoders-bar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin-top: 6px;
+  background: #090d16;
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid #1e293b;
 }
 
 .tft-encoder-knob {
@@ -544,11 +594,18 @@ select {
   border: 1px solid #475569;
   border-radius: 4px;
   text-align: center;
-  padding: 4px 2px;
-  font-size: 8px;
+  padding: 3px 1px;
+  font-size: 7px;
   color: #cbd5e1;
   font-family: monospace;
-  cursor: pointer;
+}
+
+.tft-encoder-knob span {
+  display: block;
+  color: #38bdf8;
+  font-weight: bold;
+  font-size: 8px;
+  margin-top: 1px;
 }
 
 .tft-encoder-knob:hover {
