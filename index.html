@@ -1662,8 +1662,14 @@ refreshInputDevices();
 /* =========================================================
    LOGIKA LED METER VERTIKAL MIXER (MATI TOTAL SEBELUM ADA INPUT/OUTPUT)
 ========================================================= */
+/* =========================================================
+   LOGIKA LED METER VERTIKAL MIXER (MATI TOTAL SEBELUM ADA INPUT/OUTPUT)
+========================================================= */
 setInterval(() => {
-  const isAudioActive = activeSource && audioContext && audioContext.state === "running";
+  // Cek apakah audio player sedang berjalan (play) ATAU mikrofon aktif, dan audio context berjalan
+  const isPlayingFile = audioPlayer && !audioPlayer.paused && audioPlayer.currentTime > 0 && !audioPlayer.ended;
+  const isMicActive = microphoneStream !== null;
+  const isAudioActive = audioContext && audioContext.state === "running" && (isPlayingFile || isMicActive);
   
   const mixerMeters = [
     document.querySelectorAll("#mixerMeter1 span"),
@@ -1677,10 +1683,10 @@ setInterval(() => {
     if (!meterSpans || meterSpans.length === 0) return;
     
     if (!isAudioActive) {
-      // Indikator LED mati total jika belum ada input/output audio aktif
+      // LED METER MATI TOTAL: Semua kelas 'on' dihapus jika tidak ada input/output audio
       meterSpans.forEach(span => span.classList.remove("on"));
     } else {
-      // Menyala bergerak aktif jika audio berjalan
+      // LED METER MENYALA BERGERAK: Hanya aktif jika audio benar-benar dimainkan
       const activeCount = Math.floor(Math.random() * 8) + 3;
       meterSpans.forEach((span, idx) => {
         const reverseIdx = meterSpans.length - 1 - idx;
@@ -1693,6 +1699,7 @@ setInterval(() => {
     }
   });
 }, 180);
+
   </script>
 </body>
 </html>
