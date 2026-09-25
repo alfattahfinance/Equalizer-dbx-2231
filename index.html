@@ -1535,7 +1535,6 @@ document.querySelectorAll(".console-action-btn").forEach(btn => {
 ========================================================= */
 const tftSectionTitle = document.getElementById("tftSectionTitle");
 const tftContentArea = document.getElementById("tftContentArea");
-// Memperbaiki selektor agar menangkap seluruh tombol tab layar TFT dengan akurat
 const tftTabs = document.querySelectorAll(".tft-tab");
 
 const sectionData = {
@@ -1663,7 +1662,7 @@ tftTabs.forEach(tab => {
 refreshInputDevices();
 
 /* =========================================================
-   LOGIKA LED METER VERTIKAL MIXER (MATI TOTAL SAAT TIDAK ADA AUDIO)
+   LOGIKA LED METER VERTIKAL MIXER (MATI TOTAL SAAT IDLE)
 ========================================================= */
 setInterval(() => {
   const isPlayingFile = audioPlayer && !audioPlayer.paused && audioPlayer.currentTime > 0 && !audioPlayer.ended;
@@ -1698,45 +1697,6 @@ setInterval(() => {
     }
   });
 }, 180);
-
-/* =========================================================
-   LOGIKA LED METER VERTIKAL MIXER (MATI TOTAL SEBELUM ADA INPUT/OUTPUT)
-========================================================= */
-setInterval(() => {
-  // Cek apakah audio player sedang berjalan (play) ATAU mikrofon aktif, dan audio context berjalan
-  const isPlayingFile = audioPlayer && !audioPlayer.paused && audioPlayer.currentTime > 0 && !audioPlayer.ended;
-  const isMicActive = microphoneStream !== null;
-  const isAudioActive = audioContext && audioContext.state === "running" && (isPlayingFile || isMicActive);
-  
-  const mixerMeters = [
-    document.querySelectorAll("#mixerMeter1 span"),
-    document.querySelectorAll("#mixerMeter2 span"),
-    document.querySelectorAll("#mixerMeter3 span"),
-    document.querySelectorAll("#mixerMeter4 span"),
-    document.querySelectorAll("#mixerMeterMaster span")
-  ];
-  
-  mixerMeters.forEach(meterSpans => {
-    if (!meterSpans || meterSpans.length === 0) return;
-    
-    if (!isAudioActive) {
-      // LED METER MATI TOTAL: Semua kelas 'on' dihapus jika tidak ada input/output audio
-      meterSpans.forEach(span => span.classList.remove("on"));
-    } else {
-      // LED METER MENYALA BERGERAK: Hanya aktif jika audio benar-benar dimainkan
-      const activeCount = Math.floor(Math.random() * 8) + 3;
-      meterSpans.forEach((span, idx) => {
-        const reverseIdx = meterSpans.length - 1 - idx;
-        if (reverseIdx < activeCount) {
-          span.classList.add("on");
-        } else {
-          span.classList.remove("on");
-        }
-      });
-    }
-  });
-}, 180);
-
   </script>
 </body>
 </html>
