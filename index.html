@@ -181,13 +181,16 @@ header, .topbar {
   margin-bottom: 16px;
 }
 
-/* STYLING LAYAR UTAMA DIGITAL MIXER (MIDAS/X32 STYLE) */
+/* STYLING LAYAR UTAMA DIGITAL MIXER (PERBAIKAN TUMPANG TINDIH) */
 .mixer-tft-screen {
   background: #05080c;
   border: 2px solid #2d3748;
   border-radius: 8px;
-  padding: 10px;
+  padding: 8px;
   box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 4px 10px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .tft-header {
@@ -195,32 +198,37 @@ header, .topbar {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #1e293b;
-  padding-bottom: 6px;
-  margin-bottom: 8px;
-  font-size: 11px;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  font-size: 10px;
   font-weight: bold;
   color: #38bdf8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tft-top-tabs {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   background: #0f172a;
-  padding: 4px;
+  padding: 3px;
   border-radius: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   border: 1px solid #1e293b;
+  overflow-x: auto;
 }
 
 .tft-tab {
   background: #1e293b;
   color: #94a3b8;
   border: none;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: bold;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 3px;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.2s;
 }
 
@@ -233,28 +241,27 @@ header, .topbar {
   background: #020408;
   border: 1px solid #1e293b;
   border-radius: 4px;
-  height: 110px;
-  padding: 8px;
+  min-height: 95px;
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  overflow: hidden;
 }
 
 .tft-content-screen {
-  font-size: 11px;
+  font-size: 10px;
   color: #38bdf8;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 /* 6 Encoders Fisik di Bawah Layar TFT */
 .tft-encoders-bar {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 6px;
-  margin-top: 8px;
+  gap: 4px;
+  margin-top: 6px;
   background: #090d16;
-  padding: 6px;
+  padding: 4px;
   border-radius: 4px;
   border: 1px solid #1e293b;
 }
@@ -264,8 +271,8 @@ header, .topbar {
   border: 1px solid #475569;
   border-radius: 4px;
   text-align: center;
-  padding: 4px 2px;
-  font-size: 8px;
+  padding: 3px 1px;
+  font-size: 7px;
   color: #cbd5e1;
   font-family: monospace;
 }
@@ -274,8 +281,8 @@ header, .topbar {
   display: block;
   color: #38bdf8;
   font-weight: bold;
-  font-size: 9px;
-  margin-top: 2px;
+  font-size: 8px;
+  margin-top: 1px;
 }
 
 /* Bagian Tombol Kanan Layar (Section Control) */
@@ -708,11 +715,11 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
             <div class="tft-main-viewport">
               <div class="tft-content-screen" id="tftContentArea">
                 <div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div>
-                <div style="margin-top: 6px; color: #94a3b8;">Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>
+                <div style="margin-top: 4px; color: #94a3b8;">Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>
               </div>
-              <div style="font-size: 9px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 4px; display: flex; justify-content: space-between;">
+              <div style="font-size: 8px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 3px; display: flex; justify-content: space-between;">
                 <span>CH 01: Lead Vocal</span>
-                <span>Gate/Comp/EQ/Insert Active</span>
+                <span>Gate/Comp/EQ Active</span>
               </div>
             </div>
 
@@ -917,7 +924,7 @@ function initMixerVerticalMeters() {
   meterIds.forEach(id => {
     const container = document.getElementById(id);
     if (!container) return;
-    container.innerHTML = ""; // Bersihkan kontainer
+    container.innerHTML = "";
     for (let i = 0; i < 10; i++) {
       const span = document.createElement("span");
       if (i < 2) span.className = "red";
@@ -1670,27 +1677,27 @@ const tftContentArea = document.getElementById("tftContentArea");
 const sectionData = {
   config: {
     title: "CONFIG / PREAMP INTERFACE",
-    content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 6px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>"
+    content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 4px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>"
   },
   gate: {
     title: "NOISE GATE / EXPANDER PROCESSOR",
-    content: "<div><b>Threshold:</b> -45 dB | <b>Ratio:</b> 1:2.5 | <b>Attack:</b> 5ms | <b>Hold:</b> 20ms</div><div style='margin-top: 6px; color: #94a3b8;'>Meredam kebisingan latar belakang saat sinyal input kecil.</div>"
+    content: "<div><b>Threshold:</b> -45 dB | <b>Ratio:</b> 1:2.5 | <b>Attack:</b> 5ms | <b>Hold:</b> 20ms</div><div style='margin-top: 4px; color: #94a3b8;'>Meredam kebisingan latar belakang saat sinyal input kecil.</div>"
   },
   dynamics: {
     title: "DYNAMICS / COMPRESSOR PROCESSOR",
-    content: "<div><b>Threshold:</b> -18 dB | <b>Ratio:</b> 3:1 | <b>Attack:</b> 15ms | <b>Release:</b> 300ms</div><div style='margin-top: 6px; color: #94a3b8;'>Mengontrol rentang dinamis agar suara vokal/musik lebih stabil.</div>"
+    content: "<div><b>Threshold:</b> -18 dB | <b>Ratio:</b> 3:1 | <b>Attack:</b> 15ms | <b>Release:</b> 300ms</div><div style='margin-top: 4px; color: #94a3b8;'>Mengontrol rentang dinamis agar suara vokal/musik lebih stabil.</div>"
   },
   eq: {
     title: "CHANNEL PARAMETRIC EQUALIZER",
-    content: "<div><b>Low Cut (HPF):</b> 80Hz | <b>Band 1 (Low):</b> 100Hz (+2dB) | <b>Band 2 (Mid):</b> 2.5kHz (-3dB) | <b>Band 3 (High):</b> 10kHz (+4dB)</div><div style='margin-top: 6px; color: #94a3b8;'>Pemrosesan filter frekuensi parametrik 4-band pada kanal terpilih.</div>"
+    content: "<div><b>Low Cut (HPF):</b> 80Hz | <b>Band 1 (Low):</b> 100Hz (+2dB) | <b>Band 2 (Mid):</b> 2.5kHz (-3dB)</div><div style='margin-top: 4px; color: #94a3b8;'>Pemrosesan filter frekuensi parametrik 4-band pada kanal terpilih.</div>"
   },
   sends: {
     title: "BUS SENDS & FX ROUTING",
-    content: "<div><b>Bus 1 (Echo Send):</b> -6.0 dB | <b>Bus 2 (Reverb Send):</b> -12.0 dB | <b>Tap:</b> Post-Fader</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan pengiriman sinyal (aux/effects send) ke prosesor eksternal.</div>"
+    content: "<div><b>Bus 1 (Echo Send):</b> -6.0 dB | <b>Bus 2 (Reverb Send):</b> -12.0 dB | <b>Tap:</b> Post-Fader</div><div style='margin-top: 4px; color: #94a3b8;'>Pengaturan pengiriman sinyal (aux/effects send) ke prosesor eksternal.</div>"
   },
   main: {
     title: "MAIN FOH OUTPUT & MATRIX",
-    content: "<div><b>Main L/R:</b> Active | <b>Matrix 1/2:</b> Feed Live | <b>Master Limiter:</b> -0.5 dB</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan keluaran utama (Main Bus) menuju sound system lapangan.</div>"
+    content: "<div><b>Main L/R:</b> Active | <b>Matrix 1/2:</b> Feed Live | <b>Master Limiter:</b> -0.5 dB</div><div style='margin-top: 4px; color: #94a3b8;'>Pengaturan keluaran utama (Main Bus) menuju sound system lapangan.</div>"
   }
 };
 
@@ -1709,32 +1716,32 @@ consoleBtns.forEach(btn => {
   });
 });
 
-// 2. Logika Tombol Tab Menu Layar Atas TFT (HOME, METERS, ROUTING, SETUP, LIBRARY, EFFECTS)
+// 2. Logika Tombol Tab Menu Layar Atas TFT
 const tftTabs = document.querySelectorAll(".tft-top-tabs .tft-tab");
 const tftTabPages = {
   home: {
     title: "CONFIG / PREAMP INTERFACE",
-    content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 6px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>"
+    content: "<div><b>Preamp Gain:</b> +12.0 dB | <b>Phantom (+48V):</b> ON | <b>Phase:</b> Normal</div><div style='margin-top: 4px; color: #94a3b8;'>Atur parameter input gain dan sumber sinyal kanal aktif melalui kontrol fisik di samping.</div>"
   },
   meters: {
     title: "METERS / RTA ANALYZER",
-    content: "<div><b>RTA Display:</b> Active 31-Band Real-Time Analyzer | <b>Peak Hold:</b> 2.0s</div><div style='margin-top: 6px; color: #94a3b8;'>Memantau spektrum frekuensi audio secara langsung (Real-Time).</div>"
+    content: "<div><b>RTA Display:</b> Active 31-Band Real-Time Analyzer | <b>Peak Hold:</b> 2.0s</div><div style='margin-top: 4px; color: #94a3b8;'>Memantau spektrum frekuensi audio secara langsung (Real-Time).</div>"
   },
   routing: {
     title: "ROUTING & USB INTERFACE",
-    content: "<div><b>Input Source:</b> Card / USB Stream 1-8 | <b>Outputs:</b> Main L/R & Aux 1-4</div><div style='margin-top: 6px; color: #94a3b8;'>Pengaturan jalur sinyal fisik dan digital pada console mixer.</div>"
+    content: "<div><b>Input Source:</b> Card / USB Stream 1-8 | <b>Outputs:</b> Main L/R & Aux 1-4</div><div style='margin-top: 4px; color: #94a3b8;'>Pengaturan jalur sinyal fisik dan digital pada console mixer.</div>"
   },
   setup: {
     title: "SYSTEM SETUP & PREFERENCES",
-    content: "<div><b>Sample Rate:</b> 48 kHz | <b>Word Clock:</b> Internal | <b>OSC IP:</b> 192.168.1.100</div><div style='margin-top: 6px; color: #94a3b8;'>Konfigurasi sistem perangkat keras console digital mixer.</div>"
+    content: "<div><b>Sample Rate:</b> 48 kHz | <b>Word Clock:</b> Internal | <b>OSC IP:</b> 192.168.1.100</div><div style='margin-top: 4px; color: #94a3b8;'>Konfigurasi sistem perangkat keras console digital mixer.</div>"
   },
   library: {
     title: "SCENE & PRESET LIBRARY",
-    content: "<div><b>Loaded Scene:</b> #01 Live Default | <b>Snippets:</b> All Parameters</div><div style='margin-top: 6px; color: #94a3b8;'>Simpan dan muat konfigurasi mixing seluruh acara panggung.</div>"
+    content: "<div><b>Loaded Scene:</b> #01 Live Default | <b>Snippets:</b> All Parameters</div><div style='margin-top: 4px; color: #94a3b8;'>Simpan dan muat konfigurasi mixing seluruh acara panggung.</div>"
   },
   effects: {
     title: "FX RACK & PROCESSOR",
-    content: "<div><b>FX 1:</b> Vintage Room Reverb | <b>FX 2:</b> Dual Digital Delay | <b>FX 3:</b> Graphic EQ</div><div style='margin-top: 6px; color: #94a3b8;'>Manajemen efek internal console kelas studio profesional.</div>"
+    content: "<div><b>FX 1:</b> Vintage Room Reverb | <b>FX 2:</b> Dual Digital Delay | <b>FX 3:</b> Graphic EQ</div><div style='margin-top: 4px; color: #94a3b8;'>Manajemen efek internal console kelas studio profesional.</div>"
   }
 };
 
@@ -1767,7 +1774,6 @@ setInterval(() => {
     if (!meterSpans || meterSpans.length === 0) return;
     const activeCount = Math.floor(Math.random() * 8) + 3;
     meterSpans.forEach((span, idx) => {
-      // Indikator lampu menyala dari bawah ke atas
       const reverseIdx = meterSpans.length - 1 - idx;
       if (reverseIdx < activeCount) {
         span.classList.add("on");
