@@ -780,6 +780,93 @@ audio { width: 100%; height: 35px; margin: 8px 0; }
 "use strict";
 
 /* =========================================================
+   GLOBAL CHANNEL STATE
+========================================================= */
+window.channelState = [
+  { fader: 0, gain: 0, hpf: "off", mute: false, solo: false, bands: new Array(31).fill(0) },
+  { fader: 0, gain: 0, hpf: "off", mute: false, solo: false, bands: new Array(31).fill(0) },
+  { fader: 0, gain: 0, hpf: "off", mute: false, solo: false, bands: new Array(31).fill(0) },
+  { fader: 0, gain: 0, hpf: "off", mute: false, solo: false, bands: new Array(31).fill(0) }
+];
+
+/* =========================================================
+   DSP CONTROL BRIDGE
+========================================================= */
+(function () {
+    const P = window.MixerProtocol || {
+        PARAMETERS: { FADER: "FADER", GAIN: "GAIN", EQ_BAND: "EQ_BAND", MUTE: "MUTE", SOLO: "SOLO", MASTER: "MASTER" },
+        normalizeValue: (p, v) => v,
+        clamp: (v, min, max) => Math.max(min, Math.min(max, v))
+    };
+
+    const Bridge = {
+        initialized: false,
+        applyingFeedback: false,
+        suppressTX: false,
+        init() {
+            if (this.initialized) return;
+            this.initialized = true;
+
+            window.addEventListener("mixer:feedback", event => {
+                if (event && event.detail) this.applyFeedback(event.detail);
+            });
+
+            window.addEventListener("mixer:dsp-control", event => {
+                if (event && event.detail) this.applyControl(event.detail);
+            });
+            console.log("[DSP BRIDGE] initialized");
+        },
+        applyFeedback(packet) {
+            if (!packet) return;
+            const parameter = String(packet.parameter || "").toUpperCase();
+            const channel = Number(packet.channel);
+            const value = P.normalizeValue(parameter, packet.value);
+            this.applyingFeedback = true;
+            try {
+                if (parameter === "MASTER") {
+                    this.applyMaster(value);
+                } else {
+                    this.updateChannelUI(channel, parameter, value, packet.band);
+                }
+            } finally {
+                this.applyingFeedback = false;
+            }
+        },
+        applyControl(packet) {
+            if (packet) this.applyFeedback(packet);
+        },
+        applyMaster(value) {
+            const number = Number(value);
+            if (!Number.isFinite(number)) return;
+            const slider = document.getElementById("masterGainControl");
+            if (slider && document.activeElement !== slider) {
+                slider.value = String(number);
+                slider.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+        },
+        updateChannelUI(channel, parameter, value, band = null) {
+            window.dispatchEvent(
+                new CustomEvent("mixer:ui-update", { detail: { channel, parameter, value, band } })
+            );
+        },
+        send(channel, parameter, value, extra = {}) {
+            if (this.applyingFeedback || this.suppressTX) return null;
+            const manager = window.ConnectionManager;
+            if (manager && typeof manager.sendControl === "function") {
+                return manager.sendControl(channel, parameter, value, extra);
+            }
+            return null;
+        }
+    };
+    window.DSPControlBridge = Bridge;
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => Bridge.init(), { once: true });
+    } else {
+        Bridge.init();
+    }
+})();
+
+/* =========================================================
    1. INISIALISASI ELEMEN LED METER VERTIKAL MIXER SECARA OTOMATIS
 ========================================================= */
 function initMixerVerticalMeters() {
@@ -1257,7 +1344,7 @@ audioFile.addEventListener("change", e => {
   initializeAudioGraph();
   if (!audioElementSource) audioElementSource = audioContext.createMediaElementSource(audioPlayer);
   if (selectedAudioUrl) URL.revokeObjectURL(selectedAudioUrl);
-  selectedAudioUrl = URL.createObjectURL(file);
+  selectedAudioUrl = URL.revokeObjectURL(file);
   audioPlayer.src = selectedAudioUrl;
   audioPlayer.load();
   connectAudioSource(audioElementSource, "File audio");
@@ -1531,6 +1618,40 @@ document.querySelectorAll(".console-action-btn").forEach(btn => {
 });
 
 /* =========================================================
+   UI SYNC LISTENER (WIPE FROM DSP BRIDGE)
+========================================================= */
+window.addEventListener("mixer:ui-update", event => {
+  const { channel, parameter, value, band } = event.detail;
+  const chIndex = channel - 1;
+  const channelEl = channels[chIndex];
+  if (!channelEl) return;
+
+  if (parameter === "FADER") {
+    const faderInput = channelEl.querySelector(".fader-slot input");
+    const readout = channelEl.querySelector(".fader-readout");
+    if (faderInput) faderInput.value = value;
+    if (readout) readout.textContent = Number(value).toFixed(1) + " dB";
+  } else if (parameter === "GAIN") {
+    const gainInput = channelEl.querySelector(".gain");
+    if (gainInput) gainInput.value = value;
+    updateValues(channelEl);
+  } else if (parameter === "MUTE") {
+    const muteBtn = channelEl.querySelector(".console-action-btn.mute");
+    if (muteBtn) muteBtn.classList.toggle("active", Boolean(value));
+  } else if (parameter === "SOLO") {
+    const soloBtn = channelEl.querySelector(".console-action-btn.solo");
+    if (soloBtn) soloBtn.classList.toggle("active", Boolean(value));
+  } else if (parameter === "EQ_BAND" && band !== null) {
+    const bandInputs = channelEl.querySelectorAll(".band input");
+    if (bandInputs[band]) {
+      bandInputs[band].value = value;
+      const valDisplay = bandInputs[band].closest(".band").querySelector(".band-value");
+      if (valDisplay) valDisplay.textContent = Number(value).toFixed(1);
+    }
+  }
+});
+
+/* =========================================================
    LOGIKA TFT DISPLAY & TOMBOL KONTROL DIGITAL MIXER
 ========================================================= */
 const tftSectionTitle = document.getElementById("tftSectionTitle");
@@ -1632,7 +1753,6 @@ const tftTabPages = {
   }
 };
 
-// Listener tombol section kanan (CONFIG, GATE, DYNAMICS, EQ, SENDS, MAIN)
 document.querySelectorAll(".mixer-control-section .console-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".mixer-control-section .console-btn").forEach(b => b.classList.remove("active"));
@@ -1645,7 +1765,6 @@ document.querySelectorAll(".mixer-control-section .console-btn").forEach(btn => 
   });
 });
 
-// Listener tab atas layar TFT (HOME, METERS, ROUTING, SETUP, LIBRARY, EFFECTS)
 tftTabs.forEach(tab => {
   tab.addEventListener("click", () => {
     tftTabs.forEach(t => t.classList.remove("active"));
@@ -1681,10 +1800,8 @@ setInterval(() => {
     if (!meterSpans || meterSpans.length === 0) return;
 
     if (!isAudioRunning) {
-      // LED meter mati total (dibersihkan kelas 'on'-nya) jika tidak ada input/output audio
       meterSpans.forEach(span => span.classList.remove("on"));
     } else {
-      // LED meter bergerak aktif hanya saat audio diputar
       const activeCount = Math.floor(Math.random() * 8) + 3;
       meterSpans.forEach((span, idx) => {
         const reverseIdx = meterSpans.length - 1 - idx;
