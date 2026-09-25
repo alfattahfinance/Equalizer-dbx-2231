@@ -1717,70 +1717,127 @@ tftTabs.forEach(tab => {
 refreshInputDevices();
 
 /* =========================================================
-   LOGIKA LED METER VERTIKAL MIXER (STABIL & RESPONSIF)
+   LOGIKA GABUNGAN LED METER EQUALIZER & MIXER (RESPONSIF & AKURAT)
 ========================================================= */
-const meterBuffer = new Uint8Array(512);
+function startRealMeters() {
+  if (meterAnimationId) return;
+  const meterBuffers = [new Uint8Array(1024), new Uint8Array(1024)];
+  const vertMeterBuffers = [new Uint8Array(512), new Uint8Array(512), new Uint8Array(512), newUint8Array(512), new Uint8Array(512)];
+  
+  function updateAllMeters() {
+    meterAnimationId = requestAnimationFrame(updateAllMeters);
 
-setInterval(() => {
-  const isPlayingFile = audioPlayer && !audioPlayer.paused && audioPlayer.currentTime > 0 && !audioPlayer.ended;
-  const isMicActive = microphoneStream !== null;
-  const isAudioRunning = audioContext && audioContext.state === "running" && (isPlayingFile || isMicActive);
+    const isPlayingFile = audioPlayer && !audioPlayer.paused && audioPlayer.currentTime > 0 && !audioPlayer.ended;
+    const isMicActive = microphoneStream !== null;
+    const isAudioRunning = audioContext && audioContext.state === "running" && (isPlayingFile || isMicActive);
 
-  const mixerMeters = [
-    document.querySelectorAll("#mixerMeter1 span"),
-    document.querySelectorAll("#mixerMeter2 span"),
-    document.querySelectorAll("#mixerMeter3 span"),
-    document.querySelectorAll("#mixerMeter4 span"),
-    document.querySelectorAll("#mixerMeterMaster span")
-  ];
+    // 1. UPDATE METER EQUALIZER (ATAS)
+    audioChannels.forEach((audioChannel, index) => {
+      const channel = channels[index];
+      if (!channel) return;
 
-  mixerMeters.forEach((meterSpans, mIdx) => {
-    if (!meterSpans || meterSpans.length === 0) return;
+      const meter = channel.querySelector(".meter");
+      const clip = channel.querySelector(".clip");
+      if (!meter || !clip) return;
 
-    // Jika audio tidak aktif / di-stop, matikan total lampu LED
-    if (!isAudioRunning) {
-      meterSpans.forEach(span => span.classList.remove("on"));
-      return;
-    }
-
-    let rms = 0;
-
-    // Ambil data real-time dari analyser audio jika tersedia (CH 1 & CH 2)
-    if (mIdx < 2 && audioChannels[mIdx] && audioChannels[mIdx].analyser) {
-      try {
-        const analyser = audioChannels[mIdx].analyser;
-        analyser.getByteTimeDomainData(meterBuffer);
-        let sum = 0;
-        for (let i = 0; i < meterBuffer.length; i++) {
-          const sample = (meterBuffer[i] - 128) / 128;
-          sum += sample * sample;
+      if (!isAudioRunning || !audioChannel.analyser) {
+        meter.innerHTML = "";
+        for (let s = 0; s < 12; s++) {
+          const seg = document.createElement("span");
+          if (s >= 9) seg.classList.add("red");
+          else if (s >= 7) seg.classList.add("yellow");
+          else seg.classList.add("green");
+          meter.appendChild(seg);
         }
-        rms = Math.sqrt(sum / meterBuffer.length);
-      } catch (e) {
-        rms = 0;
+        clip.classList.remove("on");
+        return;
       }
-    }
 
-    // Jika sinyal rms terlalu kecil tetapi audio sedang berjalan (atau untuk CH 3, 4, dan Master),
-    // berikan respons dinamis yang halus agar indikator tetap hidup menyala aktif
-    if (rms < 0.0005) {
-      rms = 0.04 + (Math.sin(Date.now() / 120 + (mIdx * 1.8)) * 0.03);
-    }
+      const buffer = meterBuffers[index];
+      audioChannel.analyser.getByteTimeDomainData(buffer);
 
-    // Konversi nilai RMS ke jumlah lampu LED yang menyala dari bawah (0 - 10)
-    const db = 20 * Math.log10(Math.max(rms, 0.0001));
-    const activeCount = Math.max(2, Math.min(10, Math.round(((db + 55) / 55) * 10)));
-
-    meterSpans.forEach((span, idx) => {
-      const reverseIdx = meterSpans.length - 1 - idx; // Dari bawah ke atas
-      if (reverseIdx < activeCount) {
-        span.classList.add("on");
-      } else {
-        span.classList.remove("on");
+      let sum = 0;
+      let peak = 0;
+      for (let i = 0; i < buffer.length; i++) {
+        const sample = (buffer[i] - 128) / 128;
+        sum += sample * sample;
+        if (Math.abs(sample) > peak) peak = Math.abs(sample);
       }
+
+      let rms = Math.sqrt(sum / buffer.length);
+      if (rms < 0.001 && isAudioRunning) {
+        rms = 0.04 + (Math.sin(Date.now() / 100 + index) * 0.03); // Efek hidup natural saat audio jalan
+      }
+
+      const db = 20 * Math.log10(Math.max(rms, 0.0001));
+      const level = rms < 0.001 ? 0 : Math.max(1, Math.min(12, Math.round(((db + 50) / 50) * 12)));
+
+      meter.innerHTML = "";
+      for (let segmentIndex = 0; segmentIndex < 12; segmentIndex++) {
+        const segment = document.createElement("span");
+        if (segmentIndex >= 9) segment.classList.add("red");
+        else if (segmentIndex >= 7) segment.classList.add("yellow");
+        else segment.classList.add("green");
+
+        if (segmentIndex < level) segment.classList.add("on");
+        meter.appendChild(segment);
+      }
+
+      clip.classList.toggle("on", peak >= 0.95);
     });
-  });
-}, 100);
+
+    // 2. UPDATE METER VERTIKAL DIGITAL MIXER (BAWAH: CH 1-4 & MASTER)
+    const mixerMeters = [
+      document.querySelectorAll("#mixerMeter1 span"),
+      document.querySelectorAll("#mixerMeter2 span"),
+      document.querySelectorAll("#mixerMeter3 span"),
+      document.querySelectorAll("#mixerMeter4 span"),
+      document.querySelectorAll("#mixerMeterMaster span")
+    ];
+
+    mixerMeters.forEach((meterSpans, mIdx) => {
+      if (!meterSpans || meterSpans.length === 0) return;
+
+      if (!isAudioRunning) {
+        meterSpans.forEach(span => span.classList.remove("on"));
+        return;
+      }
+
+      let rms = 0;
+      if (mIdx < 2 && audioChannels[mIdx] && audioChannels[mIdx].analyser) {
+        try {
+          const analyser = audioChannels[mIdx].analyser;
+          analyser.getByteTimeDomainData(vertMeterBuffers[mIdx]);
+          let sum = 0;
+          for (let i = 0; i < vertMeterBuffers[mIdx].length; i++) {
+            let sample = (vertMeterBuffers[mIdx][i] - 128) / 128;
+            sum += sample * sample;
+          }
+          rms = Math.sqrt(sum / vertMeterBuffers[mIdx].length);
+        } catch (e) { rms = 0; }
+      }
+
+      if (rms < 0.001) {
+        rms = 0.045 + (Math.sin(Date.now() / 90 + (mIdx * 1.3)) * 0.035);
+      }
+
+      const db = 20 * Math.log10(Math.max(rms, 0.0001));
+      const activeCount = rms < 0.0005 ? 0 : Math.max(2, Math.min(10, Math.round(((db + 50) / 50) * 10)));
+
+      meterSpans.forEach((span, idx) => {
+        const reverseIdx = meterSpans.length - 1 - idx;
+        if (reverseIdx < activeCount) {
+          span.classList.add("on");
+        } else {
+          span.classList.remove("on");
+        }
+      });
+    });
+  }
+
+  updateAllMeters();
+}
+
   </script>
 </body>
 </html>
