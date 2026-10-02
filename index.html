@@ -968,13 +968,22 @@ async function populateAudioDevices() {
 navigator.mediaDevices.addEventListener('devicechange', populateAudioDevices);  
 populateAudioDevices();  
   
+/* --- PERBAIKAN RESPONSIVITAS OUTPUT AUDIO (SINK ID) --- */  
 audioOutputSelect.addEventListener("change", async () => {  
   const deviceId = audioOutputSelect.value;  
-  if (audioContext && typeof audioContext.setSinkId === 'function' && deviceId) {  
+  createAudioContext();  
+  
+  if (typeof audioContext.setSinkId === 'function') {  
     try {  
       await audioContext.setSinkId(deviceId);  
-      setStatus("Output audio dialihkan ke perangkat terpilih.");  
-    } catch (err) {}  
+      setAudioStatus("Output dialihkan secara instan ke Sound Card / Speaker terpilih.");  
+      setStatus("Output audio berhasil diperbarui.");  
+    } catch (err) {  
+      setAudioStatus("Gagal mengalihkan via setSinkId. Periksa pengaturan sistem.");  
+    }  
+  } else {  
+    // Fallback jika browser tidak mendukung setSinkId secara langsung  
+    setAudioStatus("Browser Anda tidak mendukung setSinkId otomatis. Atur default output di Sound Settings OS.");  
   }  
 });  
   
@@ -1209,6 +1218,13 @@ function initializeAudioGraph() {
   outputMuteGainNode.gain.value = outputMuted ? 0 : 1;  
   
   rebuildAudioRouting();  
+  
+  // Terapkan sink ID awal jika sudah dipilih di dropdown  
+  const initialOutputId = audioOutputSelect.value;  
+  if (initialOutputId && typeof audioContext.setSinkId === 'function') {  
+    audioContext.setSinkId(initialOutputId).catch(() => {});  
+  }  
+  
   outputMuteGainNode.connect(audioContext.destination);  
   
   audioGraphReady = true;  
