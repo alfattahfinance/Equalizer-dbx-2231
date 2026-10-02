@@ -4,10 +4,10 @@
   <meta charset="UTF-8">  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">  
   <meta name="theme-color" content="#111827">  
-  <meta name="description" content="GQX-3102 Equalizer, Alesis FX & Digital Mixer Console + ESP32 BLE">  
+  <meta name="description" content="GQX-3102 Equalizer, Alesis FX & Digital Mixer Console + USB Serial & 2 In / 2 Out Interface">  
   <link rel="manifest" href="manifest.json">  
   
-  <title>GQX-3102 Equalizer & Digital Mixer Online</title>  
+  <title>GQX-3102 Equalizer & Digital Mixer Online (USB Interface)</title>  
   <style>  
 /* =========================================================  
    RESET & STYLING DASAR  
@@ -341,16 +341,16 @@ header, .topbar {
 .console-action-btn.mute.active { background: #ef4444; color: #fff; border-color: #f87171; }  
 .console-action-btn.solo.active { background: #f59e0b; color: #000; border-color: #fbbf24; }  
   
-/* Audio & Bluetooth Panel */  
+/* Audio & Hardware USB Panel */  
 .audio-panel { background: #1b2027; border: 1px solid #3a414b; border-radius: 8px; padding: 12px; margin-top: 14px; }  
 .audio-panel h3 { margin: 0 0 10px 0; font-size: 12px; color: #38bdf8; }  
 .audio-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }  
-.bt-panel {  
+.usb-panel {  
   width: 100%; background: #101216; padding: 10px; border-radius: 6px; border: 1px solid #2a323d; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;  
 }  
-.bt-info { font-size: 10px; color: #94a3b8; }  
-#connectBtButton { background: #3b82f6; color: white; border: 1px solid #60a5fa; padding: 6px 14px; border-radius: 4px; font-weight: bold; }  
-#connectBtButton.connected { background: #10b981; border-color: #34d399; }  
+.usb-info { font-size: 10px; color: #94a3b8; }  
+#connectUsbButton { background: #3b82f6; color: white; border: 1px solid #60a5fa; padding: 6px 14px; border-radius: 4px; font-weight: bold; }  
+#connectUsbButton.connected { background: #10b981; border-color: #34d399; }  
   
 .audio-actions button, .file-button {  
   background: #252b35; color: #fff; border: 1px solid #485260; padding: 6px 12px; font-size: 11px; border-radius: 4px; font-weight: bold; display: inline-flex; align-items: center; cursor: pointer;  
@@ -384,7 +384,7 @@ header, .topbar {
     <header class="topbar">  
       <div>  
         <div class="brand">AUDIO PROCESSOR ONLINE</div>  
-        <div class="subtitle">GQX-3102 Equalizer, Alesis FX & Digital Mixer Console + ESP32 BLE</div>  
+        <div class="subtitle">GQX-3102 Equalizer, Alesis FX & Digital Mixer Console + USB Serial & 2 In / 2 Out</div>  
       </div>  
       <div class="actions">  
         <button id="saveButton">SAVE</button>  
@@ -406,7 +406,7 @@ header, .topbar {
         <div class="rack-header">  
           <div>  
             <div class="model">GQX-3102</div>  
-            <div class="grade">GRADE A • GRAPHIC EQUALIZER</div>  
+            <div class="grade">GRADE A • GRAPHIC EQUALIZER (STEREO CH 1/2)</div>  
           </div>  
           <div class="actions">  
             <button id="flatButton">FLAT</button>  
@@ -416,12 +416,12 @@ header, .topbar {
         </div>  
   
         <section class="channels">  
-          <!-- CHANNEL 1 -->  
+          <!-- CHANNEL 1 (INPUT KIRI) -->  
           <article class="channel" data-channel="0">  
             <div class="channel-header">  
               <div class="channel-title-group">  
                 <span class="status-led active-led" id="ch0_active_led"></span>  
-                <div class="channel-title">CHANNEL 1</div>  
+                <div class="channel-title">CHANNEL 1 (INPUT L)</div>  
               </div>  
               <div class="channel-controls">  
                 <button class="small-button bypass-button"><span class="status-led bypass-led"></span> BYPASS</button>  
@@ -462,12 +462,12 @@ header, .topbar {
             <div class="scale"><span>+15 dB</span><span>0 dB</span><span>-15 dB</span></div>  
           </article>  
   
-          <!-- CHANNEL 2 -->  
+          <!-- CHANNEL 2 (INPUT KANAN) -->  
           <article class="channel" data-channel="1">  
             <div class="channel-header">  
               <div class="channel-title-group">  
                 <span class="status-led active-led" id="ch1_active_led"></span>  
-                <div class="channel-title">CHANNEL 2</div>  
+                <div class="channel-title">CHANNEL 2 (INPUT R)</div>  
               </div>  
               <div class="channel-controls">  
                 <button class="small-button bypass-button"><span class="status-led bypass-led"></span> BYPASS</button>  
@@ -517,7 +517,7 @@ header, .topbar {
         <div class="echo-header-row">  
           <div>  
             <h3 style="color: #38bdf8; margin:0 0 4px 0;">ALESIS DIGITAL EFFECTS PROCESSOR</h3>  
-            <p style="font-size: 11px; color: #94a3b8; margin:0;">Prosesor Efek Studio (Reverb & Delay) di antara Mixer dan Equalizer.</p>  
+            <p style="font-size: 11px; color: #94a3b8; margin:0;">Prosesor Efek Studio (Reverb & Delay) stereo (2 Input / 2 Output).</p>  
           </div>  
           <button class="echo-onoff-btn" id="echoToggleBtn">ALESIS FX: OFF</button>  
         </div>  
@@ -553,15 +553,11 @@ header, .topbar {
     <!-- KONTEN TAB 3: DIGITAL MIXER CONSOLE -->  
     <div class="tab-content" id="tabMixerContent">  
       <div class="mixer-console">  
-          
-        <!-- BAGIAN LAYAR UTAMA & KONTROL ATAS -->  
         <div class="mixer-top-console">  
-            
-          <!-- LAYAR TFT UTAMA -->  
           <div class="mixer-tft-screen">  
             <div class="tft-header">  
               <span id="tftSectionTitle">CONFIG / PREAMP INTERFACE</span>  
-              <span style="color: #10b981;">● DSP: 48kHz / 32-bit</span>  
+              <span style="color: #10b981;">● DSP: 48kHz / 32-bit (2 In / 2 Out)</span>  
             </div>  
   
             <div class="tft-top-tabs">  
@@ -576,7 +572,7 @@ header, .topbar {
             <div class="tft-main-viewport">  
               <div class="tft-content-screen" id="tftContentArea"></div>  
               <div style="font-size: 8px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 3px; display: flex; justify-content: space-between;">  
-                <span id="tftFooterChannel">CH 01: Lead Vocal</span>  
+                <span id="tftFooterChannel">CH 01: Input L</span>  
                 <span id="tftFooterStatus">Gate/Comp/EQ Active</span>  
               </div>  
             </div>  
@@ -604,10 +600,11 @@ header, .topbar {
           </div>  
         </div>  
   
-        <!-- PERMUKAAN KONSOLE -->  
+        <!-- PERMUKAAN KONSOLE 2 INPUT / 2 OUTPUT -->  
         <div class="mixer-desk-surface">  
+          <!-- CHANNEL STRIP 1 (INPUT L) -->  
           <div class="console-channel-strip" data-strip="0">  
-            <div class="strip-label-box">CH 1: MIC</div>  
+            <div class="strip-label-box">CH 1: INPUT L</div>  
             <div class="strip-knobs-area">  
               <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>  
               <div class="knob-row"><span>HPF</span><select class="strip-hpf"><option value="off">OFF</option><option value="80">80Hz</option></select></div>  
@@ -623,8 +620,9 @@ header, .topbar {
             </div>  
           </div>  
   
+          <!-- CHANNEL STRIP 2 (INPUT R) -->  
           <div class="console-channel-strip" data-strip="1">  
-            <div class="strip-label-box">CH 2: MUSIC</div>  
+            <div class="strip-label-box">CH 2: INPUT R</div>  
             <div class="strip-knobs-area">  
               <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>  
               <div class="knob-row"><span>HPF</span><select class="strip-hpf"><option value="off">OFF</option><option value="80">80Hz</option></select></div>  
@@ -640,8 +638,9 @@ header, .topbar {
             </div>  
           </div>  
   
+          <!-- DUMMY STRIP 3 -->  
           <div class="console-channel-strip" data-strip="2">  
-            <div class="strip-label-box">CH 3: AUX</div>  
+            <div class="strip-label-box">CH 3: AUX L</div>  
             <div class="strip-knobs-area">  
               <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>  
               <div class="knob-row"><span>HPF</span><select class="strip-hpf"><option value="off">OFF</option><option value="80">80Hz</option></select></div>  
@@ -657,8 +656,9 @@ header, .topbar {
             </div>  
           </div>  
   
+          <!-- DUMMY STRIP 4 -->  
           <div class="console-channel-strip" data-strip="3">  
-            <div class="strip-label-box">CH 4: FX</div>  
+            <div class="strip-label-box">CH 4: AUX R</div>  
             <div class="strip-knobs-area">  
               <div class="knob-row"><span>GAIN</span><span>+0 dB</span></div>  
               <div class="knob-row"><span>HPF</span><select class="strip-hpf"><option value="off">OFF</option><option value="80">80Hz</option></select></div>  
@@ -674,8 +674,9 @@ header, .topbar {
             </div>  
           </div>  
   
+          <!-- MASTER STRIP STEREO (OUTPUT L / OUTPUT R) -->  
           <div class="console-channel-strip master-strip" data-strip="4">  
-            <div class="strip-label-box">MASTER L/R</div>  
+            <div class="strip-label-box">MASTER OUT (2-CH)</div>  
             <div class="strip-knobs-area" style="border-color: #78350f;">  
               <div class="knob-row"><span>LIMIT</span><span>ON</span></div>  
               <div class="knob-row"><span>PROC</span><select><option>EQ+ALESIS</option><option>BYPASS</option></select></div>  
@@ -687,27 +688,44 @@ header, .topbar {
             </div>  
             <div class="strip-action-buttons" style="margin-top:8px;">  
               <button class="console-action-btn mute" id="masterMuteBtn" style="background:#b45309; color:#fff;">MUTE</button>  
-              <button class="console-action-btn active" style="background:#fbbf24; color:#000;">LR</button>  
+              <button class="console-action-btn active" style="background:#fbbf24; color:#000;">L/R</button>  
             </div>  
           </div>  
         </div>  
       </div>  
     </div>  
   
-    <!-- PANEL AUDIO & BLUETOOTH -->  
+    <!-- PANEL KONEKSI USB & PENGATURAN AUDIO HARDWARE (2 IN / 2 OUT) -->  
     <section class="audio-panel">  
-      <h3>AUDIO PLAYER, MIXER & BLUETOOTH ESP32</h3>  
+      <h3>HARDWARE USB-C (SERIAL DATA) & AUDIO INTERFACE (2 IN / 2 OUT)</h3>  
   
-      <div class="bt-panel">  
+      <!-- KONTROL KONEKSI HARDWARE VIA USB SERIAL -->  
+      <div class="usb-panel">  
         <div>  
-          <strong>KONEKSI HARDWARE ESP32</strong>  
-          <div id="btStatus" class="bt-info">Bluetooth terputus.</div>  
+          <strong>KONEKSI HARDWARE (ESP32/KONTROLER) VIA USB-C</strong>  
+          <div id="usbStatus" class="usb-info">Port USB belum terhubung.</div>  
         </div>  
-        <button id="connectBtButton">SAMBUNGKAN ESP32</button>  
+        <button id="connectUsbButton">SAMBUNGKAN USB SERIAL</button>  
+      </div>  
+
+      <!-- PEMILIHAN PERANGKAT INPUT & OUTPUT FISIK 2 IN / 2 OUT -->
+      <div class="output-panel" style="margin-bottom: 10px;">
+        <div class="output-control">
+          <label for="audioInputSelect">PILIH 2-IN HARDWARE (MIC / INTERFACE)</label>
+          <select id="audioInputSelect">
+            <option value="">-- Muat Perangkat Input --</option>
+          </select>
+        </div>
+        <div class="output-control">
+          <label for="audioOutputSelect">PILIH 2-OUT HARDWARE (SOUNDCARD L/R)</label>
+          <select id="audioOutputSelect">
+            <option value="">-- Muat Perangkat Output --</option>
+          </select>
+        </div>
       </div>  
   
       <div class="audio-actions">  
-        <button id="startMicButton">MIC INPUT</button>  
+        <button id="startMicButton">START 2-CH MIC INPUT</button>  
         <label class="file-button">PILIH BANYAK FILE AUDIO<input id="audioFilesInput" type="file" accept="audio/*" multiple hidden></label>  
         <button id="startAudioButton">START PLAYLIST</button>  
         <button id="stopAudioButton">STOP AUDIO</button>  
@@ -719,7 +737,7 @@ header, .topbar {
   
       <div class="output-panel">  
         <div class="output-control">  
-          <label for="masterGainControl">MASTER OUTPUT</label>  
+          <label for="masterGainControl">MASTER OUTPUT GAIN</label>  
           <input id="masterGainControl" type="range" min="-30" max="0" step="1" value="-6">  
           <div id="masterGainValue" class="master-value">-6 dB</div>  
         </div>  
@@ -733,12 +751,12 @@ header, .topbar {
         </div>  
       </div>  
   
-      <div id="feedbackStatus" class="feedback-status">Alur Sinyal: [DIGITAL MIXER CH 1-4] ➡️ [ALESIS FX] ➡️ [EQUALIZER GQX-3102] ➡️ [OUTPUT]</div>  
+      <div id="feedbackStatus" class="feedback-status">Alur Sinyal: [2-CH INPUT] ➡️ [DIGITAL MIXER CH 1-2] ➡️ [ALESIS FX] ➡️ [GQX-3102 EQ] ➡️ [2-CH OUTPUT]</div>  
       <div id="audioStatus" class="audio-status">Audio belum aktif.</div>  
     </section>  
   
-    <div id="status" class="status">Status: sistem siap digunakan.</div>  
-    <div class="footer">Equalizer & Alesis FX Online • Web/PWA • Bluetooth ESP32 Ready</div>  
+    <div id="status" class="status">Status: sistem siap digunakan via USB Interface.</div>  
+    <div class="footer">Equalizer & Alesis FX Online • Web/PWA • USB Serial & 2-In/2-Out Ready</div>  
   </main>  
   
   <script>  
@@ -788,49 +806,51 @@ tabMixerBtn.addEventListener("click", () => {
 });  
   
 /* =========================================================  
-   WEB BLUETOOTH API KE ESP32  
+   WEB SERIAL API KE HARDWARE VIA USB-C  
 ========================================================= */  
-let bleDevice = null, bleServer = null, eqCharacteristic = null;  
-const ESP32_SERVICE_UUID = "12345678-1234-1234-1234-123456789abc";  
-const ESP32_CHAR_UUID    = "abcdef01-2345-6789-0123-456789abcdef";  
+let usbPort = null;  
+let usbWriter = null;  
+const connectUsbButton = document.getElementById("connectUsbButton");  
+const usbStatus = document.getElementById("usbStatus");  
   
-const connectBtButton = document.getElementById("connectBtButton");  
-const btStatus = document.getElementById("btStatus");  
-  
-connectBtButton.addEventListener("click", async () => {  
-  if (!navigator.bluetooth) { alert("Web Bluetooth API tidak didukung browser ini."); return; }  
+connectUsbButton.addEventListener("click", async () => {  
+  if (!navigator.serial) { alert("Web Serial API tidak didukung browser ini. Gunakan Google Chrome / Edge versi terbaru."); return; }  
   try {  
-    if (!bleDevice || !bleDevice.gatt.connected) {  
-      btStatus.textContent = "Memindai perangkat ESP32...";  
-      bleDevice = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: [ESP32_SERVICE_UUID] });  
-      bleDevice.addEventListener('gattserverdisconnected', onBleDisconnected);  
-      bleServer = await bleDevice.gatt.connect();  
-      const service = await bleServer.getPrimaryService(ESP32_SERVICE_UUID);  
-      eqCharacteristic = await service.getCharacteristic(ESP32_CHAR_UUID);  
-      connectBtButton.textContent = "PUTUSKAN ESP32";  
-      connectBtButton.classList.add("connected");  
-      btStatus.textContent = "Terhubung ke: " + (bleDevice.name || "ESP32 Device");  
-      setStatus("Bluetooth ESP32 terhubung.");  
+    if (!usbPort) {  
+      usbStatus.textContent = "Memilih port USB perangkat...";  
+      usbPort = await navigator.serial.requestPort();  
+      await usbPort.open({ baudRate: 115200 });  
+      const textEncoder = new TextEncoderStream();  
+      textEncoder.readable.pipeTo(usbPort.writable);  
+      usbWriter = textEncoder.writable.getWriter();  
+        
+      connectUsbButton.textContent = "PUTUSKAN USB";  
+      connectUsbButton.classList.add("connected");  
+      usbStatus.textContent = "Terhubung via USB Serial.";  
+      setStatus("Hardware USB Serial terhubung.");  
     } else {  
-      if (bleDevice.gatt.connected) bleDevice.gatt.disconnect();  
-      onBleDisconnected();  
+      if (usbWriter) { await usbWriter.close(); usbWriter = null; }  
+      if (usbPort) { await usbPort.close(); usbPort = null; }  
+      onUsbDisconnected();  
     }  
   } catch (error) {  
-    btStatus.textContent = "Koneksi gagal / dibatalkan.";  
-    setStatus("Gagal menghubungkan Bluetooth.");  
+    usbStatus.textContent = "Koneksi USB gagal / dibatalkan.";  
+    setStatus("Gagal menghubungkan USB Serial.");  
+    usbPort = null;  
   }  
 });  
   
-function onBleDisconnected() {  
-  connectBtButton.textContent = "SAMBUNGKAN ESP32";  
-  connectBtButton.classList.remove("connected");  
-  btStatus.textContent = "Bluetooth terputus.";  
-  eqCharacteristic = null; bleServer = null;  
+function onUsbDisconnected() {  
+  connectUsbButton.textContent = "SAMBUNGKAN USB SERIAL";  
+  connectUsbButton.classList.remove("connected");  
+  usbStatus.textContent = "Port USB terputus.";  
+  usbPort = null;  
+  usbWriter = null;  
 }  
   
-async function sendDataToESP32(dataString) {  
-  if (eqCharacteristic && bleDevice && bleDevice.gatt.connected) {  
-    try { await eqCharacteristic.writeValue(new TextEncoder().encode(dataString)); } catch (err) {}  
+async function sendDataToHardware(dataString) {  
+  if (usbWriter) {  
+    try { await usbWriter.write(dataString + "\n"); } catch (err) {}  
   }  
 }  
   
@@ -874,7 +894,7 @@ function createBands(channel) {
     slider.addEventListener("input", () => {  
       value.textContent = Number(slider.value).toFixed(1);  
       syncAudioControlsFromUI();  
-      sendDataToESP32(JSON.stringify({ type: "eq", band: index, val: slider.value }));  
+      sendDataToHardware(JSON.stringify({ type: "eq", band: index, val: slider.value }));  
     });  
   
     trackContainer.appendChild(slider);  
@@ -884,7 +904,7 @@ function createBands(channel) {
 }  
   
 /* =========================================================  
-   AUDIO ENGINE & ROUTING (RESPONSIF TINGGI)  
+   AUDIO ENGINE & ROUTING 2 INPUT / 2 OUTPUT  
 ========================================================= */  
 let audioContext = null;  
 let microphoneStream = null;  
@@ -896,16 +916,13 @@ let currentPlaylistIndex = 0;
 let activeSourceNode = null;  
 let isPlaying = false;  
   
-// Mixer Strip Nodes  
 let mixerStrips = [];  
 let masterStripGain = null;  
   
-// Alesis FX Nodes  
 let alesisInputMerger = null;  
 let alesisDelayNode = null, alesisFeedbackNode = null, alesisFilterNode = null, alesisWetNode = null, alesisDryNode = null;  
 let isAlesisFxEnabled = false;  
   
-// Master Output Nodes  
 let masterGainNode = null, outputMuteGainNode = null;  
 let audioGraphReady = false, meterAnimationId = null, outputMuted = false;  
   
@@ -919,11 +936,47 @@ const masterGainValue = document.getElementById("masterGainValue");
 const outputMode = document.getElementById("outputMode");  
 const muteOutputButton = document.getElementById("muteOutputButton");  
   
+const audioInputSelect = document.getElementById("audioInputSelect");  
+const audioOutputSelect = document.getElementById("audioOutputSelect");  
+  
 const echoDelay = document.getElementById("echoDelay");  
 const echoFeedback = document.getElementById("echoFeedback");  
 const echoDamping = document.getElementById("echoDamping");  
 const echoMix = document.getElementById("echoMix");  
 const echoToggleBtn = document.getElementById("echoToggleBtn");  
+  
+async function populateAudioDevices() {  
+  try {  
+    const devices = await navigator.mediaDevices.enumerateDevices();  
+    audioInputSelect.innerHTML = '<option value="">-- Default Input (Mic) --</option>';  
+    audioOutputSelect.innerHTML = '<option value="">-- Default Output (Speaker/Interface) --</option>';  
+  
+    devices.forEach(device => {  
+      const option = document.createElement("option");  
+      option.value = device.deviceId;  
+      if (device.kind === 'audioinput') {  
+        option.textContent = device.label || `Microphone ${audioInputSelect.length}`;  
+        audioInputSelect.appendChild(option);  
+      } else if (device.kind === 'audiooutput') {  
+        option.textContent = device.label || `Audio Output ${audioOutputSelect.length}`;  
+        audioOutputSelect.appendChild(option);  
+      }  
+    });  
+  } catch (err) {}  
+}  
+  
+navigator.mediaDevices.addEventListener('devicechange', populateAudioDevices);  
+populateAudioDevices();  
+  
+audioOutputSelect.addEventListener("change", async () => {  
+  const deviceId = audioOutputSelect.value;  
+  if (audioContext && typeof audioContext.setSinkId === 'function' && deviceId) {  
+    try {  
+      await audioContext.setSinkId(deviceId);  
+      setStatus("Output audio dialihkan ke perangkat terpilih.");  
+    } catch (err) {}  
+  }  
+});  
   
 function createAudioContext() {  
   if (!audioContext) {  
@@ -956,7 +1009,6 @@ function updateOutputMute() {
   muteOutputButton.classList.toggle("active", outputMuted);  
 }  
   
-// Playlist multi-file handler menggunakan ArrayBuffer Decoding  
 audioFilesInput.addEventListener("change", async e => {  
   const files = Array.from(e.target.files);  
   if (files.length === 0) return;  
@@ -1180,14 +1232,16 @@ function rebuildAudioRouting() {
     try { audioChannels[1].inputGain.disconnect(); } catch (e) {}  
   } catch (e) {}  
   
-  const mixerSubgroupMerger = audioContext.createGain();  
-  mixerStrips.forEach((strip, sIdx) => {  
-    if (sIdx < 4) {  
-      strip.mute.connect(mixerSubgroupMerger);  
-    }  
-  });  
+  // Routing 2 In / 2 Out Stereo Subgroup  
+  const subgroupL = audioContext.createGain();  
+  const subgroupR = audioContext.createGain();  
   
-  mixerSubgroupMerger.connect(masterStripGain);  
+  if (mixerStrips[0]) mixerStrips[0].mute.connect(subgroupL);  
+  if (mixerStrips[1]) mixerStrips[1].mute.connect(subgroupR);  
+  
+  subgroupL.connect(masterStripGain);  
+  subgroupR.connect(masterStripGain);  
+  
   masterStripGain.connect(alesisInputMerger);  
   
   if (isAlesisFxEnabled) {  
@@ -1216,7 +1270,7 @@ echoToggleBtn.addEventListener("click", () => {
   if (isAlesisFxEnabled) {  
     echoToggleBtn.textContent = "ALESIS FX: ON";  
     echoToggleBtn.classList.add("active");  
-    setStatus("Prosesor Alesis FX diaktifkan di antara Mixer dan Equalizer.");  
+    setStatus("Prosesor Alesis FX diaktifkan.");  
   } else {  
     echoToggleBtn.textContent = "ALESIS FX: OFF";  
     echoToggleBtn.classList.remove("active");  
@@ -1271,12 +1325,21 @@ function playCurrentBuffer() {
   activeSourceNode = audioContext.createBufferSource();  
   activeSourceNode.buffer = buffer;  
   
-  activeSourceNode.connect(mixerStrips[1].hpf);  
+  // Arahkan ke Channel 1 (L) & Channel 2 (R) secara Stereo jika buffer mendukung  
+  if (buffer.numberOfChannels >= 2) {  
+    const splitter = audioContext.createChannelSplitter(2);  
+    activeSourceNode.connect(splitter);  
+    splitter.connect(mixerStrips[0].hpf, 0);  
+    splitter.connect(mixerStrips[1].hpf, 1);  
+  } else {  
+    activeSourceNode.connect(mixerStrips[0].hpf);  
+    activeSourceNode.connect(mixerStrips[1].hpf);  
+  }  
   
   activeSourceNode.start(0);  
   isPlaying = true;  
   startAudioButton.classList.add("active");  
-  setAudioStatus("Memutar file: " + audioFileNames[currentPlaylistIndex] + " ➡️ Mixer Ch 2 ➡️ Alesis FX ➡️ Equalizer");  
+  setAudioStatus("Memutar file: " + audioFileNames[currentPlaylistIndex] + " ➡️ Stereo Mixer Ch 1-2 ➡️ Alesis FX ➡️ EQ");  
   
   activeSourceNode.onended = () => {  
     if (isPlaying && audioBuffers.length > 0) {  
@@ -1304,12 +1367,28 @@ startMicButton.addEventListener("click", async () => {
       
     initializeAudioGraph();  
     disconnectCurrentSource();  
-    const constraints = { audio: { channelCount: 1, echoCancellation: false } };  
+  
+    const selectedInputId = audioInputSelect.value;  
+    const constraints = {   
+      audio: {   
+        deviceId: selectedInputId ? { exact: selectedInputId } : undefined,  
+        channelCount: 2,   
+        echoCancellation: false,  
+        noiseSuppression: false  
+      }   
+    };  
+  
     microphoneStream = await navigator.mediaDevices.getUserMedia(constraints);  
     microphoneSource = audioContext.createMediaStreamSource(microphoneStream);  
-    microphoneSource.connect(mixerStrips[0].hpf);  
-    setAudioStatus("Mikrofon aktif ➡️ Mixer Ch 1 ➡️ Alesis FX ➡️ Equalizer.");  
-  } catch (err) { setAudioStatus("Gagal mengakses mikrofon."); }  
+    
+    // Split 2 Input Channel Mic / USB Interface ke Ch 1 & Ch 2  
+    const splitter = audioContext.createChannelSplitter(2);  
+    microphoneSource.connect(splitter);  
+    splitter.connect(mixerStrips[0].hpf, 0);  
+    splitter.connect(mixerStrips[1].hpf, 1);  
+  
+    setAudioStatus("2-Channel Input Aktif ➡️ Mixer Ch 1-2 ➡️ Alesis FX ➡️ Equalizer.");  
+  } catch (err) { setAudioStatus("Gagal mengakses perangkat input 2-Channel."); }  
 });  
   
 stopAudioButton.addEventListener("click", () => {  
@@ -1453,34 +1532,34 @@ function updateEncoders(data) {
   
 const tftDatabase = {  
   config: {  
-    title: "CONFIG / PREAMP INTERFACE",  
-    footerCh: "CH 01: Lead Vocal",  
-    footerSt: "Preamp & Phantom Active",  
+    title: "CONFIG / 2-IN 2-OUT INTERFACE",  
+    footerCh: "CH 01-02: Stereo Input",  
+    footerSt: "USB Audio Interface Linked",  
     content: `  
       <div class="tft-interactive-grid">  
-        <div class="tft-interactive-item"><label>Analog Gain (+12dB)</label><input type="range" min="0" max="60" value="12" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>12dB</span></div>  
-        <div class="tft-interactive-item"><label>Phantom 48V</label><button class="active-action" onclick="this.classList.toggle('active-action'); this.textContent = this.classList.contains('active-action') ? 'ON' : 'OFF'">ON</button></div>  
-        <div class="tft-interactive-item"><label>Phase Invert</label><button onclick="this.classList.toggle('active-action'); this.textContent = this.classList.contains('active-action') ? 'INVERT' : 'NORMAL'">NORMAL</button></div>  
+        <div class="tft-interactive-item"><label>Interface Mode</label><select><option>2-In / 2-Out USB</option><option>Mono Direct</option></select></div>  
+        <div class="tft-interactive-item"><label>USB Sync</label><button class="active-action">LOCKED</button></div>  
+        <div class="tft-interactive-item"><label>Buffer Size</label><select><option>256 Samples</option><option>512 Samples</option></select></div>  
       </div>  
     `,  
-    encoders: [{name:"GAIN", val:"+12dB"}, {name:"HPF", val:"80Hz"}, {name:"POLARITY", val:"NORM"}, {name:"DELAY", val:"0.0ms"}, {name:"WIDTH", val:"100%"}, {name:"TRIM", val:"0.0dB"}]  
+    encoders: [{name:"GAIN L", val:"+12dB"}, {name:"GAIN R", val:"+12dB"}, {name:"HPF", val:"80Hz"}, {name:"DELAY", val:"0.0ms"}, {name:"WIDTH", val:"100%บาล"}, {name:"TRIM", val:"0.0dB"}]  
   },  
   gate: {  
     title: "NOISE GATE / EXPANDER PROCESSOR",  
-    footerCh: "CH 01: Lead Vocal",  
+    footerCh: "CH 01-02 Stereo",  
     footerSt: "Expander Active",  
     content: `  
       <div class="tft-interactive-grid">  
         <div class="tft-interactive-item"><label>Threshold (-45dB)</label><input type="range" min="-80" max="0" value="-45" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-45dB</span></div>  
         <div class="tft-interactive-item"><label>Ratio (1:2.5)</label><input type="range" min="1" max="10" step="0.5" value="2.5" oninput="this.parentElement.querySelector('span').textContent='1:'+this.value"><span>1:2.5</span></div>  
-        <div class="tft-interactive-item"><label>Gate Status</label><button class="active-action" onclick="this.classList.toggle('active-action'); this.textContent = this.classList.contains('active-action') ? 'ACTIVE' : 'BYPASS'">ACTIVE</button></div>  
+        <div class="tft-interactive-item"><label>Gate Status</label><button class="active-action" onclick="this.classList.toggle('active-action');">ACTIVE</button></div>  
       </div>  
     `,  
     encoders: [{name:"THRESH", val:"-45dB"}, {name:"RATIO", val:"1:2.5"}, {name:"ATTACK", val:"5ms"}, {name:"HOLD", val:"20ms"}, {name:"RELEASE", val:"300ms"}, {name:"FILTER", val:"OFF"}]  
   },  
   dynamics: {  
     title: "DYNAMICS / COMPRESSOR PROCESSOR",  
-    footerCh: "CH 01: Lead Vocal",  
+    footerCh: "CH 01-02 Stereo",  
     footerSt: "Peak Compressor Active",  
     content: `  
       <div class="tft-interactive-grid">  
@@ -1493,7 +1572,7 @@ const tftDatabase = {
   },  
   eq: {  
     title: "CHANNEL PARAMETRIC EQUALIZER",  
-    footerCh: "CH 01: Lead Vocal",  
+    footerCh: "CH 01-02 Stereo",  
     footerSt: "4-Band Parametric Active",  
     content: `  
       <div class="tft-interactive-grid">  
@@ -1506,38 +1585,38 @@ const tftDatabase = {
   },  
   sends: {  
     title: "BUS SENDS & FX ROUTING",  
-    footerCh: "CH 01: Lead Vocal",  
+    footerCh: "CH 01-02 Stereo",  
     footerSt: "Post-Fader Send Active",  
     content: `  
       <div class="tft-interactive-grid">  
         <div class="tft-interactive-item"><label>Send 1 (Alesis)</label><input type="range" min="-60" max="0" value="-6" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-6dB</span></div>  
         <div class="tft-interactive-item"><label>Send 2 (Aux)</label><input type="range" min="-60" max="0" value="-12" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-12dB</span></div>  
-        <div class="tft-interactive-item"><label>Send Mode</label><select><option>Post-Fader</option><option>Pre-Fader</option><option>Subgroup</option></select></div>  
+        <div class="tft-interactive-item"><label>Send Mode</label><select><option>Post-Fader</option><option>Pre-Fader</option></select></div>  
       </div>  
     `,  
     encoders: [{name:"SEND 1", val:"-6dB"}, {name:"SEND 2", val:"-12dB"}, {name:"SEND 3", val:"-inf"}, {name:"SEND 4", val:"-inf"}, {name:"PAN", val:"C (0)"}, {name:"MODE", val:"POST"}]  
   },  
   main: {  
-    title: "MAIN FOH OUTPUT & MATRIX",  
-    footerCh: "MASTER FOH",  
+    title: "MAIN 2-CH FOH OUTPUT & MATRIX",  
+    footerCh: "MASTER 2-CH",  
     footerSt: "Limiter Active",  
     content: `  
       <div class="tft-interactive-grid">  
-        <div class="tft-interactive-item"><label>Main FOH Level</label><input type="range" min="-50" max="6" value="0" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>0dB</span></div>  
+        <div class="tft-interactive-item"><label>Main Level</label><input type="range" min="-50" max="6" value="0" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>0dB</span></div>  
         <div class="tft-interactive-item"><label>Brickwall Limiter</label><input type="range" min="-20" max="0" value="-0.5" oninput="this.parentElement.querySelector('span').textContent=this.value+'dB'"><span>-0.5dB</span></div>  
-        <div class="tft-interactive-item"><label>Mono Sum</label><button onclick="this.classList.toggle('active-action'); this.textContent = this.classList.contains('active-action') ? 'MONO ON' : 'OFF'">OFF</button></div>  
+        <div class="tft-interactive-item"><label>Stereo Link</label><button class="active-action">LINKED</button></div>  
       </div>  
     `,  
-    encoders: [{name:"MASTER", val:"0dB"}, {name:"LIMITER", val:"-0.5dB"}, {name:"BALANCE", val:"CENTER"}, {name:"MONO", val:"OFF"}, {name:"MATRIX 1", val:"-inf"}, {name:"MATRIX 2", val:"-inf"}]  
+    encoders: [{name:"MASTER", val:"0dB"}, {name:"LIMITER", val:"-0.5dB"}, {name:"BALANCE", val:"CENTER"}, {name:"LINK", val:"ON"}, {name:"MATRIX 1", val:"-inf"}, {name:"MATRIX 2", val:"-inf"}]  
   },  
   home: {  
     title: "HOME / OVERVIEW CONSOLE",  
-    footerCh: "SYSTEM OVERVIEW",  
-    footerSt: "All Channels Operational",  
+    footerCh: "SYSTEM 2-IN / 2-OUT",  
+    footerSt: "Operational",  
     content: `  
       <div class="tft-interactive-grid">  
         <div class="tft-interactive-item"><label>Global Mute All</label><button onclick="this.classList.toggle('active-action');">MUTE ALL</button></div>  
-        <div class="tft-interactive-item"><label>DSP Engine Clock</label><select><option>48 kHz / 32-bit</option><option>44.1 kHz / 24-bit</option></select></div>  
+        <div class="tft-interactive-item"><label>DSP Clock</label><select><option>48 kHz / 32-bit</option></select></div>  
         <div class="tft-interactive-item"><label>Talkback Mic</label><button onclick="this.classList.toggle('active-action');">TALK ON</button></div>  
       </div>  
     `,  
@@ -1549,25 +1628,25 @@ const tftDatabase = {
     footerSt: "Real-time FFT Active",  
     content: `  
       <div class="tft-interactive-grid">  
-        <div class="tft-interactive-item"><label>RTA Source</label><select><option>Post-EQ Main</option><option>Pre-DSP Input</option></select></div>  
-        <div class="tft-interactive-item"><label>Peak Hold Time</label><select><option>3.0 Seconds</option><option>Infinite</option><option>Off</option></select></div>  
-        <div class="tft-interactive-item"><label>Spectrum Zoom</label><input type="range" min="1" max="4" value="1" oninput="this.parentElement.querySelector('span').textContent=this.value+'x'"><span>1x</span></div>  
+        <div class="tft-interactive-item"><label>RTA Source</label><select><option>Post-EQ Main</option></select></div>  
+        <div class="tft-interactive-item"><label>Peak Hold</label><select><option>3.0 Seconds</option></select></div>  
+        <div class="tft-interactive-item"><label>Zoom</label><input type="range" min="1" max="4" value="1" oninput="this.parentElement.querySelector('span').textContent=this.value+'x'"><span>1x</span></div>  
       </div>  
     `,  
     encoders: [{name:"SOURCE", val:"POST-EQ"}, {name:"DECAY", val:"Fast"}, {name:"PEAK HOLD", val:"3.0s"}, {name:"ZOOM", val:"1x"}, {name:"WEIGHT", val:"A-EQ"}, {name:"VIEW", val:"31-BAND"}]  
   },  
   routing: {  
-    title: "ROUTING MATRIX & PATCHBAY",  
+    title: "ROUTING MATRIX & PATCHBAY (2 IN / 2 OUT)",  
     footerCh: "IO PATCHBAY",  
-    footerSt: "USB Audio Interface Linked",  
+    footerSt: "USB Soundcard Connected",  
     content: `  
       <div class="tft-interactive-grid">  
-        <div class="tft-interactive-item"><label>Input 1 Source</label><select><option>Playlist Audio</option><option>USB Stream L</option></select></div>  
-        <div class="tft-interactive-item"><label>Input 2 Source</label><select><option>Mic / Line 2</option><option>USB Stream R</option></select></div>  
-        <div class="tft-interactive-item"><label>Direct Out Tap</label><select><option>Post-Fader</option><option>Pre-EQ</option></select></div>  
+        <div class="tft-interactive-item"><label>Input 1 Source</label><select><option>USB In L / Mic 1</option></select></div>  
+        <div class="tft-interactive-item"><label>Input 2 Source</label><select><option>USB In R / Mic 2</option></select></div>  
+        <div class="tft-interactive-item"><label>Main Out</label><select><option>USB Out L/R (Master)</option></select></div>  
       </div>  
     `,  
-    encoders: [{name:"IN 1", val:"PLAYLIST"}, {name:"IN 2", val:"MIC 2"}, {name:"IN 3", val:"AUX 1"}, {name:"IN 4", val:"AUX 2"}, {name:"USB IN", val:"CH 1-2"}, {name:"OUT", val:"MAIN L/R"}]  
+    encoders: [{name:"IN 1", val:"USB L"}, {name:"IN 2", val:"USB R"}, {name:"OUT L", val:"MAIN L"}, {name:"OUT R", val:"MAIN R"}, {name:"USB IN", val:"2-CH"}, {name:"OUT", val:"2-CH"}]  
   },  
   setup: {  
     title: "SYSTEM SETUP & HARDWARE PREFERENCES",  
@@ -1576,11 +1655,11 @@ const tftDatabase = {
     content: `  
       <div class="tft-interactive-grid">  
         <div class="tft-interactive-item"><label>Display Brightness</label><input type="range" min="20" max="100" value="85" oninput="this.parentElement.querySelector('span').textContent=this.value+'%'"><span>85%</span></div>  
-        <div class="tft-interactive-item"><label>BLE ESP32 Link</label><button class="active-action" onclick="this.classList.toggle('active-action')">CONNECTED</button></div>  
-        <div class="tft-interactive-item"><label>Audio Buffer Size</label><select><option>512 Samples</option><option>256 Samples</option><option>1024 Samples</option></select></div>  
+        <div class="tft-interactive-item"><label>USB Serial Link</label><button class="active-action">CONNECTED</button></div>  
+        <div class="tft-interactive-item"><label>Audio Latency</label><select><option>Low (Default)</option></select></div>  
       </div>  
     `,  
-    encoders: [{name:"CLOCK", val:"INTERNAL"}, {name:"SAMPLE", val:"48kHz"}, {name:"BUFFER", val:"512smpl"}, {name:"MIDI CH", val:"1"}, {name:"BLE LINK", val:"ACTIVE"}, {name:"BRIGHTNESS", val:"85%"}]  
+    encoders: [{name:"CLOCK", val:"INTERNAL"}, {name:"SAMPLE", val:"48kHz"}, {name:"BUFFER", val:"512smpl"}, {name:"MIDI CH", val:"1"}, {name:"USB LINK", val:"ACTIVE"}, {name:"BRIGHTNESS", val:"85%"}]  
   },  
   library: {  
     title: "SCENE & PRESET LIBRARY",  
@@ -1588,9 +1667,9 @@ const tftDatabase = {
     footerSt: "Auto-Save Enabled",  
     content: `  
       <div class="tft-interactive-grid">  
-        <div class="tft-interactive-item"><label>Active Scene</label><select><option>#01 Live Stage Default</option><option>#02 Acoustic Cafe</option><option>#03 Karaoke Night</option></select></div>  
-        <div class="tft-interactive-item"><label>Store Preset</label><button onclick="alert('Konfigurasi mixer berhasil disimpan ke Scene aktif!')">STORE SCENE</button></div>  
-        <div class="tft-interactive-item"><label>Recall Safe</label><button class="active-action" onclick="this.classList.toggle('active-action')">SAFE ON</button></div>  
+        <div class="tft-interactive-item"><label>Active Scene</label><select><option>#01 Live Stage 2-In/2-Out</option></select></div>  
+        <div class="tft-interactive-item"><label>Store Preset</label><button onclick="alert('Konfigurasi mixer berhasil disimpan!')">STORE SCENE</button></div>  
+        <div class="tft-interactive-item"><label>Recall Safe</label><button class="active-action">SAFE ON</button></div>  
       </div>  
     `,  
     encoders: [{name:"SCENE", val:"#01"}, {name:"RECALL", val:"SAFE"}, {name:"STORE", val:"READY"}, {name:"SNIPPET", val:"ALL"}, {name:"USB BACKUP", val:"READY"}, {name:"AUTO SAVE", val:"ON"}]  
@@ -1598,15 +1677,15 @@ const tftDatabase = {
   effects: {  
     title: "FX RACK & PROCESSOR",  
     footerCh: "VIRTUAL FX RACK",  
-    footerSt: "Alesis FX Processor Assigned",  
+    footerSt: "Alesis FX Stereo Assigned",  
     content: `  
       <div class="tft-interactive-grid">  
-        <div class="tft-interactive-item"><label>Alesis Preset 1</label><select><option>Stage Reverb</option><option>Plate Reverb</option><option>Vocal Echo</option></select></div>  
-        <div class="tft-interactive-item"><label>Alesis Preset 2</label><select><option>Stereo Chorus</option><option>Delay + Reverb</option><option>Flanger</option></select></div>  
-        <div class="tft-interactive-item"><label>FX Master Bypass</label><button onclick="this.classList.toggle('active-action'); this.textContent = this.classList.contains('active-action') ? 'FX ACTIVE' : 'BYPASSED'">FX ACTIVE</button></div>  
+        <div class="tft-interactive-item"><label>Alesis Preset</label><select><option>Stereo Stage Reverb</option><option>Vocal Echo L/R</option></select></div>  
+        <div class="tft-interactive-item"><label>Routing</label><select><option>Stereo Insert</option></select></div>  
+        <div class="tft-interactive-item"><label>FX Bypass</label><button class="active-action" onclick="this.classList.toggle('active-action');">FX ACTIVE</button></div>  
       </div>  
     `,  
-    encoders: [{name:"FX TYPE 1", val:"REVERB"}, {name:"TIME 1", val:"2.2s"}, {name:"FX TYPE 2", val:"DELAY"}, {name:"TIME 2", val:"350ms"}, {name:"MIX 1", val:"25%"}, {name:"MIX 2", val:"30%"}]  
+    encoders: [{name:"FX TYPE", val:"REVERB"}, {name:"TIME", val:"2.2s"}, {name:"FEEDBACK", val:"40%"}, {name:"DAMPING", val:"5kHz"}, {name:"MIX", val:"30%"}, {name:"STATE", val:"ACTIVE"}]  
   }  
 };  
   
@@ -1639,7 +1718,7 @@ tftTabs.forEach(tab => {
 loadTftPage("config");  
   
 /* =========================================================  
-   LOGIKA METER LED REAL-TIME  
+   LOGIKA METER LED REAL-TIME 2-CHANNEL  
 ========================================================= */  
 function startRealMeters() {  
   if (meterAnimationId) return;  
@@ -1708,7 +1787,7 @@ function startRealMeters() {
       if (!isAudioRunning) { meterSpans.forEach(span => span.classList.remove("on")); return; }  
   
       let rms = 0;  
-      const sourceAnalyzerIdx = mIdx < 4 ? (mIdx % 2) : 0;   
+      const sourceAnalyzerIdx = mIdx < 2 ? mIdx : 0;   
       if (audioChannels[sourceAnalyzerIdx] && audioChannels[sourceAnalyzerIdx].analyser) {  
         try {  
           const analyser = audioChannels[sourceAnalyzerIdx].analyser;  
