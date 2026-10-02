@@ -751,13 +751,14 @@ header, .topbar {
         </div>  
       </div>  
   
-      <div id="feedbackStatus" class="feedback-status">Alur Sinyal: [2-CH INPUT] ➡️ [DIGITAL MIXER CH 1-2] ➡️️ [ALESIS FX] ➡️ [GQX-3102 EQ] ➡️ [2-CH OUTPUT]</div>  
+      <div id="feedbackStatus" class="feedback-status">Alur Sinyal: [2-CH INPUT] ➡️ [DIGITAL MIXER CH 1-2] ➡ [ALESIS FX] ➡️ [GQX-3102 EQ] ➡️ [2-CH OUTPUT]</div>  
       <div id="audioStatus" class="audio-status">Audio belum aktif.</div>  
     </section>  
   
     <div id="status" class="status">Status: sistem siap digunakan via USB Interface.</div>  
     <div class="footer">Equalizer & Alesis FX Online • Web/PWA • USB Serial & 2-In/2-Out Ready</div>  
   </main>  
+  
   <script>  
 "use strict";  
   
@@ -989,9 +990,6 @@ function createAudioContext() {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;  
     audioContext = new AudioContextClass();  
   }  
-  if (audioContext.state === "suspended") {  
-    audioContext.resume();  
-  }  
   return audioContext;  
 }  
   
@@ -1021,8 +1019,10 @@ audioFilesInput.addEventListener("change", async e => {
   const files = Array.from(e.target.files);  
   if (files.length === 0) return;  
   
-  createAudioContext();  
+  const ctx = createAudioContext();  
+  if (ctx.state === "suspended") await ctx.resume();  
   initializeAudioGraph();  
+  
   audioBuffers = [];  
   audioFileNames = files.map(f => f.name);  
   setAudioStatus("Mendecode file audio ke Digital Mixer...");  
@@ -1030,7 +1030,7 @@ audioFilesInput.addEventListener("change", async e => {
   for (let file of files) {  
     try {  
       const arrayBuffer = await file.arrayBuffer();  
-      const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);  
+      const decodedBuffer = await ctx.decodeAudioData(arrayBuffer);  
       audioBuffers.push(decodedBuffer);  
     } catch (err) {}  
   }  
@@ -1320,13 +1320,21 @@ function disconnectCurrentSource() {
 function playCurrentBuffer() {  
   if (audioBuffers.length === 0) {  
     setStatus("Pilih file audio terlebih dahulu di Mixer!");  
+    alert("Silakan klik 'PILIH BANYAK FILE AUDIO' terlebih dahulu!");  
     return;  
   }  
   
   const ctx = createAudioContext();  
   if (ctx.state === "suspended") {  
-    ctx.resume();  
+    ctx.resume().then(() => {  
+      startSourceNode(ctx);  
+    });  
+  } else {  
+    startSourceNode(ctx);  
   }  
+}  
+  
+function startSourceNode(ctx) {  
   initializeAudioGraph();  
   
   if (activeSourceNode) {  
@@ -1334,10 +1342,10 @@ function playCurrentBuffer() {
   }  
   
   const buffer = audioBuffers[currentPlaylistIndex];  
-  activeSourceNode = audioContext.createBufferSource();  
+  activeSourceNode = ctx.createBufferSource();  
   activeSourceNode.buffer = buffer;  
   
-  const splitter = audioContext.createChannelSplitter(2);  
+  const splitter = ctx.createChannelSplitter(2);  
   activeSourceNode.connect(splitter);  
   
   splitter.connect(mixerStrips[0].hpf, 0);  
@@ -1346,7 +1354,7 @@ function playCurrentBuffer() {
   activeSourceNode.start(0);  
   isPlaying = true;  
   startAudioButton.classList.add("active");  
-  setAudioStatus("Memutar file: " + audioFileNames[currentPlaylistIndex] + " ➡️ Mixer Ch 1-2 ➡️ Alesis FX ➡️ EQ");  
+  setAudioStatus("Memutar file: " + audioFileNames[currentPlaylistIndex] + " ➡️ Mixer Ch 1-2 ➡️️ Alesis FX ➡️ EQ");  
   
   activeSourceNode.onended = () => {  
     if (isPlaying && audioBuffers.length > 0) {  
@@ -1360,6 +1368,7 @@ function playCurrentBuffer() {
 startAudioButton.addEventListener("click", async () => {  
   if (audioBuffers.length === 0) {  
     setStatus("Pilih file audio terlebih dahulu!");  
+    alert("Silakan pilih file audio menggunakan tombol 'PILIH BANYAK FILE AUDIO' terlebih dahulu.");  
     return;  
   }  
   const ctx = createAudioContext();  
@@ -1397,7 +1406,7 @@ startMicButton.addEventListener("click", async () => {
     splitter.connect(mixerStrips[0].hpf, 0);  
     splitter.connect(mixerStrips[1].hpf, 1);  
   
-    isPlaying = true; // Tandai agar indikator meter mulai bergerak  
+    isPlaying = true;  
     startAudioButton.classList.add("active");  
     setAudioStatus("2-Channel Input Aktif ➡️ Mixer Ch 1-2 ➡️ Alesis FX ➡️ Equalizer.");  
   } catch (err) {   
@@ -1826,7 +1835,6 @@ function startRealMeters() {
   }  
   updateAllMeters();  
 }  
-</script>
-
+  </script>  
 </body>  
-</html>  
+</html>
