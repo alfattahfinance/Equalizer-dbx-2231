@@ -78,7 +78,7 @@ header, .topbar {
 .status-led { width: 8px; height: 8px; border-radius: 50%; background: #252b35; border: 1px solid #485260; display: inline-block; }  
 .status-led.active-led { background: #10b981; border-color: #34d399; box-shadow: 0 0 6px #10b981; }  
 .status-led.bypass-led { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #ef4444; }  
-.status-led.test-led { background: #f59e0b; border-color: #fbbf24; box-shadow: 0 0 6px #f59e0b; }  
+.status-led.test-led { background: #f59e0b; border-color: #fbbf24; box-shadow: 0 0 6px #fbbf24; }  
   
 .channel-title { font-size: 12px; font-weight: bold; color: #38bdf8; }  
 .channel-controls { display: flex; gap: 6px; align-items: center; }  
@@ -751,7 +751,7 @@ header, .topbar {
         </div>  
       </div>  
   
-      <div id="feedbackStatus" class="feedback-status">Alur Sinyal: [2-CH INPUT] ➡️ [DIGITAL MIXER CH 1-2] ➡️ [ALESIS FX] ➡️ [GQX-3102 EQ] ➡️ [2-CH OUTPUT]</div>  
+      <div id="feedbackStatus" class="feedback-status">Alur Sinyal: [2-CH INPUT] ➡️ [DIGITAL MIXER CH 1-2] ➡️️ [ALESIS FX] ➡️ [GQX-3102 EQ] ➡️ [2-CH OUTPUT]</div>  
       <div id="audioStatus" class="audio-status">Audio belum aktif.</div>  
     </section>  
   
@@ -968,7 +968,6 @@ async function populateAudioDevices() {
 navigator.mediaDevices.addEventListener('devicechange', populateAudioDevices);  
 populateAudioDevices();  
   
-/* --- PERBAIKAN RESPONSIVITAS OUTPUT AUDIO (SINK ID) --- */  
 audioOutputSelect.addEventListener("change", async () => {  
   const deviceId = audioOutputSelect.value;  
   createAudioContext();  
@@ -982,7 +981,6 @@ audioOutputSelect.addEventListener("change", async () => {
       setAudioStatus("Gagal mengalihkan via setSinkId. Periksa pengaturan sistem.");  
     }  
   } else {  
-    // Fallback jika browser tidak mendukung setSinkId secara langsung  
     setAudioStatus("Browser Anda tidak mendukung setSinkId otomatis. Atur default output di Sound Settings OS.");  
   }  
 });  
@@ -1219,7 +1217,6 @@ function initializeAudioGraph() {
   
   rebuildAudioRouting();  
   
-  // Terapkan sink ID awal jika sudah dipilih di dropdown  
   const initialOutputId = audioOutputSelect.value;  
   if (initialOutputId && typeof audioContext.setSinkId === 'function') {  
     audioContext.setSinkId(initialOutputId).catch(() => {});  
@@ -1248,15 +1245,11 @@ function rebuildAudioRouting() {
     try { audioChannels[1].inputGain.disconnect(); } catch (e) {}  
   } catch (e) {}  
   
-  // Routing 2 In / 2 Out Stereo Subgroup  
-  const subgroupL = audioContext.createGain();  
-  const subgroupR = audioContext.createGain();  
-  
-  if (mixerStrips[0]) mixerStrips[0].mute.connect(subgroupL);  
-  if (mixerStrips[1]) mixerStrips[1].mute.connect(subgroupR);  
-  
-  subgroupL.connect(masterStripGain);  
-  subgroupR.connect(masterStripGain);  
+  // Routing Jalur: Mixer Strips ➡️️ Master Strip ➡️ Alesis FX ➡️ EQ Channels ➡️ Master Output  
+  if (mixerStrips[0]) mixerStrips[0].mute.connect(masterStripGain);  
+  if (mixerStrips[1]) mixerStrips[1].mute.connect(masterStripGain);  
+  if (mixerStrips[2]) mixerStrips[2].mute.connect(masterStripGain);  
+  if (mixerStrips[3]) mixerStrips[3].mute.connect(masterStripGain);  
   
   masterStripGain.connect(alesisInputMerger);  
   
@@ -1341,21 +1334,17 @@ function playCurrentBuffer() {
   activeSourceNode = audioContext.createBufferSource();  
   activeSourceNode.buffer = buffer;  
   
-  // Arahkan ke Channel 1 (L) & Channel 2 (R) secara Stereo jika buffer mendukung  
-  if (buffer.numberOfChannels >= 2) {  
-    const splitter = audioContext.createChannelSplitter(2);  
-    activeSourceNode.connect(splitter);  
-    splitter.connect(mixerStrips[0].hpf, 0);  
-    splitter.connect(mixerStrips[1].hpf, 1);  
-  } else {  
-    activeSourceNode.connect(mixerStrips[0].hpf);  
-    activeSourceNode.connect(mixerStrips[1].hpf);  
-  }  
+  const splitter = audioContext.createChannelSplitter(2);  
+  activeSourceNode.connect(splitter);  
+  
+  // Hubungkan ke Mixer Strip 1 (L) dan Strip 2 (R)  
+  splitter.connect(mixerStrips[0].hpf, 0);  
+  splitter.connect(mixerStrips[1].hpf, 1);  
   
   activeSourceNode.start(0);  
   isPlaying = true;  
   startAudioButton.classList.add("active");  
-  setAudioStatus("Memutar file: " + audioFileNames[currentPlaylistIndex] + " ➡️ Stereo Mixer Ch 1-2 ➡️ Alesis FX ➡️ EQ");  
+  setAudioStatus("Memutar file: " + audioFileNames[currentPlaylistIndex] + " ➡️️ Mixer Ch 1-2 ➡️ Alesis FX ➡️ EQ");  
   
   activeSourceNode.onended = () => {  
     if (isPlaying && audioBuffers.length > 0) {  
@@ -1397,7 +1386,6 @@ startMicButton.addEventListener("click", async () => {
     microphoneStream = await navigator.mediaDevices.getUserMedia(constraints);  
     microphoneSource = audioContext.createMediaStreamSource(microphoneStream);  
     
-    // Split 2 Input Channel Mic / USB Interface ke Ch 1 & Ch 2  
     const splitter = audioContext.createChannelSplitter(2);  
     microphoneSource.connect(splitter);  
     splitter.connect(mixerStrips[0].hpf, 0);  
@@ -1558,7 +1546,7 @@ const tftDatabase = {
         <div class="tft-interactive-item"><label>Buffer Size</label><select><option>256 Samples</option><option>512 Samples</option></select></div>  
       </div>  
     `,  
-    encoders: [{name:"GAIN L", val:"+12dB"}, {name:"GAIN R", val:"+12dB"}, {name:"HPF", val:"80Hz"}, {name:"DELAY", val:"0.0ms"}, {name:"WIDTH", val:"100%บาล"}, {name:"TRIM", val:"0.0dB"}]  
+    encoders: [{name:"GAIN L", val:"+12dB"}, {name:"GAIN R", val:"+12dB"}, {name:"HPF", val:"80Hz"}, {name:"DELAY", val:"0.0ms"}, {name:"WIDTH", val:"100%"}, {name:"TRIM", val:"0.0dB"}]  
   },  
   gate: {  
     title: "NOISE GATE / EXPANDER PROCESSOR",  
